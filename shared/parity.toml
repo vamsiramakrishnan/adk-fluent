@@ -1,0 +1,197 @@
+# =============================================================================
+# CROSS-LANGUAGE PARITY TABLE
+# =============================================================================
+# Single source of truth for Python ↔ TypeScript API parity. Consumed by:
+#
+#   * python/tests/test_parity.py   — asserts every row exists on both sides
+#   * TS test in ts/tests/parity.test.ts (via JSON mirror) — same, from TS
+#   * docs autogen (future): renders this table into CLAUDE.md / README
+#
+# When you add a new operator or cross-language method, add a row here *first*.
+# CI will fail until the corresponding Python operator and TS method both
+# exist — that's the whole point of this file.
+
+[meta]
+schema_version = 1
+description = "Python operators ↔ TypeScript method names parity map"
+
+# -----------------------------------------------------------------------------
+# BUILDER-LEVEL COMPOSITION OPERATORS
+# -----------------------------------------------------------------------------
+# Each row: a single composition primitive that must exist on BuilderBase in
+# both languages. ``python_operator`` is the dunder name (``__rshift__``, …);
+# ``python_example`` shows the operator form; ``ts_method`` is the camelCase
+# method name on the TS BuilderBase.
+
+[[operators]]
+name = "sequential"
+python_operator = "__rshift__"
+python_example  = "a >> b"
+ts_method       = "then"
+ts_example      = "a.then(b)"
+returns         = "Pipeline"
+description     = "Run a, then run b. Left-associative; flattens into a single Pipeline."
+
+[[operators]]
+name = "parallel"
+python_operator = "__or__"
+python_example  = "a | b"
+ts_method       = "parallel"
+ts_example      = "a.parallel(b)"
+returns         = "FanOut"
+description     = "Run a and b concurrently. Left-associative; flattens into a single FanOut."
+
+[[operators]]
+name = "loop"
+python_operator = "__mul__"
+python_example  = "a * 3"
+ts_method       = "times"
+ts_example      = "a.times(3)"
+returns         = "Loop"
+description     = "Repeat the workflow N times. Integer argument = fixed iterations."
+
+[[operators]]
+name = "loop_until"
+python_operator = "__mul__"
+python_example  = "a * until(pred, max=5)"
+ts_method       = "timesUntil"
+ts_example      = "a.timesUntil(pred, { max: 5 })"
+returns         = "Loop"
+description     = "Repeat until predicate is true (bounded by ``max``)."
+
+[[operators]]
+name = "fallback"
+python_operator = "__floordiv__"
+python_example  = "a // b"
+ts_method       = "fallback"
+ts_example      = "a.fallback(b)"
+returns         = "Fallback"
+description     = "Try a; if a raises, try b. Chain further with repeated ``//`` / ``.fallback``."
+
+[[operators]]
+name = "structured_output"
+python_operator = "__matmul__"
+python_example  = "a @ Schema"
+ts_method       = "outputAs"
+ts_example      = "a.outputAs(Schema)"
+returns         = "Agent"
+description     = "Constrain LLM response to a Pydantic/Zod schema. Runtime enforces JSON shape."
+
+# -----------------------------------------------------------------------------
+# NAMESPACE COMPOSITE ATTACHMENT
+# -----------------------------------------------------------------------------
+# Python: ``Composite >> Builder`` dispatches via ``__rshift__`` to the
+# builder's setter. TS has no operator overloading, so composites expose
+# ``.attachTo(builder)`` that calls the same setter. The *setter* method is
+# identical in both languages (same name, same semantics).
+
+[[composites]]
+namespace       = "C"
+python_form     = "C.window(5) >> agent"
+ts_form         = "C.window(5).attachTo(agent)"
+target_method   = "context"
+
+[[composites]]
+namespace       = "P"
+python_form     = "P.role('analyst') >> agent"
+ts_form         = "P.role('analyst').attachTo(agent)"
+target_method   = "instruct"
+
+[[composites]]
+namespace       = "T"
+python_form     = "T.fn(search) >> agent"
+ts_form         = "T.fn(search).attachTo(agent)"
+target_method   = "tools"
+
+[[composites]]
+namespace       = "G"
+python_form     = "G.length(max=500) >> agent"
+ts_form         = "G.length({ max: 500 }).attachTo(agent)"
+target_method   = "guard"
+
+[[composites]]
+namespace       = "M"
+python_form     = "M.retry() >> agent"
+ts_form         = "M.retry().attachTo(agent)"
+target_method   = "middleware"
+
+[[composites]]
+namespace       = "A"
+python_form     = "A.publish('out.json') >> agent"
+ts_form         = "A.publish('out.json').attachTo(agent)"
+target_method   = "artifacts"
+
+# -----------------------------------------------------------------------------
+# NAMED-WORD ALIASES (top-level package exports)
+# -----------------------------------------------------------------------------
+# Python has every named alias (State, Context, Prompt, Guard, Middleware,
+# Tool, Artifact, Eval, Reactive, Harness, Ui). TS has all of them EXCEPT
+# ``State`` — the name is already taken by an exported type alias
+# ``Record<string, unknown>``. This is intentional, tracked here so CI
+# doesn't fight it.
+
+[[aliases]]
+python_name     = "State"
+short           = "S"
+ts_name         = ""            # intentionally blank — use S directly in TS
+reason          = "TS exports ``type State = Record<string, unknown>``; alias would collide."
+
+[[aliases]]
+python_name     = "Context"
+short           = "C"
+ts_name         = "Context"
+reason          = ""
+
+[[aliases]]
+python_name     = "Prompt"
+short           = "P"
+ts_name         = "Prompt"
+reason          = ""
+
+[[aliases]]
+python_name     = "Guard"
+short           = "G"
+ts_name         = "Guard"
+reason          = ""
+
+[[aliases]]
+python_name     = "Middleware"
+short           = "M"
+ts_name         = "Middleware"
+reason          = ""
+
+[[aliases]]
+python_name     = "Tool"
+short           = "T"
+ts_name         = "Tool"
+reason          = ""
+
+[[aliases]]
+python_name     = "Artifact"
+short           = "A"
+ts_name         = "Artifact"
+reason          = ""
+
+[[aliases]]
+python_name     = "Eval"
+short           = "E"
+ts_name         = "Eval"
+reason          = ""
+
+[[aliases]]
+python_name     = "Reactive"
+short           = "R"
+ts_name         = "Reactive"
+reason          = ""
+
+[[aliases]]
+python_name     = "Harness"
+short           = "H"
+ts_name         = "Harness"
+reason          = ""
+
+[[aliases]]
+python_name     = "Ui"
+short           = "UI"
+ts_name         = "Ui"
+reason          = ""
