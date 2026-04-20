@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-04-20
+
 ### Added
 
 - **`R` namespace — reactors native to the fluent builder** (Python + TypeScript parity). Signals and rules are now first-class builder concerns, matching the weight of `S` / `C` / `M`. The 100x move is a registry-backed facade that turns signals into name-addressed cells and predicates into name-addressed factories, plus `Builder.on(predicate, handler?, opts?)` for declarative rule attachment and `R.compile(builders, {bus})` for tree-walking compilation across `Pipeline` / `FanOut` / `Loop`:
