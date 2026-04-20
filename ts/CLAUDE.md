@@ -316,6 +316,7 @@ Every type is re-exported at the package root::
       EventRecord, Cursor, TapeBackend,
       InMemoryBackend, JsonlBackend, NullBackend, ChainBackend, // session
       Signal, SignalPredicate, Reactor, ReactorRule,      // reactor
+      R, SignalRegistry, RuleSpec, ReactorPlugin,         // reactor (R namespace)
       AgentToken, TokenRegistry, WorkflowLifecyclePlugin, // harness
       SubagentSpec, SubagentRegistry, SubagentResult,
       SubagentRunner, FakeSubagentRunner, makeTaskTool,   // subagents
@@ -447,35 +448,90 @@ live writes with async ``tail(fromSeq)``::
   SessionPlugin                — ADK plugin that auto-forks after every
                                  agent via afterAgent callback
 
-### reactor — reactive signals over the durable tape
+### reactor — reactive signals native to the fluent builder
 
-Turns the durable tape into something agents can collaborate on: typed
-state cells (signals), declarative triggers (predicates), priority
-scheduling, and cooperative interrupts with a resume cursor::
+Signals and rules are first-class builder concerns, mirroring the ``S``
+(state), ``C`` (context), and ``M`` (middleware) namespaces. The 100x
+move is the ``R`` facade: a registry-backed namespace that turns signals
+into name-addressed cells and predicates into name-addressed factories,
+plus ``Builder.on(predicate, handler?, opts?)`` for declarative rule
+attachment and ``R.compile(builders, {bus})`` for tree-walking
+compilation::
 
-    import { Signal, Reactor } from "adk-fluent-ts";
-    const temp = new Signal("temp", 72.0).attach(bus);
-    const r = new Reactor();
-    r.when(temp.rising.where((v) => (v as number) > 90),
-           alertOps, { priority: 10 });
-    r.start();
+    import { Agent, R } from "adk-fluent-ts";
+
+    const temp = R.signal("temp", 72);
+
+    const cooler = new Agent("cooler", "gemini-2.5-flash")
+      .instruct("Plan a cool-down.")
+      .on(R.rising("temp").where((v) => (v as number) > 90),
+          handler,
+          { priority: 10 });
+
+    const reactor = R.compile([cooler], { bus });
+    reactor.start();
+    temp.set(95); // → cooler rule fires
+
+  R.signal(name, initial?)     — get-or-create a named signal in the
+                                 default registry. Idempotent: same name
+                                 returns the same instance.
+  R.get(name) / R.names()      — lookup / enumerate registered signals.
+                                 ``R.get()`` throws if missing.
+  R.changed / R.rising /
+    R.falling / R.is(name, v)  — name-addressed predicate factories.
+                                 Each resolves through the registry so
+                                 builders never juggle Signal objects.
+  R.any(...preds) /
+    R.all(...preds)            — n-ary disjunction / conjunction.
+  R.computed(name, fn)         — derived signal with auto-tracked deps
+                                 (reads via Signal.get are subscribed).
+  R.rule(pred, fn, opts?)      — register a standalone rule on the
+                                 default registry.
+  R.compile(builders, opts?)   — walk every builder's ``_reactor_rules``
+                                 plus registry rules, return a ready-to-
+                                 start ``Reactor``. ``opts.bus`` attaches
+                                 a bus to the registry+reactor.
+  R.attach(bus) / R.scope()    — attach a bus to the default registry /
+                                 return a fresh isolated registry for
+                                 tests and multi-tenant workflows.
+  R.clear()                    — drop every signal and standalone rule.
+  Builder.on(pred, fn?, opts?) — attach a RuleSpec to any builder. ``pred``
+                                 accepts a SignalPredicate or bare Signal
+                                 (promoted to ``.changed``); ``opts`` is
+                                 {name, priority, preemptive}.
+  ``builder._reactor_rules``   — read-only view of attached specs.
+
+Core types are exported alongside ``R``::
 
   Signal                       — typed state cell. .get() / .set(v, {force})
                                  / .update(fn) / .version /
                                  .subscribe(fn) → unsubscribe /
                                  .attach(bus). Equal-to-current writes
                                  are no-ops unless ``force: true``.
-  SignalPredicate              — declarative trigger. signal.changed /
-                                 .rising / .falling / .is(value). Compose
-                                 with ``a.and(b)``, ``a.or(b)``, ``a.not()``,
-                                 ``.where(fn)``, ``.debounce(ms)``,
-                                 ``.throttle(ms)``.
+  SignalPredicate              — declarative trigger. ``a.and(b)``,
+                                 ``a.or(b)``, ``a.not()``, ``.where(fn)``,
+                                 ``.debounce(ms)``, ``.throttle(ms)``.
+                                 **0.17.0**: debounce/throttle are now
+                                 immutable — they return a fresh
+                                 predicate instead of mutating self.
   Reactor                      — scheduler of (predicate, handler, options)
-                                 rules. .when(pred, fn, {priority,
-                                 preemptive, agentName}) / .start() /
-                                 .stop(). Rules ordered by priority
-                                 (lower wins).
-  ReactorRule                  — frozen rule record returned by .when().
+                                 rules. ``.when(pred, fn, {priority,
+                                 preemptive, agentName})``, ``.start()``,
+                                 ``.stop()``, ``.getRules()``. Rules
+                                 ordered by priority (lower wins).
+  ReactorPlugin                — owns the reactor's lifecycle.
+                                 ``onSessionStart`` starts it,
+                                 ``onSessionEnd`` stops it; register with
+                                 the runner like any ADK plugin.
+  SignalRegistry               — thread-safe name→signal map backing the
+                                 ``R`` facade. One per session.
+                                 ``.signal(name, initial)``, ``.get(name)``,
+                                 ``.rule(...)``, ``.attach(bus)``, etc.
+  RuleSpec                     — frozen declarative rule:
+                                 ``{predicate, handler, name, priority,
+                                 preemptive}``. Stored on builders,
+                                 materialized into ``ReactorRule`` by
+                                 ``R.compile()``.
   AgentToken                   — per-agent cancellation token extending
                                  CancellationToken with ``agentName`` and
                                  ``resumeCursor``; cancelWithCursor(c)

@@ -18,17 +18,29 @@ deterministically replayed for tests.
 
 from __future__ import annotations
 
+from adk_fluent._reactor._namespace import (
+    R,
+    RuleSpec,
+    SignalRegistry,
+    default_registry,
+)
+from adk_fluent._reactor._plugin import ReactorPlugin
 from adk_fluent._reactor._predicate import SignalPredicate
 from adk_fluent._reactor._reactor import Reactor, ReactorRule
 from adk_fluent._reactor._signal import Signal
 from adk_fluent._reactor._tracking import computed, reaction, track_reads
 
 __all__ = [
+    "R",
     "Reactor",
+    "ReactorPlugin",
     "ReactorRule",
+    "RuleSpec",
     "Signal",
     "SignalPredicate",
+    "SignalRegistry",
     "computed",
+    "default_registry",
     "reaction",
     "track_reads",
 ]

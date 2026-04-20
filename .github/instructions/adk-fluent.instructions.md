@@ -182,6 +182,21 @@ Each method controls exactly one concern. See `data_flow()` for a snapshot.
   .timeout(seconds)            — wrap with time limit (returns TimedAgent)
   .dispatch(name=, on_complete=) — fire-and-forget background task (non-blocking)
 
+### Reactive (R namespace)
+
+  .on(predicate, handler=None, *, priority=0, preemptive=False)
+                               — declarative reactor rule. When ``predicate``
+                                 matches a SignalChanged event on the tape,
+                                 ``handler`` fires with priority-based
+                                 scheduling. If ``handler`` is omitted the
+                                 builder itself becomes the handler and is
+                                 invoked via ``.ask_async``. Works on any
+                                 builder (Agent, Pipeline, FanOut, Loop).
+                                 Accepts either a SignalPredicate or a bare
+                                 Signal (promoted to ``.changed``). Rules are
+                                 materialized by ``R.compile(*builders, tape=,
+                                 bus=)`` into a ready-to-run :class:`Reactor`.
+
 ### Transfer control (multi-agent routing)
 
   .sub_agent(agent)            — add child agent as a transfer target. The LLM decides
@@ -622,18 +637,53 @@ reactor + durable-events section below for the full surface::
   SessionPlugin                — ADK plugin that auto-forks after every agent
                                  via after_agent_callback (``auto:<name>``)
 
-### _reactor — reactive signals over the durable tape
+### _reactor — reactive signals native to the fluent builder
 
 Turns the durable tape into something agents can collaborate on: typed
 state cells (signals), declarative triggers (predicates), priority
-scheduling, and cooperative interrupts with a resume cursor::
+scheduling, and cooperative interrupts with a resume cursor. The
+:class:`R` namespace (parallel to ``S`` / ``C`` / ``M``) is the
+ergonomic entry point — signals are name-addressed, predicates are
+first-class values, and builders attach rules declaratively via
+``.on(predicate)``::
 
-    from adk_fluent import Signal, Reactor
-    temp = Signal("temp", 72.0).attach(bus)
-    r = Reactor()
-    r.when(temp.rising.where(lambda v: v > 90), alert_ops, priority=10)
-    r.start()
+    from adk_fluent import Agent, R
 
+    temp = R.signal("temp", 72)
+
+    cooler = (
+        Agent("cooler", "gemini-2.5-flash")
+        .instruct("Plan a cool-down.")
+        .on(R.rising("temp").where(lambda v, _: v > 90), priority=10)
+    )
+
+    reactor = R.compile(cooler, tape=tape, bus=bus)
+    await reactor.run()
+
+  R                            — reactive namespace facade. Registry-backed
+                                 signal + predicate factories. All methods
+                                 delegate to a module-level default registry
+                                 unless ``R.scope()`` is used for isolation.
+    R.signal(name, initial=)     — get-or-create a named signal (idempotent)
+    R.get(name)                  — existing signal or raise KeyError
+    R.changed / .rising /        — name-addressed predicate factories.
+    .falling / .is_(name, v)
+    R.any(*preds) / R.all(*preds) — n-ary composition (| and & sugar)
+    R.computed(name, fn)         — derived signal; auto-tracks .get() reads
+    R.rule(pred, fn, **opts)     — register a standalone (non-builder) rule
+    R.compile(*builders, tape=,  — walk builders + registry, return a ready
+             bus=)                 :class:`Reactor` with every rule wired
+    R.attach(bus) / .scope()     — swap bus or open an isolated registry
+  SignalRegistry               — thread-safe name→signal store backing ``R``.
+                                 ``R.scope()`` returns a fresh one.
+  RuleSpec                     — frozen (predicate, handler, priority,
+                                 preemptive) attached to builders via
+                                 :meth:`BuilderBase.on`. Resolved by
+                                 :meth:`R.compile`.
+  ReactorPlugin                — ADK plugin that owns reactor lifecycle.
+                                 ``.on_session_start`` kicks the run loop,
+                                 ``.on_session_end`` stops + drains it.
+                                 Drops into ``App.plugin(ReactorPlugin(reactor))``.
   Signal                       — typed state cell. .get() / .set(v, force=)
                                  / .update(fn) / .version / .subscribe(fn)
                                  / .attach(bus) — equal-to-current writes
@@ -642,7 +692,9 @@ scheduling, and cooperative interrupts with a resume cursor::
                                  .rising / .falling / .is_(value). Compose
                                  with ``a & b``, ``a | b``, ``~a``,
                                  ``.where(fn)``, ``.debounce(ms)``,
-                                 ``.throttle(ms)``.
+                                 ``.throttle(ms)``. ``.debounce`` /
+                                 ``.throttle`` return fresh predicates —
+                                 base predicate stays immutable.
   Reactor                      — scheduler of (predicate, handler, options)
                                  rules. .when(pred, fn, priority=, preemptive=,
                                  agent_name=) / .start() / .stop().

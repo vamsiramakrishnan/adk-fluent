@@ -14,6 +14,14 @@
 import type { CallbackFn, StatePredicate, UntilSpec } from "./types.js";
 import { visualize as visualizeRender } from "../visualize/index.js";
 import type { VisualizeOptions } from "../visualize/index.js";
+import {
+  Signal,
+  SignalPredicate,
+  makeRuleSpec,
+  type ReactorHandler,
+  type RuleSpec,
+  type RuleSpecOptions,
+} from "../namespaces/reactor.js";
 
 /**
  * Workflow builder registry — populated by workflow.ts at module load to
@@ -386,6 +394,67 @@ export abstract class BuilderBase<TBuild = unknown> {
   /** Inject state[key] values into this agent's prompt. */
   reads(...keys: string[]): this {
     return this._setConfig("_reads_keys", keys);
+  }
+
+  // ------------------------------------------------------------------
+  // Reactive rules (.on)
+  // ------------------------------------------------------------------
+
+  /**
+   * Attach a declarative reactor rule to this builder.
+   *
+   * When ``R.compile()`` walks this tree it turns every attached
+   * ``RuleSpec`` into a live ``ReactorRule``. If ``handler`` is omitted
+   * the default coerces the builder itself (``.askAsync()``) into a
+   * handler so the rule re-invokes the agent with a short description
+   * of the triggering signal change.
+   *
+   * ``predicate`` accepts either a bare ``Signal`` (promoted to
+   * ``signal.changed``) or a ``SignalPredicate``.
+   */
+  on(
+    predicate: SignalPredicate<unknown> | Signal<unknown>,
+    handler?: ReactorHandler,
+    opts: RuleSpecOptions = {},
+  ): this {
+    let pred: SignalPredicate<unknown>;
+    if (predicate instanceof SignalPredicate) {
+      pred = predicate;
+    } else if (predicate instanceof Signal) {
+      pred = (predicate as Signal<unknown>).changed;
+    } else {
+      throw new TypeError(
+        ".on(predicate, ...) requires a SignalPredicate or Signal. " +
+          `Got ${typeof predicate}.`,
+      );
+    }
+
+    const name = opts.name ?? this.name;
+    const resolved: ReactorHandler = handler ?? this._defaultReactorHandler();
+    const spec = makeRuleSpec(pred, resolved, { ...opts, name });
+
+    const next = this._clone();
+    const existing = (next._lists.get("_reactor_rules") ?? []) as RuleSpec[];
+    next._lists.set("_reactor_rules", [...existing, spec]);
+    return next;
+  }
+
+  /**
+   * Default reactor handler: fire-and-forget run of this builder.
+   * Subclasses that know how to invoke themselves (e.g. Agent) override.
+   */
+  protected _defaultReactorHandler(): ReactorHandler {
+    return async () => {
+      // base no-op; Agent overrides with an .askAsync() call.
+    };
+  }
+
+  /**
+   * Read-only view of reactor rules attached via ``.on()``. Useful for
+   * tests and introspection.
+   */
+  get _reactor_rules(): readonly RuleSpec[] {
+    return (this._lists.get("_reactor_rules") ?? []) as RuleSpec[];
   }
 
   // ------------------------------------------------------------------

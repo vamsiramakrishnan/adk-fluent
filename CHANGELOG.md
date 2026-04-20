@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`R` namespace — reactors native to the fluent builder** (Python + TypeScript parity). Signals and rules are now first-class builder concerns, matching the weight of `S` / `C` / `M`. The 100x move is a registry-backed facade that turns signals into name-addressed cells and predicates into name-addressed factories, plus `Builder.on(predicate, handler?, opts?)` for declarative rule attachment and `R.compile(builders, {bus})` for tree-walking compilation across `Pipeline` / `FanOut` / `Loop`:
+
+    ```python
+    # before — hand-built sequence of four distinct objects
+    bus  = EventBus()
+    temp = Signal("temp", 72).attach(bus)
+    r    = Reactor()
+    r.when(temp.rising.where(lambda v: v > 90), handler, priority=10)
+    r.start()
+
+    # after — name-addressed, declarative, composable
+    temp   = R.signal("temp", 72)
+    cooler = (Agent("cooler", "gemini-2.5-flash")
+              .instruct("Plan a cool-down.")
+              .on(R.rising("temp").where(lambda v: v > 90),
+                  handler, priority=10))
+    reactor = R.compile([cooler], bus=bus); reactor.start()
+    ```
+
+  Both ports ship with an end-to-end cookbook example (`81_reactor_native.py` / `.ts`) and 21 tests apiece (`test_reactor_namespace.py` / `reactor-namespace.test.ts`).
+
+- **`SignalRegistry`** — thread-safe (Python) / async-safe (TS) name→signal map backing the `R` facade. One per session. Exposes `.signal(name, initial)`, `.get(name)`, `.has(name)`, `.names()`, `.rule(...)`, `.attach(bus)`, `.clear()`. `R.scope()` returns a fresh isolated registry for tests and multi-tenant workflows.
+- **`RuleSpec`** — frozen declarative rule record (`{predicate, handler, name, priority, preemptive}`) stored on builders via `.on()` and materialised into live `ReactorRule` instances by `R.compile()`. Stored as `builder._reactor_rules` (read-only view).
+- **`ReactorPlugin`** — owns the reactor's lifecycle as an ADK `BasePlugin`. `on_session_start` starts the reactor, `on_session_end` stops it. Drop-in replacement for manual `reactor.start()/stop()` calls.
+- **`R.computed(name, fn)`** — derived signal with auto-tracked dependencies. Reads via `Signal.get()` inside `fn` are transparently subscribed; the computed signal recomputes when any dep changes. Exported as `computed` at the package root in TS.
+
+### Changed
+
+- **`SignalPredicate.debounce(ms)` / `.throttle(ms)` are now immutable** (Python + TS). Previously both methods mutated `self` and returned `self` — calling `base.debounce(50)` silently rewrote every other user of `base`. They now return a fresh `SignalPredicate` with the updated window and leave the receiver untouched. This is a quiet correctness fix: any code that chained `.debounce()/.throttle()` onto a throw-away predicate continues to work; code that intentionally shared a base predicate now gets the correct isolation.
+- **Harness re-exports** — `R`, `SignalRegistry`, `RuleSpec`, `ReactorPlugin`, `computed`, `make_rule_spec` / `makeRuleSpec` are now exported from the top-level package in both Python (`from adk_fluent import R, SignalRegistry, ...`) and TypeScript (`import { R, SignalRegistry, ... } from "adk-fluent-ts"`).
+
+### Documentation
+
+- **`CLAUDE.md` + `ts/CLAUDE.md` regenerated** — the auto-generated reactor section in `shared/scripts/llms_generator.py` (`_TS_HARNESS_PACKAGES`) now documents the `R` namespace, `Builder.on()`, the `SignalRegistry` / `RuleSpec` / `ReactorPlugin` trio, and the debounce/throttle immutability fix. The same text flows through `just llms` to `docs/llms.txt`, `docs/llms-ts.txt`, `.clinerules/adk-fluent.md`, `.cursor/rules/adk-fluent.mdc`, `.github/instructions/adk-fluent.instructions.md`, and `.windsurfrules`.
+
+## [0.16.2] - 2026-04-20
+
+### Changed
+
+- **Release flow** — cut this version through `just rel-prepare patch` rather than hand-editing `VERSION`/`_version.py`/`package.json` and writing the changelog section manually. The recipe bumps all three version files, promotes `[Unreleased]` to a dated section, and stages a single `release: v<version>` commit, keeping the master `push · VERSION` trigger on a consistent shape.
+
+## [0.16.1] - 2026-04-20
+
+### Changed
+
+- **README hero** — consolidated the six-row, 30+ badge wall at the top of `README.template.md` into a single centered row of six essentials (PyPI, npm, Python, CI, Docs, License). The same template feeds `README.md`, `python/README.md` snippets, and the docs landing page, so every surface gets the cleaner look without a separate edit.
+
+### Fixed
+
+- **Release workflow startup failure** — `ts-npm-dry` declared `permissions: contents: read` only. GitHub validates the permission caps of every reusable-workflow caller at workflow parse time regardless of `if:` gating, so the `_publish-npm.yml` nested `publish` job's `id-token: write` request was rejected with `'id-token: write', but is only allowed 'id-token: none'`. Added `id-token: write` to the `ts-npm-dry` block; fresh dispatches now pass validation and reach the `plan → python-pypi + ts-npm → tag-release` stages.
+
 ## [0.16.0] - 2026-04-19
 
 ### Added
@@ -28,6 +81,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Generator non-determinism** — `_sort_and_group_imports` used `(not name.isupper(), name.lower())` as its isort key; collisions for siblings like `MCPTool` vs `McpTool` fell back to set iteration order (PYTHONHASHSEED-dependent), making `.pyi` output drift across runs. Added `name` as a case-sensitive tiebreaker so ties sort in ASCII order.
 - **pyi stub trailing newline** — `__init__.pyi` carried a stray trailing blank line that the `end-of-file-fixer` hook stripped on every commit; re-generation then re-added it. Removed the extra `append("")` in the stub emitter.
 - **flux renderer map formatting drift** — the React renderer index emitted quoted keys (`"FluxBadge": FluxBadge`) which prettier unquoted (valid JS identifiers don't need quotes), so each `just flux` run reintroduced a diff. The emitter now writes unquoted keys matching prettier's canonical form.
+- **Version drift blocked release** — `VERSION` stayed at `0.15.0` while `python/src/adk_fluent/_version.py` and `ts/package.json` advanced to `0.16.0`, failing `release preflight --strict` and skipping PyPI + npm publishes for the 0.16.0 cut. Re-synced all three files to `0.16.0` so the release workflow can fire cleanly.
+- **Release workflow startup failure** — `release.yml` declared `permissions: contents: read` at the workflow level but the jobs calling `_publish-python.yml` / `_publish-npm.yml` inherited that read-only cap. When the nested `publish` jobs requested `id-token: write` (PyPI Trusted Publishing + npm provenance) and `attestations: write` (PEP 740), GitHub rejected every dispatched run at validation with *"nested job 'publish' is requesting 'attestations: write, id-token: write', but is only allowed 'attestations: none, id-token: none'"* — so the 0.16.0 release never reached the publish step. Added per-job `permissions` blocks on the four reusable-workflow callers (`python-pypi`, `python-testpypi`, `ts-npm`, `ts-npm-dry`) to lift the cap to what each callee needs.
+
+### Documentation
+
+- **README badges refresh** — grouped badge block (Release, Reach, Engineering, Ecosystem, Community, Social) across `README.template.md`, `README.md`, and `python/README.md`. Adds npm + Node + TypeScript + Bundlephobia + Packagephobia + Codecov + CodeQL + OpenSSF Scorecard + Ruff + Prettier + DeepWiki + Codespaces + Gitpod alongside the existing PyPI signals. Footer gains a dark/light star-history chart and a contrib.rocks contributor ribbon.
 
 ## [0.15.0] - 2026-04-19
 

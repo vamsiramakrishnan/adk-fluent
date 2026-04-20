@@ -113,7 +113,17 @@ export {
   ForkManager,
 } from "./namespaces/harness/lifecycle.js";
 // Reactor — reactive signals + priority-scheduled rule dispatch.
-export { Signal, SignalPredicate, Reactor } from "./namespaces/reactor.js";
+export {
+  Signal,
+  SignalPredicate,
+  Reactor,
+  R,
+  SignalRegistry,
+  defaultRegistry,
+  ReactorPlugin,
+  computed,
+  makeRuleSpec,
+} from "./namespaces/reactor.js";
 export type {
   SignalOptions,
   SignalSubscriber,
@@ -123,6 +133,9 @@ export type {
   ReactorOptions,
   ReactorRule,
   ReactorRuleOptions,
+  RuleSpec,
+  RuleSpecOptions,
+  RCompileOptions,
 } from "./namespaces/reactor.js";
 // Stream replay — resume from a cursor (Phase D).
 export { streamFromCursor } from "./namespaces/harness/stream-replay.js";
