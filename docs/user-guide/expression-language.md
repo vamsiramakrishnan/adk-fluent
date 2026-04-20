@@ -602,6 +602,74 @@ const pipeline = new Agent("web", "gemini-2.5-flash")
 
 This expression combines parallel fan-out (`|`), state transforms (`S.merge`), typed output (`@ Report`), fallback (`//`), and conditional loops (`* until`).
 
+## Namespace composites attach via the same grammar
+
+The ``>>`` operator is overloaded so that a **namespace composite** on the left attaches itself to a **builder** on the right via the builder's corresponding setter. One grammar, one direction, every namespace:
+
+```python
+# Python
+from adk_fluent import Agent, C, G, M, P, T
+
+(
+    C.window(n=5)                                    # context
+    >> P.role("analyst") + P.task("crunch numbers")  # instruction
+    >> T.fn(search) | T.fn(fetch)                    # tools
+    >> G.pii() | G.length(max=500)                   # guards
+    >> M.retry(max_attempts=3) | M.log()             # middleware
+    >> Agent("worker", "gemini-2.5-flash")
+)
+```
+
+Each left-hand composite dispatches to the method listed below:
+
+| Composite       | Dispatches to      | Python            | TypeScript                       |
+| --------------- | ------------------ | ----------------- | -------------------------------- |
+| ``CTransform``  | ``.context(…)``    | ``C.xxx() >> a``  | ``C.xxx().attachTo(a)``          |
+| ``PTransform``  | ``.instruct(…)``   | ``P.xxx() >> a``  | ``P.xxx().attachTo(a)``          |
+| ``TComposite``  | ``.tools(…)``      | ``T.xxx() >> a``  | ``T.xxx().attachTo(a)``          |
+| ``GComposite``  | ``.guard(…)``      | ``G.xxx() >> a``  | ``G.xxx().attachTo(a)``          |
+| ``MComposite``  | ``.middleware(…)`` | ``M.xxx() >> a``  | ``M.xxx().attachTo(a)``          |
+| ``AComposite``  | ``.artifacts(…)``  | ``A.xxx() >> a``  | ``A.xxx().attachTo(a)``          |
+
+TypeScript cannot overload ``>>``, so each composite exposes an ``.attachTo(builder)`` method that performs the same dispatch:
+
+```typescript
+// TypeScript
+import { Agent, C, P, T, G, M } from "adk-fluent-ts";
+
+let a = new Agent("worker", "gemini-2.5-flash");
+a = C.window(5).attachTo(a);
+a = P.role("analyst").add(P.task("crunch numbers")).attachTo(a);
+a = T.fn(search).attachTo(a);
+a = G.length({ max: 500 }).attachTo(a);
+a = M.retry({ maxAttempts: 3 }).pipe(M.log()).attachTo(a);
+```
+
+### Named-word aliases
+
+Every single-letter namespace has a named-word alias that resolves to the exact same class. Pick whichever reads better for your team:
+
+| Single letter | Named alias     | Python | TypeScript                                          |
+| ------------- | --------------- | :----: | :-------------------------------------------------: |
+| ``S``         | ``State``       |   ✅   | ❌ (``State`` is already an exported type alias)    |
+| ``C``         | ``Context``     |   ✅   |                         ✅                          |
+| ``P``         | ``Prompt``      |   ✅   |                         ✅                          |
+| ``T``         | ``Tool``        |   ✅   |                         ✅                          |
+| ``G``         | ``Guard``       |   ✅   |                         ✅                          |
+| ``M``         | ``Middleware``  |   ✅   |                         ✅                          |
+| ``A``         | ``Artifact``    |   ✅   |                         ✅                          |
+| ``E``         | ``Eval``        |   ✅   |                         ✅                          |
+| ``R``         | ``Reactive``    |   ✅   |                         ✅                          |
+| ``H``         | ``Harness``     |   ✅   |                         ✅                          |
+| ``UI``        | ``Ui``          |   ✅   |                         ✅                          |
+
+```python
+# equivalent
+from adk_fluent import C, Context
+C.window(n=5) >> agent
+Context.window(n=5) >> agent    # same behavior, no imports change
+```
+
 ## Backend Compatibility
 
 All expression operators work identically across backends. The *definition* is the same — only execution semantics change:

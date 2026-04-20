@@ -14,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 import type { ToolFn } from "../core/types.js";
+import type { BuilderBase } from "../core/builder-base.js";
 import { A2UIError, A2UINotInstalled } from "../_exceptions.js";
 import { KNOWN_CATALOGS, type CatalogName } from "./ui.js";
 
@@ -35,6 +36,21 @@ export class TComposite {
   /** Convert to a flat tool array for passing to builder. */
   toArray(): ToolSpec[] {
     return [...this.items];
+  }
+
+  /**
+   * Attach this tool collection to a builder. Mirrors Python's
+   * ``T.fn(a) | T.fn(b) >> Agent(...)``. Returns the builder with
+   * this composite set as the agent's tools.
+   */
+  attachTo<B extends BuilderBase>(builder: B): B {
+    const setter = (builder as unknown as { tools: (v: unknown) => B }).tools;
+    if (typeof setter !== "function") {
+      throw new TypeError(
+        `TComposite.attachTo: builder has no .tools() method (builder is ${builder.constructor.name})`,
+      );
+    }
+    return setter.call(builder, this);
   }
 }
 

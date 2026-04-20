@@ -627,6 +627,18 @@ __all__ = [
     "ContractIssue",
     "DataFlowContract",
     "check_data_flow_contract",
+    # Named-word aliases for the single-letter namespaces (same objects).
+    "State",
+    "Context",
+    "Prompt",
+    "Guard",
+    "Middleware",
+    "Tool",
+    "Artifact",
+    "Eval",
+    "Reactive",
+    "Harness",
+    "Ui",
 ]
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
@@ -1255,6 +1267,25 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ContractIssue": (".testing", "ContractIssue"),
     "DataFlowContract": (".testing", "DataFlowContract"),
     "check_data_flow_contract": (".testing", "check_data_flow_contract"),
+    # ------------------------------------------------------------------
+    # Named-word aliases for the single-letter namespaces.
+    # Import whichever reads better for you:
+    #     from adk_fluent import S, C, P, G, M, T, A, E, R, H, UI
+    #     from adk_fluent import State, Context, Prompt, Guard, Middleware, \
+    #                            Tool, Artifact, Eval, Reactive, Harness, Ui
+    # Both point at the same objects — choose terseness or clarity per file.
+    # ------------------------------------------------------------------
+    "State": ("._transforms", "S"),
+    "Context": ("._context", "C"),
+    "Prompt": ("._prompt", "P"),
+    "Guard": ("._guards", "G"),
+    "Middleware": ("._middleware", "M"),
+    "Tool": ("._tools", "T"),
+    "Artifact": ("._artifacts", "A"),
+    "Eval": ("._eval", "E"),
+    "Reactive": ("._reactor", "R"),
+    "Harness": ("._harness", "H"),
+    "Ui": (".prelude", "UI"),
 }
 
 # Names that conflict with subpackage names — need special resolution

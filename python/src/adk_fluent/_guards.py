@@ -112,6 +112,19 @@ class GGuard:
             return GComposite([self, other])
         return NotImplemented
 
+    def __rshift__(self, other: Any) -> Any:
+        """Attach a single guard to a builder: ``GGuard >> Builder``.
+
+        Internal: user-facing ``G.xxx()`` factories return ``GComposite``
+        which handles attach via the ``Composite`` base. This method is
+        defensive for hand-constructed ``GGuard`` leaves.
+        """
+        from adk_fluent._base import BuilderBase
+
+        if isinstance(other, BuilderBase):
+            return other.guard(self)
+        return NotImplemented
+
     def __repr__(self) -> str:
         return f"GGuard({self._kind!r})"
 
@@ -122,10 +135,13 @@ class GGuard:
 class GComposite(Composite, kind="guard_chain"):
     """Composable guard chain. The result of any ``G.xxx()`` call.
 
-    Supports ``|`` for composition::
+    Supports ``|`` for composition, and ``>>`` to attach to a builder::
 
-        G.json() | G.length(max=500) | G.pii("redact")
+        agent = G.json() | G.length(max=500) >> Agent("x", "gemini-2.5-flash")
+        # equivalent to: Agent(...).guard(G.json() | G.length(max=500))
     """
+
+    _builder_attach_method = "guard"
 
     def __init__(self, guards: list[GGuard]) -> None:
         super().__init__(guards)

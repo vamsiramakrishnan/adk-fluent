@@ -40,10 +40,13 @@ __all__ = ["M", "MComposite"]
 class MComposite(Composite, kind="middleware_chain"):
     """Composable middleware chain. The result of any ``M.xxx()`` call.
 
-    Supports ``|`` for composition::
+    Supports ``|`` for composition, and ``>>`` to attach to a builder::
 
-        M.retry(3) | M.log() | MyMiddleware()
+        agent = M.retry(3) | M.log() >> Agent("x", "gemini-2.5-flash")
+        # equivalent to: Agent(...).middleware(M.retry(3) | M.log())
     """
+
+    _builder_attach_method = "middleware"
 
     def to_stack(self) -> list[Any]:
         """Flatten to list of protocol-level middleware instances."""

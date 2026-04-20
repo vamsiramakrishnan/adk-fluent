@@ -138,8 +138,17 @@ class CTransform:
         """Pipe: source | transform."""
         return CPipe(source=self, transform=other)
 
-    def __rshift__(self, other: CTransform) -> CPipe:
-        """Chain: alias for ``|`` (pipe). Provided for namespace consistency."""
+    def __rshift__(self, other: Any) -> Any:
+        """Chain or attach: ``self >> other``.
+
+        - ``CTransform >> Builder`` → attach via ``builder.context(self)``,
+          returns the modified builder.
+        - ``CTransform >> CTransform`` → pipe (returns ``CPipe``).
+        """
+        from adk_fluent._base import BuilderBase
+
+        if isinstance(other, BuilderBase):
+            return other.context(self)
         return self.__or__(other)
 
     def _as_list(self) -> tuple[CTransform, ...]:

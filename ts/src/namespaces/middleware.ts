@@ -10,6 +10,7 @@
  */
 
 import type { CallbackFn, State } from "../core/types.js";
+import type { BuilderBase } from "../core/builder-base.js";
 
 /** Descriptor for a single middleware in the composite. */
 export interface MiddlewareSpec {
@@ -29,6 +30,15 @@ export class MComposite {
   /** Convert to a flat middleware array for passing to builder. */
   toArray(): MiddlewareSpec[] {
     return [...this.middlewares];
+  }
+
+  /**
+   * Attach this middleware chain to a builder. Mirrors Python's
+   * ``M.retry() | M.log() >> Agent(...)``. Returns the builder with
+   * this composite appended to its middleware list.
+   */
+  attachTo<B extends BuilderBase>(builder: B): B {
+    return builder.middleware(this) as B;
   }
 }
 

@@ -15,6 +15,7 @@
  */
 
 import type { State } from "../core/types.js";
+import type { BuilderBase } from "../core/builder-base.js";
 
 /** A composable context transform descriptor. */
 export class CTransform {
@@ -47,6 +48,21 @@ export class CTransform {
       { source: this, transform: other },
       this.suppressHistory || other.suppressHistory,
     );
+  }
+
+  /**
+   * Attach this context transform to a builder. Mirrors Python's
+   * ``C.window(5) >> Agent(...)``. Returns the builder with this
+   * transform set as the agent's context spec.
+   */
+  attachTo<B extends BuilderBase>(builder: B): B {
+    const setter = (builder as unknown as { context: (v: unknown) => B }).context;
+    if (typeof setter !== "function") {
+      throw new TypeError(
+        `CTransform.attachTo: builder has no .context() method (builder is ${builder.constructor.name})`,
+      );
+    }
+    return setter.call(builder, this);
   }
 }
 

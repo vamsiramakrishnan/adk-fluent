@@ -330,6 +330,15 @@ export abstract class BuilderBase<TBuild = unknown> {
     return this._setConfig("_output_schema", schema);
   }
 
+  /**
+   * Attach middleware. Accepts an MComposite (``M.retry().pipe(M.log())``) or
+   * any single middleware spec. Multiple calls accumulate. Mirrors Python's
+   * ``.middleware()`` setter.
+   */
+  middleware(mw: unknown): this {
+    return this._addToList("middleware", mw);
+  }
+
   // ------------------------------------------------------------------
   // Introspection
   // ------------------------------------------------------------------

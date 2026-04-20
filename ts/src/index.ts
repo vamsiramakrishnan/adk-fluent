@@ -37,6 +37,18 @@ export { M, MComposite } from "./namespaces/middleware.js";
 export type { MiddlewareSpec } from "./namespaces/middleware.js";
 export { A, AComposite } from "./namespaces/artifacts.js";
 export type { ArtifactSpec } from "./namespaces/artifacts.js";
+
+// Named-word aliases for the single-letter namespaces. Prefer these when a
+// team's house style penalises single-letter identifiers; they resolve to the
+// exact same class objects as ``C``/``P``/``T``/``G``/``M``/``A``. (Note:
+// ``S`` has no ``State`` alias in TS because ``State`` is already an exported
+// type alias for ``Record<string, unknown>`` — use ``S`` directly.)
+export { C as Context } from "./namespaces/context.js";
+export { P as Prompt } from "./namespaces/prompt.js";
+export { T as Tool } from "./namespaces/tools.js";
+export { G as Guard } from "./namespaces/guards.js";
+export { M as Middleware } from "./namespaces/middleware.js";
+export { A as Artifact } from "./namespaces/artifacts.js";
 export {
   E,
   EComposite,
@@ -47,6 +59,7 @@ export {
   EvalSuite,
   ComparisonSuite,
 } from "./namespaces/eval.js";
+export { E as Eval } from "./namespaces/eval.js";
 export type { ECriterion, EPersonaSpec } from "./namespaces/eval.js";
 export {
   UI,
@@ -58,6 +71,7 @@ export {
   KNOWN_CATALOGS,
   activeCatalog,
 } from "./namespaces/ui.js";
+export { UI as Ui } from "./namespaces/ui.js";
 export type { UIBinding, UICheck, CatalogName } from "./namespaces/ui.js";
 
 // A2UI exceptions
@@ -65,6 +79,7 @@ export { A2UIError, A2UINotInstalled, A2UISurfaceError, A2UIBindingError } from 
 
 // H — Harness namespace (build-your-own coding agent)
 export { H } from "./namespaces/harness/H.js";
+export { H as Harness } from "./namespaces/harness/H.js";
 export {
   PermissionPolicy,
   ApprovalMemory,
@@ -124,6 +139,7 @@ export {
   computed,
   makeRuleSpec,
 } from "./namespaces/reactor.js";
+export { R as Reactive } from "./namespaces/reactor.js";
 export type {
   SignalOptions,
   SignalSubscriber,

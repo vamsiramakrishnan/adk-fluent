@@ -10,6 +10,7 @@
  */
 
 import type { State, StatePredicate } from "../core/types.js";
+import type { BuilderBase } from "../core/builder-base.js";
 import { STransform } from "./state.js";
 import { CTransform } from "./context.js";
 
@@ -31,6 +32,21 @@ export class AComposite {
   /** Convert to a flat array for passing to builder. */
   toArray(): ArtifactSpec[] {
     return [...this.ops];
+  }
+
+  /**
+   * Attach this artifact operation to a builder. Mirrors Python's
+   * ``A.publish("report.md", from_key="draft") >> Agent(...)`` / the
+   * ``Builder >> A.publish(...)`` reverse direction.
+   */
+  attachTo<B extends BuilderBase>(builder: B): B {
+    const setter = (builder as unknown as { artifacts: (...v: unknown[]) => B }).artifacts;
+    if (typeof setter !== "function") {
+      throw new TypeError(
+        `AComposite.attachTo: builder has no .artifacts() method (builder is ${builder.constructor.name})`,
+      );
+    }
+    return setter.call(builder, this);
   }
 }
 

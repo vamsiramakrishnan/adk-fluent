@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Unified operator grammar across namespaces** (Python + TypeScript parity). Every namespace composite — `CTransform`, `PTransform`, `TComposite`, `GComposite`, `MComposite`, `AComposite` — now attaches itself to a builder through the same grammar: `Composite >> Builder` in Python, `Composite.attachTo(builder)` in TypeScript. Before this change, each namespace picked its own attachment story (some used `.instruct()`, some `.guard()`, some nothing at all); now the direction is uniform and composition reads as one sentence:
+
+    ```python
+    # Python — one pipe, five attaches, one builder
+    from adk_fluent import Agent, C, G, M, P, T
+    agent = (
+        C.window(n=5)
+        >> P.role("analyst") + P.task("crunch")
+        >> T.fn(search)
+        >> G.length(max=500)
+        >> M.retry(max_attempts=3) | M.log()
+        >> Agent("worker", "gemini-2.5-flash")
+    )
+    ```
+
+    Python uses a shared `Composite._builder_attach_method` class var on `_composite.Composite` so each subclass opts in with a single string; `CTransform`, `PTransform`, and `GGuard` leaves dispatch through the same path. TypeScript cannot overload `>>`, so each composite exposes `.attachTo(builder)` that performs the same dispatch. See `docs/user-guide/expression-language.md` for the grammar table and `test_operator_grammar.py` / `operator-grammar.test.ts` for the parity test suites (9 cases each).
+- **Named-word aliases for every namespace** — pick whichever reads better for your team. `State` / `Context` / `Prompt` / `Tool` / `Guard` / `Middleware` / `Artifact` / `Eval` / `Reactive` / `Harness` / `Ui` now re-export the `S` / `C` / `P` / `T` / `G` / `M` / `A` / `E` / `R` / `H` / `UI` classes. TypeScript omits the `State` alias only because `State` is already an exported type alias for `Record<string, unknown>`; use `S` directly there.
+- **`BuilderBase.middleware()` in TypeScript** — adds parity with the Python setter. Previously middleware could only be wired through internal `_addToList("middleware", ...)`; now `new Agent(…).middleware(M.retry())` works the same on both sides, and is what `MComposite.attachTo(builder)` calls under the hood.
 - **`R` namespace — reactors native to the fluent builder** (Python + TypeScript parity). Signals and rules are now first-class builder concerns, matching the weight of `S` / `C` / `M`. The 100x move is a registry-backed facade that turns signals into name-addressed cells and predicates into name-addressed factories, plus `Builder.on(predicate, handler?, opts?)` for declarative rule attachment and `R.compile(builders, {bus})` for tree-walking compilation across `Pipeline` / `FanOut` / `Loop`:
 
     ```python

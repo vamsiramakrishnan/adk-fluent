@@ -133,6 +133,14 @@ class ATransform:
             return _fn_step(self) >> other
         return NotImplemented
 
+    def __rrshift__(self, other: Any) -> Any:
+        """Support ``Builder >> A.publish(...)`` — artifact op as trailing pipeline step."""
+        from adk_fluent._base import BuilderBase
+
+        if isinstance(other, BuilderBase):
+            return other >> self
+        return NotImplemented
+
     # --- NamespaceSpec protocol conformance ---
 
     @property

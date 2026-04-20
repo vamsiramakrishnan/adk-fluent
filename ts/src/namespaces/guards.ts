@@ -11,6 +11,7 @@
  */
 
 import type { CallbackFn, State } from "../core/types.js";
+import type { BuilderBase } from "../core/builder-base.js";
 
 /** Descriptor for a single guard in the composite. */
 export interface GuardSpec {
@@ -31,6 +32,21 @@ export class GComposite {
   /** Convert to a flat guard array for passing to builder. */
   toArray(): GuardSpec[] {
     return [...this.guards];
+  }
+
+  /**
+   * Attach this guard chain to a builder. Mirrors Python's
+   * ``G.pii() | G.length() >> Agent(...)``. Returns the builder
+   * with this composite registered as a guard.
+   */
+  attachTo<B extends BuilderBase>(builder: B): B {
+    const setter = (builder as unknown as { guard: (v: unknown) => B }).guard;
+    if (typeof setter !== "function") {
+      throw new TypeError(
+        `GComposite.attachTo: builder has no .guard() method (builder is ${builder.constructor.name})`,
+      );
+    }
+    return setter.call(builder, this);
   }
 }
 

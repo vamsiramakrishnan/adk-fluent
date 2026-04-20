@@ -117,8 +117,17 @@ class PTransform:
         """Pipe: source | transform."""
         return PPipe(source=self, transform=other)
 
-    def __rshift__(self, other: PTransform) -> PPipe:
-        """Chain: alias for ``|`` (pipe). Provided for namespace consistency."""
+    def __rshift__(self, other: Any) -> Any:
+        """Chain or attach: ``self >> other``.
+
+        - ``PTransform >> Builder`` → attach via ``builder.instruct(self)``,
+          returns the modified builder.
+        - ``PTransform >> PTransform`` → pipe (returns ``PPipe``).
+        """
+        from adk_fluent._base import BuilderBase
+
+        if isinstance(other, BuilderBase):
+            return other.instruct(self)
         return self.__or__(other)
 
     def _as_list(self) -> tuple[PTransform, ...]:

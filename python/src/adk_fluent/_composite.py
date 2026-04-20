@@ -28,14 +28,21 @@ __all__ = ["Composite"]
 class Composite:
     """Base for all namespace composite types.
 
-    Provides: ``__or__``, ``__ror__``, ``__repr__``, ``__len__``,
+    Provides: ``__or__``, ``__ror__``, ``__rrshift__``, ``__repr__``, ``__len__``,
     ``_kind``, ``_as_list``, ``_reads_keys``, ``_writes_keys``.
+
+    Subclasses may set ``_builder_attach_method`` to the Builder method
+    name that accepts this composite (e.g. ``"middleware"``, ``"guard"``,
+    ``"tools"``). When set, ``Composite >> Builder`` attaches the composite
+    to the builder and returns the modified builder — making the operator
+    grammar uniform across namespaces. See ``docs/reference/operators.md``.
     """
 
     __slots__ = ("_items", "_kind_override")
 
     _kind_tag: ClassVar[str]
     _child_repr: ClassVar[str] = "_kind"  # attribute to show in __repr__
+    _builder_attach_method: ClassVar[str | None] = None
 
     def __init_subclass__(cls, *, kind: str = "", **kw: Any) -> None:
         super().__init_subclass__(**kw)
@@ -78,6 +85,26 @@ class Composite:
         if isinstance(other, type(self)):
             return type(self)(other._items + self._items)
         return type(self)([other] + self._items)
+
+    # -- Attach to builder: Composite >> Builder -----------------------------
+
+    def __rshift__(self, other: Any) -> Any:
+        """Attach this composite to a builder: ``Composite >> Builder``.
+
+        Subclasses opt in by setting ``_builder_attach_method`` to the
+        name of the builder method that accepts this composite
+        (e.g. ``"middleware"``, ``"guard"``, ``"tools"``). When the
+        right-hand side is not a builder, returns ``NotImplemented`` so
+        Python tries the other side's ``__rrshift__``.
+        """
+        from adk_fluent._base import BuilderBase
+
+        if not isinstance(other, BuilderBase):
+            return NotImplemented
+        method = self._builder_attach_method
+        if method is None:
+            return NotImplemented
+        return getattr(other, method)(self)
 
     # -- Introspection --------------------------------------------------------
 

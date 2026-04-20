@@ -39,10 +39,13 @@ __all__ = [
 class TComposite(Composite, kind="tool_chain"):
     """Composable tool chain. The result of any ``T.xxx()`` call.
 
-    Supports ``|`` for composition::
+    Supports ``|`` for composition, and ``>>`` to attach to a builder::
 
-        T.fn(search) | T.fn(email) | T.google_search()
+        agent = T.fn(search) | T.fn(email) >> Agent("x", "gemini-2.5-flash")
+        # equivalent to: Agent(...).tools(T.fn(search) | T.fn(email))
     """
+
+    _builder_attach_method = "tools"
 
     def to_tools(self) -> list[Any]:
         """Flatten to ADK-compatible tool/toolset list.

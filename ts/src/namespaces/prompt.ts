@@ -14,6 +14,7 @@
  */
 
 import type { State } from "../core/types.js";
+import type { BuilderBase } from "../core/builder-base.js";
 
 // Section ordering priority
 const SECTION_ORDER: Record<string, number> = {
@@ -42,6 +43,20 @@ export class PTransform {
   /** Pipe: transform the rendered output. */
   pipe(other: PTransform): PTransform {
     return new PTransform(`${this.section}|${other.section}`, "", [this, other]);
+  }
+
+  /**
+   * Attach this prompt composition to a builder's instruction. Mirrors
+   * Python's ``P.role() + P.task() >> Agent(...)``.
+   */
+  attachTo<B extends BuilderBase>(builder: B): B {
+    const setter = (builder as unknown as { instruct: (v: unknown) => B }).instruct;
+    if (typeof setter !== "function") {
+      throw new TypeError(
+        `PTransform.attachTo: builder has no .instruct() method (builder is ${builder.constructor.name})`,
+      );
+    }
+    return setter.call(builder, this);
   }
 
   /** Render the full prompt string with sections ordered canonically. */
