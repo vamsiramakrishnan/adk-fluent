@@ -2,65 +2,13 @@
 
 Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.github.io/adk-docs/). Reduces agent creation from 22+ lines to 1-3 lines while producing identical native ADK objects.
 
-<!-- Release & registries -->
-<p>
-  <a href="https://pypi.org/project/adk-fluent/"><img alt="PyPI" src="https://img.shields.io/pypi/v/adk-fluent?logo=pypi&logoColor=white&label=PyPI&color=E65100"></a>
-  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="npm" src="https://img.shields.io/npm/v/adk-fluent-ts?logo=npm&logoColor=white&label=npm&color=CB3837"></a>
-  <a href="https://pypi.org/project/adk-fluent/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/adk-fluent?logo=python&logoColor=white&label=Python"></a>
-  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="Node" src="https://img.shields.io/node/v/adk-fluent-ts?logo=node.js&logoColor=white&label=Node"></a>
-  <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white"></a>
+<p align="center">
+  <a href="https://pypi.org/project/adk-fluent/"><img alt="PyPI" src="https://img.shields.io/pypi/v/adk-fluent?label=PyPI&color=3775A9"></a>
+  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="npm" src="https://img.shields.io/npm/v/adk-fluent-ts?label=npm&color=CB3837"></a>
+  <a href="https://pypi.org/project/adk-fluent/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/adk-fluent?label=Python&color=3776AB"></a>
+  <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/ci.yml?branch=master&label=CI"></a>
+  <a href="https://vamsiramakrishnan.github.io/adk-fluent/"><img alt="Docs" src="https://img.shields.io/badge/docs-latest-0A7EC2"></a>
   <a href="https://github.com/vamsiramakrishnan/adk-fluent/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/adk-fluent?color=informational"></a>
-</p>
-
-<!-- Reach & footprint -->
-<p>
-  <a href="https://pepy.tech/project/adk-fluent"><img alt="Downloads total" src="https://static.pepy.tech/badge/adk-fluent"></a>
-  <a href="https://pepy.tech/project/adk-fluent"><img alt="Downloads / month" src="https://static.pepy.tech/badge/adk-fluent/month"></a>
-  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="npm downloads" src="https://img.shields.io/npm/dm/adk-fluent-ts?logo=npm&logoColor=white&label=npm%20/month"></a>
-  <a href="https://bundlephobia.com/package/adk-fluent-ts"><img alt="Bundle size" src="https://img.shields.io/bundlephobia/minzip/adk-fluent-ts?label=minzip&logo=webpack&logoColor=white"></a>
-  <a href="https://packagephobia.com/result?p=adk-fluent-ts"><img alt="Install size" src="https://badgen.net/packagephobia/install/adk-fluent-ts"></a>
-</p>
-
-<!-- Engineering signals -->
-<p>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/ci.yml?branch=master&logo=github&label=CI"></a>
-  <a href="https://codecov.io/gh/vamsiramakrishnan/adk-fluent"><img alt="Coverage" src="https://codecov.io/gh/vamsiramakrishnan/adk-fluent/branch/master/graph/badge.svg"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/codeql.yml?label=CodeQL&logo=github"></a>
-  <a href="https://securityscorecards.dev/viewer/?uri=github.com/vamsiramakrishnan/adk-fluent"><img alt="OpenSSF Scorecard" src="https://api.securityscorecards.dev/projects/github.com/vamsiramakrishnan/adk-fluent/badge"></a>
-  <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
-  <a href="https://github.com/prettier/prettier"><img alt="Prettier" src="https://img.shields.io/badge/code_style-prettier-F7B93E?logo=prettier&logoColor=black"></a>
-  <a href="https://peps.python.org/pep-0561/"><img alt="Typed" src="https://img.shields.io/badge/typing-typed-3178C6?logo=python&logoColor=white"></a>
-</p>
-
-<!-- Ecosystem -->
-<p>
-  <a href="https://google.github.io/adk-docs/"><img alt="Google ADK" src="https://img.shields.io/badge/google--adk-%E2%89%A51.20-4285F4?logo=google&logoColor=white"></a>
-  <a href="https://ai.google.dev/gemini-api"><img alt="Gemini" src="https://img.shields.io/badge/Gemini-2.5-8E75B2?logo=googlegemini&logoColor=white"></a>
-  <a href="https://a2aproject.github.io/"><img alt="A2A protocol" src="https://img.shields.io/badge/A2A-ready-0F9D58"></a>
-  <a href="https://modelcontextprotocol.io/"><img alt="MCP" src="https://img.shields.io/badge/MCP-ready-9146FF"></a>
-  <a href="https://opentelemetry.io/"><img alt="OpenTelemetry" src="https://img.shields.io/badge/OTel-instrumented-425CC7?logo=opentelemetry&logoColor=white"></a>
-</p>
-
-<!-- Community & try-it-now -->
-<p>
-  <a href="https://vamsiramakrishnan.github.io/adk-fluent/"><img alt="Docs" src="https://img.shields.io/badge/docs-latest-E65100?logo=readthedocs&logoColor=white"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/wiki"><img alt="Wiki" src="https://img.shields.io/badge/wiki-GitHub-2EA043?logo=github&logoColor=white"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/blob/master/CHANGELOG.md"><img alt="Changelog" src="https://img.shields.io/badge/changelog-keep--a--changelog-E05735?logo=keepachangelog&logoColor=white"></a>
-  <a href="https://www.conventionalcommits.org"><img alt="Conventional Commits" src="https://img.shields.io/badge/commits-conventional-FE5196?logo=conventionalcommits&logoColor=white"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/blob/master/CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen?logo=github"></a>
-  <a href="https://github.com/codespaces/new?hide_repo_select=true&ref=master&repo=vamsiramakrishnan/adk-fluent"><img alt="Open in GitHub Codespaces" src="https://img.shields.io/badge/Codespaces-open-24292F?logo=github&logoColor=white"></a>
-  <a href="https://gitpod.io/#https://github.com/vamsiramakrishnan/adk-fluent"><img alt="Open in Gitpod" src="https://img.shields.io/badge/Gitpod-ready-FFAE33?logo=gitpod&logoColor=white"></a>
-  <a href="https://deepwiki.com/vamsiramakrishnan/adk-fluent"><img alt="Ask DeepWiki" src="https://deepwiki.com/badge.svg"></a>
-</p>
-
-<!-- Social signals -->
-<p>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/vamsiramakrishnan/adk-fluent?style=social"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/network/members"><img alt="GitHub forks" src="https://img.shields.io/github/forks/vamsiramakrishnan/adk-fluent?style=social"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/vamsiramakrishnan/adk-fluent?color=blueviolet"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/commits/master"><img alt="Last commit" src="https://img.shields.io/github/last-commit/vamsiramakrishnan/adk-fluent?logo=git&logoColor=white"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/issues"><img alt="Open issues" src="https://img.shields.io/github/issues/vamsiramakrishnan/adk-fluent?logo=github"></a>
-  <a href="https://github.com/vamsiramakrishnan/adk-fluent/pulls"><img alt="Open PRs" src="https://img.shields.io/github/issues-pr/vamsiramakrishnan/adk-fluent?logo=github"></a>
 </p>
 
 > **Monorepo:** This repository is a dual-language monorepo. The Python package (`adk-fluent`) lives in [`python/`](python/) and the TypeScript package (`adk-fluent-ts`) lives in [`ts/`](ts/). Shared generation tooling, manifests, and seeds live in [`shared/`](shared/). Both packages are generated from the same manifest and expose the same surface area.

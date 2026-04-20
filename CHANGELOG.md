@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-04-20
+
+### Changed
+
+- **README hero** — consolidated the six-row, 30+ badge wall at the top of `README.template.md` into a single centered row of six essentials (PyPI, npm, Python, CI, Docs, License). The same template feeds `README.md`, `python/README.md` snippets, and the docs landing page, so every surface gets the cleaner look without a separate edit.
+
+### Fixed
+
+- **Release workflow startup failure** — `ts-npm-dry` declared `permissions: contents: read` only. GitHub validates the permission caps of every reusable-workflow caller at workflow parse time regardless of `if:` gating, so the `_publish-npm.yml` nested `publish` job's `id-token: write` request was rejected with `'id-token: write', but is only allowed 'id-token: none'`. Added `id-token: write` to the `ts-npm-dry` block; fresh dispatches now pass validation and reach the `plan → python-pypi + ts-npm → tag-release` stages.
+
 ## [0.16.0] - 2026-04-19
 
 ### Added
