@@ -255,12 +255,21 @@ def generate_all(
     # ------------------------------------------------------------------
     # TypeScript emission — runs alongside (or instead of) Python emission.
     # ------------------------------------------------------------------
-    # Modules whose TS counterpart is hand-written (extends the BuilderBase
-    # API with workflow-only methods like ``step``/``branch`` plus the
-    # ``registerWorkflow`` calls that break the circular import in builder-base).
-    # ``agent`` is hand-written because the TS emitter does not yet handle
-    # ``runtime_helper`` extras (e.g. ``Agent.ui()``); regenerating would
-    # drop the custom ``.ui()`` method and its A2UI auto-wiring logic.
+    # Modules whose TS counterpart is hand-written. These two live outside
+    # the codegen loop because their TS source carries patterns the emitter
+    # cannot round-trip today:
+    #
+    # * ``workflow`` — ``registerWorkflow()`` calls at module bottom that
+    #   break a circular import in ``builder-base``, custom ``.build()``
+    #   bodies that call ``_applyNativeHooks``, and ``Fallback``'s private
+    #   ``_children`` field. These are TS-specific shapes with no Python
+    #   counterpart in the IR.
+    # * ``agent`` — the A2UI auto-wiring logic inside ``.ui()`` plus the
+    #   TS-side ``sub_agents``/``_children`` registration. ``runtime_helper``
+    #   extras (``.instruct()``, ``.context()``, ``.guard()``, ``.ui()``,
+    #   …) are already mapped via ``_INLINE_HELPERS`` in ``ts_emitter.py``,
+    #   but the A2UI-specific wiring around ``.ui()`` still needs a
+    #   hand-written escape hatch.
     _TS_SKIP_MODULES = {"workflow", "agent"}
 
     if emit_typescript_files:
