@@ -13,9 +13,9 @@ C.notes) are neutral — they inject state without suppressing conversation
 history. History-filtering transforms (C.none, C.window, C.user_only)
 explicitly control visibility. Compose them to get both::
 
-    C.none() + C.from_state("key")   # inject state, no history
+    C.none() | C.from_state("key")   # inject state, no history
     C.from_state("key")              # inject state, keep history
-    C.window(n=3) + C.from_state("key")  # last 3 turns + state
+    C.window(n=3) | C.from_state("key")  # last 3 turns + state
 
 :::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
@@ -52,7 +52,7 @@ support_pipeline = (
             "You are a billing specialist. Help the customer with their billing issue.\n"
             "Customer message: {customer_message}"
         )
-        .context(C.none() + C.from_state("customer_message")),  # state only, no history
+        .context(C.none() | C.from_state("customer_message")),  # state only, no history
     )
     .eq(
         "technical",
@@ -63,7 +63,7 @@ support_pipeline = (
             "Customer message: {customer_message}\n"
             "Urgency: {urgency}"
         )
-        .context(C.window(n=3) + C.from_state("customer_message", "urgency")),  # last 3 turns + state
+        .context(C.window(n=3) | C.from_state("customer_message", "urgency")),  # last 3 turns + state
     )
     .otherwise(
         Agent("general_agent")

@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING, Any, Self
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
-
     from google.adk.agents.base_agent import BaseAgent
     from google.adk.agents.loop_agent import LoopAgent
     from google.adk.agents.parallel_agent import ParallelAgent
@@ -90,63 +88,6 @@ class Loop(BuilderBase):
         from adk_fluent._helpers import _loop_to_ir
 
         return _loop_to_ir(self)
-
-    def ask(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask()``. One-shot SYNC execution (blocking). Builds loop, sends prompt, returns response text."""
-        from adk_fluent._helpers import run_one_shot
-
-        return run_one_shot(self, prompt)
-
-    async def ask_async(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask_async()``. One-shot ASYNC execution (non-blocking, use with await)."""
-        from adk_fluent._helpers import run_one_shot_async
-
-        return await run_one_shot_async(self, prompt)
-
-    async def stream(self, prompt: str) -> AsyncIterator[str]:
-        """Deprecated: prefer ``.run.stream()``. ASYNC streaming execution. Yields response text chunks as they arrive."""
-        from adk_fluent._helpers import run_stream
-
-        async for chunk in run_stream(self, prompt):
-            yield chunk
-
-    async def events(self, prompt: str) -> AsyncIterator[Any]:
-        """Deprecated: prefer ``.run.events()``. Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
-        from adk_fluent._helpers import run_events
-
-        async for chunk in run_events(self, prompt):
-            yield chunk
-
-    def session(self) -> Any:
-        """Deprecated: prefer ``.run.session()``. Create an interactive multi-turn chat session. Returns an async context manager."""
-        from adk_fluent._helpers import create_session
-
-        return create_session(self)
-
-    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map()``. Batch SYNC execution (blocking). Run loop against multiple prompts with bounded concurrency."""
-        from adk_fluent._helpers import run_map
-
-        return run_map(self, prompts, concurrency=concurrency)
-
-    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map_async()``. Batch ASYNC execution (non-blocking, use with await)."""
-        from adk_fluent._helpers import run_map_async
-
-        return await run_map_async(self, prompts, concurrency=concurrency)
-
-    def test(
-        self,
-        prompt: str,
-        *,
-        contains: str | None = None,
-        matches: str | None = None,
-        equals: str | None = None,
-    ) -> Self:
-        """Deprecated: prefer ``.run.test()``. Run a smoke test. Calls .ask() internally, asserts output matches condition."""
-        from adk_fluent._helpers import run_inline_test
-
-        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
 
     def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
         """Inline evaluation. Run a single eval case against this loop."""
@@ -242,63 +183,6 @@ class FanOut(BuilderBase):
 
         return _fanout_to_ir(self)
 
-    def ask(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask()``. One-shot SYNC execution (blocking). Builds fan-out, sends prompt, returns response text."""
-        from adk_fluent._helpers import run_one_shot
-
-        return run_one_shot(self, prompt)
-
-    async def ask_async(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask_async()``. One-shot ASYNC execution (non-blocking, use with await)."""
-        from adk_fluent._helpers import run_one_shot_async
-
-        return await run_one_shot_async(self, prompt)
-
-    async def stream(self, prompt: str) -> AsyncIterator[str]:
-        """Deprecated: prefer ``.run.stream()``. ASYNC streaming execution. Yields response text chunks as they arrive."""
-        from adk_fluent._helpers import run_stream
-
-        async for chunk in run_stream(self, prompt):
-            yield chunk
-
-    async def events(self, prompt: str) -> AsyncIterator[Any]:
-        """Deprecated: prefer ``.run.events()``. Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
-        from adk_fluent._helpers import run_events
-
-        async for chunk in run_events(self, prompt):
-            yield chunk
-
-    def session(self) -> Any:
-        """Deprecated: prefer ``.run.session()``. Create an interactive multi-turn chat session. Returns an async context manager."""
-        from adk_fluent._helpers import create_session
-
-        return create_session(self)
-
-    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map()``. Batch SYNC execution (blocking). Run fan-out against multiple prompts with bounded concurrency."""
-        from adk_fluent._helpers import run_map
-
-        return run_map(self, prompts, concurrency=concurrency)
-
-    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map_async()``. Batch ASYNC execution (non-blocking, use with await)."""
-        from adk_fluent._helpers import run_map_async
-
-        return await run_map_async(self, prompts, concurrency=concurrency)
-
-    def test(
-        self,
-        prompt: str,
-        *,
-        contains: str | None = None,
-        matches: str | None = None,
-        equals: str | None = None,
-    ) -> Self:
-        """Deprecated: prefer ``.run.test()``. Run a smoke test. Calls .ask() internally, asserts output matches condition."""
-        from adk_fluent._helpers import run_inline_test
-
-        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
-
     def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
         """Inline evaluation. Run a single eval case against this fan-out."""
         from adk_fluent._helpers import _eval_inline
@@ -388,63 +272,6 @@ class Pipeline(BuilderBase):
         from adk_fluent._helpers import _pipeline_to_ir
 
         return _pipeline_to_ir(self)
-
-    def ask(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask()``. One-shot SYNC execution (blocking). Builds pipeline, sends prompt, returns response text."""
-        from adk_fluent._helpers import run_one_shot
-
-        return run_one_shot(self, prompt)
-
-    async def ask_async(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask_async()``. One-shot ASYNC execution (non-blocking, use with await)."""
-        from adk_fluent._helpers import run_one_shot_async
-
-        return await run_one_shot_async(self, prompt)
-
-    async def stream(self, prompt: str) -> AsyncIterator[str]:
-        """Deprecated: prefer ``.run.stream()``. ASYNC streaming execution. Yields response text chunks as they arrive."""
-        from adk_fluent._helpers import run_stream
-
-        async for chunk in run_stream(self, prompt):
-            yield chunk
-
-    async def events(self, prompt: str) -> AsyncIterator[Any]:
-        """Deprecated: prefer ``.run.events()``. Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
-        from adk_fluent._helpers import run_events
-
-        async for chunk in run_events(self, prompt):
-            yield chunk
-
-    def session(self) -> Any:
-        """Deprecated: prefer ``.run.session()``. Create an interactive multi-turn chat session. Returns an async context manager."""
-        from adk_fluent._helpers import create_session
-
-        return create_session(self)
-
-    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map()``. Batch SYNC execution (blocking). Run pipeline against multiple prompts with bounded concurrency."""
-        from adk_fluent._helpers import run_map
-
-        return run_map(self, prompts, concurrency=concurrency)
-
-    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map_async()``. Batch ASYNC execution (non-blocking, use with await)."""
-        from adk_fluent._helpers import run_map_async
-
-        return await run_map_async(self, prompts, concurrency=concurrency)
-
-    def test(
-        self,
-        prompt: str,
-        *,
-        contains: str | None = None,
-        matches: str | None = None,
-        equals: str | None = None,
-    ) -> Self:
-        """Deprecated: prefer ``.run.test()``. Run a smoke test. Calls .ask() internally, asserts output matches condition."""
-        from adk_fluent._helpers import run_inline_test
-
-        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
 
     def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
         """Inline evaluation. Run a single eval case against this pipeline."""

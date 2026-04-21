@@ -70,7 +70,7 @@ verifier = (
     Agent("verifier")
     .model("gemini-2.5-flash")
     .instruct("Verify the task agent's output for accuracy and completeness.")
-    .context(C.none() + C.from_state("task_result"))
+    .context(C.none() | C.from_state("task_result"))
 )
 
 # Compose: task agent -> verifier pipeline

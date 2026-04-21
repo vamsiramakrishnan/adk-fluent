@@ -118,7 +118,7 @@ All operators are immutable (copy-on-write). Sub-expressions can be reused.
   .model(str)                  — set LLM model
   .instruct(str | PTransform)  — set the main instruction / system prompt. This is what
                                  the LLM is told to do. Accepts plain text, a callable,
-                                 or a P module composition (P.role() + P.task() + ...).
+                                 or a P module composition (P.role() | P.task() | ...).
   .describe(str)               — set agent description (metadata for transfer routing
                                  and topology — NOT sent to the LLM as instruction)
   .static(str)                 — set cached instruction. When set, .instruct() text moves
@@ -287,7 +287,8 @@ Sync methods (.ask, .map) raise RuntimeError inside an async event loop
 
 ### S — State transforms
 
-Used with `>>` operator. Compose with `>>` (chain) or `+` (combine).
+Used with `>>` operator. Compose with `>>` (pipe: feed output into next) or
+`|` (combine: both transforms run on original state, deltas merge).
 
   S.pick(*keys)                — keep only named keys
   S.drop(*keys)                — remove named keys
@@ -315,7 +316,8 @@ Used with `>>` operator. Compose with `>>` (chain) or `+` (combine).
 
 ### C — Context engineering
 
-Used with `.context()`. Compose with `+` (union) or `|` (pipe).
+Used with `.context()`. Compose with `|` (union: merge transforms) or `>>` (pipe:
+post-process compiled output through a transform).
 
   C.none()                     — suppress all history
   C.default()                  — default ADK behavior
@@ -351,7 +353,8 @@ Used with `.context()`. Compose with `+` (union) or `|` (pipe).
 
 ### P — Prompt composition
 
-Used with `.instruct()`. Compose with `+` (union) or `|` (pipe).
+Used with `.instruct()`. Compose with `|` (union: merge sections) or `>>` (pipe:
+post-process compiled output through a transform).
 Section order: role → context → task → constraint → format → example.
 
   P.role(text)                 — agent persona
@@ -1016,7 +1019,7 @@ RemoteAgent extends BuilderBase — all operators (>>, |, //, *) work:
     RemoteAgent("code", env="CODE_AGENT_URL")  — environment variable configuration
 ## Builder inventory
 
-135 builders across 9 modules.
+133 builders across 9 modules.
 
 ### agent module (3 builders)
 
@@ -1046,9 +1049,9 @@ App, InMemoryRunner, Runner
 
 BaseArtifactService, FileArtifactService, GcsArtifactService, InMemoryArtifactService, PerAgentDatabaseSessionService, BaseMemoryService, InMemoryMemoryService, VertexAiMemoryBankService, VertexAiRagMemoryService, BaseSessionService, DatabaseSessionService, InMemorySessionService, SqliteSessionService, VertexAiSessionService, ForwardingArtifactService
 
-### tool module (51 builders)
+### tool module (49 builders)
 
-ActiveStreamingTool, AgentTool, APIHubToolset, ApplicationIntegrationToolset, IntegrationConnectorTool, BaseAuthenticatedTool, BaseTool, BaseToolset, BigQueryToolset, BigtableToolset, ComputerUseTool, ComputerUseToolset, DataAgentToolset, DiscoveryEngineSearchTool, EnterpriseWebSearchTool, ExampleTool, FunctionTool, GoogleApiTool, GoogleApiToolset, CalendarToolset, DocsToolset, GmailToolset, SheetsToolset, SlidesToolset, YoutubeToolset, GoogleMapsGroundingTool, GoogleSearchAgentTool, GoogleSearchTool, GoogleTool, LoadArtifactsTool, LoadMcpResourceTool, LoadMemoryTool, LongRunningFunctionTool, MCPTool, McpTool, MCPToolset, McpToolset, OpenAPIToolset, RestApiTool, PreloadMemoryTool, PubSubToolset, BaseRetrievalTool, SetModelResponseTool, LoadSkillResourceTool, LoadSkillTool, SkillToolset, SpannerToolset, ToolboxToolset, TransferToAgentTool, UrlContextTool, VertexAiSearchTool
+ActiveStreamingTool, AgentTool, APIHubToolset, ApplicationIntegrationToolset, IntegrationConnectorTool, BaseAuthenticatedTool, BaseTool, BaseToolset, BigQueryToolset, BigtableToolset, ComputerUseTool, ComputerUseToolset, DataAgentToolset, DiscoveryEngineSearchTool, EnterpriseWebSearchTool, ExampleTool, FunctionTool, GoogleApiTool, GoogleApiToolset, CalendarToolset, DocsToolset, GmailToolset, SheetsToolset, SlidesToolset, YoutubeToolset, GoogleMapsGroundingTool, GoogleSearchAgentTool, GoogleSearchTool, GoogleTool, LoadArtifactsTool, LoadMcpResourceTool, LoadMemoryTool, LongRunningFunctionTool, McpTool, McpToolset, OpenAPIToolset, RestApiTool, PreloadMemoryTool, PubSubToolset, BaseRetrievalTool, SetModelResponseTool, LoadSkillResourceTool, LoadSkillTool, SkillToolset, SpannerToolset, ToolboxToolset, TransferToAgentTool, UrlContextTool, VertexAiSearchTool
 
 ### workflow module (3 builders)
 

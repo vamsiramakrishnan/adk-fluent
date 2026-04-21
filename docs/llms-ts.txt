@@ -726,7 +726,7 @@ in-memory or remote storage. See the
                                  it as a "path outside workspace" string.
 ## Builder inventory
 
-135 builders across 9 modules.
+133 builders across 9 modules.
 
 ### agent module (3 builders)
 
@@ -756,9 +756,9 @@ App, InMemoryRunner, Runner
 
 BaseArtifactService, FileArtifactService, GcsArtifactService, InMemoryArtifactService, PerAgentDatabaseSessionService, BaseMemoryService, InMemoryMemoryService, VertexAiMemoryBankService, VertexAiRagMemoryService, BaseSessionService, DatabaseSessionService, InMemorySessionService, SqliteSessionService, VertexAiSessionService, ForwardingArtifactService
 
-### tool module (51 builders)
+### tool module (49 builders)
 
-ActiveStreamingTool, AgentTool, APIHubToolset, ApplicationIntegrationToolset, IntegrationConnectorTool, BaseAuthenticatedTool, BaseTool, BaseToolset, BigQueryToolset, BigtableToolset, ComputerUseTool, ComputerUseToolset, DataAgentToolset, DiscoveryEngineSearchTool, EnterpriseWebSearchTool, ExampleTool, FunctionTool, GoogleApiTool, GoogleApiToolset, CalendarToolset, DocsToolset, GmailToolset, SheetsToolset, SlidesToolset, YoutubeToolset, GoogleMapsGroundingTool, GoogleSearchAgentTool, GoogleSearchTool, GoogleTool, LoadArtifactsTool, LoadMcpResourceTool, LoadMemoryTool, LongRunningFunctionTool, MCPTool, McpTool, MCPToolset, McpToolset, OpenAPIToolset, RestApiTool, PreloadMemoryTool, PubSubToolset, BaseRetrievalTool, SetModelResponseTool, LoadSkillResourceTool, LoadSkillTool, SkillToolset, SpannerToolset, ToolboxToolset, TransferToAgentTool, UrlContextTool, VertexAiSearchTool
+ActiveStreamingTool, AgentTool, APIHubToolset, ApplicationIntegrationToolset, IntegrationConnectorTool, BaseAuthenticatedTool, BaseTool, BaseToolset, BigQueryToolset, BigtableToolset, ComputerUseTool, ComputerUseToolset, DataAgentToolset, DiscoveryEngineSearchTool, EnterpriseWebSearchTool, ExampleTool, FunctionTool, GoogleApiTool, GoogleApiToolset, CalendarToolset, DocsToolset, GmailToolset, SheetsToolset, SlidesToolset, YoutubeToolset, GoogleMapsGroundingTool, GoogleSearchAgentTool, GoogleSearchTool, GoogleTool, LoadArtifactsTool, LoadMcpResourceTool, LoadMemoryTool, LongRunningFunctionTool, McpTool, McpToolset, OpenAPIToolset, RestApiTool, PreloadMemoryTool, PubSubToolset, BaseRetrievalTool, SetModelResponseTool, LoadSkillResourceTool, LoadSkillTool, SkillToolset, SpannerToolset, ToolboxToolset, TransferToAgentTool, UrlContextTool, VertexAiSearchTool
 
 ### workflow module (3 builders)
 

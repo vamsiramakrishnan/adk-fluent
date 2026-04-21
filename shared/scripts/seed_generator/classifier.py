@@ -58,6 +58,19 @@ _BUILDER_WORTHY_TAGS = frozenset(
 )
 
 
-def is_builder_worthy(tag: str) -> bool:
+# ADK mirror-deprecated classes that exist only as legacy-name shims for a
+# canonical class. We never emit a builder for these — users go through the
+# canonical builder (McpTool, McpToolset, ...).
+_DEPRECATED_CLASS_SKIPLIST = frozenset(
+    {
+        "MCPTool",
+        "MCPToolset",
+    }
+)
+
+
+def is_builder_worthy(tag: str, *, name: str | None = None) -> bool:
     """Return True if classes with this tag should get a fluent builder."""
+    if name is not None and name in _DEPRECATED_CLASS_SKIPLIST:
+        return False
     return tag in _BUILDER_WORTHY_TAGS

@@ -115,8 +115,6 @@ from .tool import LoadMemoryTool as LoadMemoryTool
 from .tool import LoadSkillResourceTool as LoadSkillResourceTool
 from .tool import LoadSkillTool as LoadSkillTool
 from .tool import LongRunningFunctionTool as LongRunningFunctionTool
-from .tool import MCPTool as MCPTool
-from .tool import MCPToolset as MCPToolset
 from .tool import McpTool as McpTool
 from .tool import McpToolset as McpToolset
 from .tool import OpenAPIToolset as OpenAPIToolset
@@ -1067,9 +1065,7 @@ __all__ = [
     "LoadMcpResourceTool",
     "LoadMemoryTool",
     "LongRunningFunctionTool",
-    "MCPTool",
     "McpTool",
-    "MCPToolset",
     "McpToolset",
     "McpToolsetConfig",
     "OpenAPIToolset",

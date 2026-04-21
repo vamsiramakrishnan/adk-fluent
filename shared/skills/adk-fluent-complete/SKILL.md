@@ -1,46 +1,43 @@
 ---
-description: adk-fluent project rules for AI code generation
-globs: "**/*.py"
+name: adk-fluent-complete
+description: >
+  Comprehensive adk-fluent library reference for AI coding assistants.
+  Auto-generated from source code introspection — always up to date.
+  Covers all 133 builders, 9 namespace modules (S/C/P/A/M/T/E/G/UI),
+  expression operators, composition patterns, A2A, and best practices.
+  Use this skill to write accurate adk-fluent code without hallucination.
+metadata:
+  license: Apache-2.0
+  author: vamsiramakrishnan
+  version: "0.1"
 ---
 
-# adk-fluent — LLM Context
+# adk-fluent Complete Reference
 
-> Auto-generated from manifest.json. Do not edit manually.
-> Docs: https://vamsiramakrishnan.github.io/adk-fluent/
-> PyPI: https://pypi.org/project/adk-fluent/
-> Repo: https://github.com/vamsiramakrishnan/adk-fluent
+> **Auto-generated** from manifest.json, seed.toml, and source code introspection.
+> Package version: 0.1 | Builders: 133
+> Regenerate: `just skills`
 
-adk-fluent is a fluent builder API for Google's Agent Development Kit (ADK).
-It reduces agent creation from 22+ lines to 1-3 lines while producing
-identical native ADK objects. Every `.build()` returns a real ADK object —
-fully compatible with `adk web`, `adk run`, and `adk deploy`.
-## Install
+This skill provides the full adk-fluent library reference for AI coding
+assistants. It enables accurate code generation, API lookups, and
+architecture guidance without hallucinating non-existent methods.
 
-    pip install adk-fluent
+## Install & Import
 
-### Optional extras
+```bash
+pip install adk-fluent
+```
 
-    pip install adk-fluent[a2a]            # A2A remote agent-to-agent communication
-    pip install adk-fluent[yaml]           # .to_yaml() / .from_yaml() serialization
-    pip install adk-fluent[rich]           # Rich terminal output for .explain()
-    pip install adk-fluent[search]         # BM25-indexed tool discovery (T.search)
-    pip install adk-fluent[pii]            # PII detection guard (G.pii with Cloud DLP)
-    pip install adk-fluent[observability]  # OpenTelemetry tracing and metrics
+```python
+from adk_fluent import Agent, Pipeline, FanOut, Loop, Route, Fallback
+from adk_fluent import S, C, P, A, M, T, E, G, UI
+from adk_fluent import until, tap, expect, map_over, gate, race
+```
 
-Combine extras: ``pip install adk-fluent[a2a,yaml,rich]``
+Never import from internal modules (`adk_fluent._base`, `adk_fluent.agent`).
 
-A2UI (Agent-to-UI): The UI namespace ships with the core package.
-The full A2UI toolset will be available via ``pip install adk-fluent[a2ui]``
-when the ``a2ui-agent`` package is published.
-## Imports
+---
 
-Always import from the top-level package:
-
-    from adk_fluent import Agent, Pipeline, FanOut, Loop
-    from adk_fluent import S, C, P, A, M, T, E, G, UI
-    from adk_fluent import H  # harness namespace (hooks, permissions, plan mode, …)
-
-Never import from internal modules like `adk_fluent._base` or `adk_fluent.agent`.
 ## Core API patterns
 
 ### Fluent builder pattern
@@ -112,6 +109,9 @@ All operators are immutable (copy-on-write). Sub-expressions can be reused.
 
     # Deterministic routing
     router = Route("tier").eq("VIP", vip_agent).otherwise(standard_agent)
+
+---
+
 ## Agent builder methods
 
 ### Core configuration
@@ -284,6 +284,9 @@ Sync methods (.ask, .map) raise RuntimeError inside an async event loop
   .llm_anatomy()               — what the LLM sees
   .inspect()                   — plain-text state
   .to_dict() / .to_yaml()     — serialization
+
+---
+
 ## Namespace modules (S, C, P, A, M, T, E, G)
 
 ### S — State transforms
@@ -503,376 +506,9 @@ Agent integration:
   S.from_ui(*keys, surface=)   — bridge A2UI data model → state
   M.a2ui_log(level=)           — log A2UI surface operations
   C.with_ui(surface_id=)       — include UI state in context
-## Harness sub-packages (H namespace building blocks)
 
-The ``H`` namespace is a thin façade over ten focused sub-packages that
-implement the AI-coding harness runtime (hooks, permissions, plan mode,
-session tape, reactor, subagents, usage, budget, compression, fs). Every
-type is re-exported at the top level::
+---
 
-    from adk_fluent import (
-        H,                                              # façade
-        HookEvent, HookDecision, HookRegistry,          # _hooks
-        PermissionMode, PermissionPolicy, PermissionPlugin,  # _permissions
-        PlanMode, PlanModePolicy, PlanModePlugin,       # _plan_mode (see _harness)
-        SessionTape, SessionStore, SessionSnapshot, SessionPlugin, ForkManager, Branch,
-        EventRecord, Cursor, TapeBackend,
-        InMemoryBackend, JsonlBackend, NullBackend, ChainBackend,  # _session
-        Signal, SignalPredicate, Reactor, ReactorRule, # _reactor
-        AgentToken, TokenRegistry, WorkflowLifecyclePlugin,  # _harness
-        SubagentSpec, SubagentRegistry, SubagentResult,
-        SubagentRunner, FakeSubagentRunner, make_task_tool,  # _subagents
-        TurnUsage, AgentUsage, UsageTracker, UsagePlugin,
-        CostTable, ModelRate,                           # _usage
-        BudgetMonitor, BudgetPolicy, BudgetPlugin, Threshold,  # _budget
-        CompressionStrategy, ContextCompressor,         # _compression
-        FsBackend, FsStat, FsEntry,
-        LocalBackend, MemoryBackend, SandboxedBackend, SandboxViolation,
-        workspace_tools_with_backend,                   # _fs
-    )
-
-### _hooks — unified hook foundation
-
-Session-scoped, subagent-inherited hook layer mirroring Claude Agent SDK's
-hook surface. Install via ``H.hooks()`` and plug into the runner::
-
-    registry = H.hooks(workspace="/project")
-    registry.on(HookEvent.PRE_TOOL_USE, lambda ctx: HookDecision.deny("blocked"))
-    app = App("coder").plugin(registry.plugin()).build()
-
-  HookEvent                    — 12-value event enum (PreToolUse, PostToolUse,
-                                 PreModel, PostModel, PreCompact, UserPrompt,
-                                 Stop, SubagentStart, SubagentStop, Notification,
-                                 SessionStart, SessionEnd)
-  HookContext                  — normalized context (event, tool_name, args,
-                                 state, extra) passed to every callable
-  HookDecision                 — structured return protocol
-    .allow() / .deny(reason=) / .modify(patch=) / .replace(output=)
-    .ask(prompt=) / .inject(message=)
-  HookMatcher                  — event + tool-name regex + arg-glob filter
-  HookRegistry                 — user-facing registry of hook callables and
-                                 shell commands; ``.on(event, fn)`` /
-                                 ``.command(event, cmd)`` / ``.plugin()``
-  HookPlugin                   — ADK ``BasePlugin`` that dispatches 12 callbacks
-  SystemMessageChannel         — transient system-message queue drained before
-                                 every LLM call (SYSTEM_MESSAGE_STATE_KEY)
-
-### _permissions — decision-based permission layer
-
-Mirrors Claude Agent SDK's ``canUseTool`` surface and the five permission
-modes. Session-scoped via an ADK plugin::
-
-    policy = H.auto_allow("read_file").merge(H.ask_before("bash"))
-    plugin = H.permission_plugin(policy=policy, handler=my_handler)
-
-  PermissionMode               — default / accept_edits / plan / bypass / dont_ask
-  PermissionDecision           — allow(updated_input=) / deny(reason=)
-                                 / ask(message=) structured returns
-  PermissionBehavior           — enum for the three decision branches
-  PermissionPolicy             — declarative allow/deny/ask sets + patterns;
-                                 .check(tool_name, args=) → PermissionDecision;
-                                 .merge(other) for composition
-  PermissionPlugin             — ADK plugin that enforces the policy
-  PermissionHandler            — protocol for interactive approval flows
-  ApprovalMemory               — session-scoped record of interactive approvals
-  DEFAULT_MUTATING_TOOLS       — frozenset used by Plan Mode
-
-### _plan_mode — plan-then-execute latch
-
-Three-state latch (``off`` / ``planning`` / ``executing``) paired with a
-policy wrapper and ADK plugin. Exported from ``adk_fluent._harness``::
-
-    from adk_fluent._harness import PlanMode, PlanModePolicy, PlanModePlugin
-    latch = H.plan_mode()
-    policy = H.plan_mode_policy(base_policy, latch=latch)
-    plugin = H.plan_mode_plugin(latch=latch)
-
-  PlanMode                     — runtime latch with subscription API.
-                                 .current, .enter(), .exit(plan=),
-                                 .reset(), .subscribe(fn) → unsubscribe
-                                 .is_planning, .is_executing
-  PlanModePolicy               — frozen wrapper around PermissionPolicy.
-                                 Denies mutating tools while planning;
-                                 exposes .mode reflecting latch state.
-  PlanModePlugin               — ADK plugin that owns a latch and installs
-                                 a before_tool_callback rejecting mutating
-                                 tools during planning.
-  plan_mode_tools(latch)       — returns (enter_plan_mode, exit_plan_mode)
-                                 tool pair for registration with Agent.tools()
-  MUTATING_TOOLS               — frozenset of tool names classified as mutating
-                                 (write_file, edit_file, bash, run_code, …)
-
-### _session — tape + fork + store (durable event log)
-
-Session-scoped event recording plus named state branches. Every recorded
-entry carries a monotonic ``seq``; consumers read with ``since(n)`` or
-follow live writes with async ``tail(from_seq=...)``. See the
-reactor + durable-events section below for the full surface::
-
-    store = H.session_store(max_events=100, max_branches=10)
-    plugin = H.session_plugin(store)
-    store.fork("before-refactor", {"draft": "v1"})
-
-  SessionTape                  — durable event recorder/replayer.
-                                 .record(event) → stamps seq; .head,
-                                 .since(from_seq=0), async .tail(from_seq=0),
-                                 .filter(kind), .save(path), .load(path),
-                                 .summary(), .size, .clear().
-                                 Optional ``backend=`` kwarg mirrors writes
-                                 to a pluggable TapeBackend.
-  EventRecord / Cursor         — typed aliases for tape entries and seq ints
-  TapeBackend                  — Protocol: append(entry). Persistence adapter
-                                 layer. Exceptions never block the tape.
-  InMemoryBackend              — deque mirror for tests / replay parity
-  JsonlBackend(path=, truncate=) — one-event-per-line JSONL file
-  NullBackend                  — /dev/null; drops every write
-  ChainBackend([a, b, ...])    — fan out to multiple backends
-  Branch                       — immutable record of a named state snapshot
-  ForkManager                  — named-branch manager with merge + diff.
-                                 .fork(name, state), .switch(name) → deep copy,
-                                 .merge(a, b, strategy="union"|"intersection"|"prefer"),
-                                 .diff(a, b), .delete(name), .list_branches()
-  SessionStore                 — bundles a tape + fork manager.
-                                 .record_event, .fork, .switch, .snapshot(),
-                                 .from_snapshot(snap), .auto_fork(name),
-                                 .auto_restore(name), .summary(), .clear()
-  SessionSnapshot              — frozen serialisable view of events + branches.
-                                 .to_dict() / .from_dict(), .save() / .load()
-  SessionPlugin                — ADK plugin that auto-forks after every agent
-                                 via after_agent_callback (``auto:<name>``)
-
-### _reactor — reactive signals native to the fluent builder
-
-Turns the durable tape into something agents can collaborate on: typed
-state cells (signals), declarative triggers (predicates), priority
-scheduling, and cooperative interrupts with a resume cursor. The
-:class:`R` namespace (parallel to ``S`` / ``C`` / ``M``) is the
-ergonomic entry point — signals are name-addressed, predicates are
-first-class values, and builders attach rules declaratively via
-``.on(predicate)``::
-
-    from adk_fluent import Agent, R
-
-    temp = R.signal("temp", 72)
-
-    cooler = (
-        Agent("cooler", "gemini-2.5-flash")
-        .instruct("Plan a cool-down.")
-        .on(R.rising("temp").where(lambda v, _: v > 90), priority=10)
-    )
-
-    reactor = R.compile(cooler, tape=tape, bus=bus)
-    await reactor.run()
-
-  R                            — reactive namespace facade. Registry-backed
-                                 signal + predicate factories. All methods
-                                 delegate to a module-level default registry
-                                 unless ``R.scope()`` is used for isolation.
-    R.signal(name, initial=)     — get-or-create a named signal (idempotent)
-    R.get(name)                  — existing signal or raise KeyError
-    R.changed / .rising /        — name-addressed predicate factories.
-    .falling / .is_(name, v)
-    R.any(*preds) / R.all(*preds) — n-ary composition (| and & sugar)
-    R.computed(name, fn)         — derived signal; auto-tracks .get() reads
-    R.rule(pred, fn, **opts)     — register a standalone (non-builder) rule
-    R.compile(*builders, tape=,  — walk builders + registry, return a ready
-             bus=)                 :class:`Reactor` with every rule wired
-    R.attach(bus) / .scope()     — swap bus or open an isolated registry
-  SignalRegistry               — thread-safe name→signal store backing ``R``.
-                                 ``R.scope()`` returns a fresh one.
-  RuleSpec                     — frozen (predicate, handler, priority,
-                                 preemptive) attached to builders via
-                                 :meth:`BuilderBase.on`. Resolved by
-                                 :meth:`R.compile`.
-  ReactorPlugin                — ADK plugin that owns reactor lifecycle.
-                                 ``.on_session_start`` kicks the run loop,
-                                 ``.on_session_end`` stops + drains it.
-                                 Drops into ``App.plugin(ReactorPlugin(reactor))``.
-  Signal                       — typed state cell. .get() / .set(v, force=)
-                                 / .update(fn) / .version / .subscribe(fn)
-                                 / .attach(bus) — equal-to-current writes
-                                 are no-ops unless ``force=True``.
-  SignalPredicate              — declarative trigger. signal.changed /
-                                 .rising / .falling / .is_(value). Compose
-                                 with ``a & b``, ``a | b``, ``~a``,
-                                 ``.where(fn)``, ``.debounce(ms)``,
-                                 ``.throttle(ms)``. ``.debounce`` /
-                                 ``.throttle`` return fresh predicates —
-                                 base predicate stays immutable.
-  Reactor                      — scheduler of (predicate, handler, options)
-                                 rules. .when(pred, fn, priority=, preemptive=,
-                                 agent_name=) / .start() / .stop().
-                                 Rules ordered by priority (lower wins).
-  ReactorRule                  — frozen rule record returned by .when().
-  AgentToken                   — per-agent cancellation token extending
-                                 CancellationToken with ``agent_name`` and
-                                 ``resume_cursor``; cancel_with_cursor(c)
-                                 atomic cancel + resume record.
-  TokenRegistry                — keyed container of AgentTokens; install()
-                                 swaps live tokens while preserving in-flight
-                                 closures, .cancel(name, resume_cursor=),
-                                 .reset(name) / .reset_all().
-  WorkflowLifecyclePlugin      — ADK plugin that emits StepStarted/Completed,
-                                 IterationStarted/Completed, BranchStarted/
-                                 Completed, SubagentStarted/Completed, and
-                                 AttemptFailed events for Pipeline/Loop/FanOut
-                                 nodes — the tape-visible counterpart to the
-                                 callback hooks.
-
-### durable events (cross-cutting)
-
-The same tape powers streaming replay, multi-consumer fanout, and
-crash-safe audit. These entry points live on ``adk_fluent`` directly
-(not in a single sub-package) because they span ``_session`` +
-``_helpers`` + ``_harness._events``::
-
-    async for chunk in run_stream_from(agent, cursor=42):
-        print(chunk)
-
-  run_stream_from(builder, cursor=)
-                               — replay ``tape.since(cursor)`` text chunks
-                                 then switch to live ``tape.tail()``.
-                                 Lets a dropped SSE connection pick up
-                                 where it left off without re-running the
-                                 LLM.
-  HarnessEvent subtypes         — SignalChanged, Interrupted, StepStarted,
-                                 StepCompleted, IterationStarted,
-                                 IterationCompleted, BranchStarted,
-                                 BranchCompleted, SubagentStarted,
-                                 SubagentCompleted, AttemptFailed. Every
-                                 frozen-slotted; recorded onto the tape
-                                 via the event bus when plugins are wired.
-
-### _subagents — dynamic spawner + task tool
-
-Runtime-decided specialist dispatch — the missing piece between
-``.sub_agent()`` (compile-time transfer) and ``.agent_tool()`` (static tool)::
-
-    registry = H.subagent_registry([
-        H.subagent_spec("researcher", "Find three papers.",
-                        description="Deep research"),
-        H.subagent_spec("reviewer", "Critique the draft."),
-    ])
-    runner = FakeSubagentRunner()           # or a real runner
-    task   = H.task_tool(registry, runner)  # parent-agent tool
-
-  SubagentSpec                 — frozen role description (role, instruction,
-                                 description, model, tool_names,
-                                 permission_mode, max_tokens, metadata)
-  SubagentRegistry             — dict-like keyed by role. .register / .unregister
-                                 / .replace / .get / .require / .roles() /
-                                 .roster() / iteration support
-  SubagentResult               — structured output (role, output, is_error,
-                                 error, usage, metadata, artifacts);
-                                 .to_tool_output() → ``[role] text``
-  SubagentRunner               — Protocol: ``run(spec, prompt, ctx) → SubagentResult``
-  FakeSubagentRunner           — test double with responder callable,
-                                 error_for_role override, usage injection,
-                                 and a .calls audit log
-  SubagentRunnerError          — raised when runner wiring fails
-  make_task_tool(registry, runner, *, context_provider=, tool_name="task")
-                               — factory. Returns a callable whose docstring
-                                 is rewritten to enumerate registered roles
-                                 so the parent LLM picks the right specialist.
-
-### _usage — cumulative token + cost tracking
-
-Session-scoped usage accounting with per-agent breakdown and USD cost via a
-frozen cost table::
-
-    table = H.cost_table(**{"gemini-2.5-pro": {"in": 1.25, "out": 5.00}})
-    tracker = H.usage(cost_table=table)
-    plugin  = H.usage_plugin(tracker)
-
-  TurnUsage                    — frozen per-call record (agent, model,
-                                 input_tokens, output_tokens, cached_tokens,
-                                 cost_usd, timestamp)
-  AgentUsage                   — frozen cumulative view for one agent
-  ModelRate                    — frozen per-model pricing ({input, output, cached})
-  CostTable                    — frozen dict of model → ModelRate with
-                                 .estimate(model, in_tokens, out_tokens)
-  UsageTracker                 — mutable aggregator. .record(turn),
-                                 .callback() for after_model wiring,
-                                 .by_agent() breakdown, .summary(),
-                                 cumulative properties
-  UsagePlugin                  — ADK plugin that captures every LLM call in
-                                 the invocation tree via after_model_callback
-
-### _budget — cumulative token budget + thresholds
-
-Enforces a session-wide token ceiling and fires callbacks at percent
-checkpoints. Designed to pair with ``ContextCompressor`` via
-``compressor.to_monitor()``::
-
-    budget = H.budget_policy(max_tokens=200_000)
-        .add_threshold(percent=80, on_trigger=lambda m: print("80%!"))
-        .add_threshold(percent=95, on_trigger=compact_now)
-    monitor = H.budget_monitor(budget)
-    plugin  = H.budget_plugin(monitor)
-
-  Threshold                    — frozen {percent, on_trigger} checkpoint
-  BudgetPolicy                 — frozen {max_tokens, thresholds}. Immutable.
-                                 .add_threshold(percent, on_trigger)
-  BudgetMonitor                — mutable tracker. .record_usage(in, out),
-                                 .utilisation, .remaining, .is_over_budget,
-                                 .summary(), .reset()
-  BudgetPlugin                 — ADK plugin auto-wiring every LLM call to
-                                 .record_usage()
-
-### _compression — message-level compression with pre_compact hook
-
-The message-rewriting half of context management. ``C.*`` transforms shape
-what the LLM sees on a single turn; ``ContextCompressor`` rewrites the
-persistent message history when it exceeds a threshold::
-
-    strategy = CompressionStrategy.keep_recent(n=8)
-    compressor = H.compressor(threshold=100_000, strategy=strategy)
-    compressor = compressor.with_hooks(hook_registry)  # pre_compact wired
-
-  CompressionStrategy          — frozen description of *how* to compress.
-                                 .drop_old(keep_turns=) / .keep_recent(n=)
-                                 / .summarize(model=)
-  ContextCompressor            — the machine.
-                                 .should_compress(tokens) / .compress_messages
-                                 / .compress_messages_async(msgs, summarizer=)
-                                 / .with_hooks(registry) / .to_monitor()
-                                 pre_compact hook: allow / deny / replace / modify
-
-### _fs — pluggable filesystem backend
-
-Factors the workspace tools' ``pathlib`` calls behind a small Protocol so
-tools can be unit-tested without a real disk and re-targeted at in-memory
-or remote storage. See the [fs](user-guide/fs.md) user-guide page for the
-full cookbook::
-
-    backend = SandboxedBackend(MemoryBackend(), H.workspace_only("/tmp/ws"))
-    tools   = workspace_tools_with_backend(backend, read_only=False)
-
-  FsBackend                    — runtime-checkable Protocol: exists, stat,
-                                 read_text, read_bytes, write_text,
-                                 write_bytes, delete, mkdir, list_dir,
-                                 iter_files, glob
-  FsStat                       — frozen dataclass: path, size, is_dir,
-                                 is_file, mtime
-  FsEntry                      — frozen dataclass: name, path, is_dir,
-                                 is_file (one per ``list_dir`` result)
-  LocalBackend                 — real on-disk I/O via pathlib
-  MemoryBackend(files=None)    — dict-backed fake for tests and ephemeral
-                                 scratch workspaces; POSIX semantics on
-                                 every host.
-  SandboxedBackend(inner, sandbox)
-                               — decorator wrapping any backend with a
-                                 SandboxPolicy; refuses operations that
-                                 escape the allowed paths.
-  SandboxViolation             — PermissionError raised when a path is
-                                 rejected; tool shims translate into a
-                                 user-facing "Error: path '...' is outside
-                                 the allowed workspace." string.
-  workspace_tools_with_backend(backend, *, read_only=False)
-                               — factory returning the full workspace tool
-                                 set (read_file / edit_file / write_file /
-                                 list_dir / glob_search / grep_search)
-                                 routed through ``backend``.
 ## Expression operators explained
 
     A >> B           # Sequential: A runs, then B. Returns a Pipeline.
@@ -948,6 +584,9 @@ Routing:
 
   Fallback(name)               — explicit fallback chain
     .attempt(agent)            — add fallback alternative
+
+---
+
 ## Composition patterns
 
 Higher-order constructors that accept builders and return builders:
@@ -965,6 +604,9 @@ A2A patterns (remote agent-to-agent):
   a2a_cascade(*endpoints, names=, timeout=)   — fallback chain across remote agents
   a2a_fanout(*endpoints, names=, timeout=)    — parallel fan-out to remote agents
   a2a_delegate(coordinator, **remotes)        — coordinator with named remote specialists
+
+---
+
 ## A2A (Agent-to-Agent) remote communication
 
 Experimental support for the A2A protocol. Requires `pip install google-adk[a2a]`.
@@ -1018,45 +660,49 @@ RemoteAgent extends BuilderBase — all operators (>>, |, //, *) work:
     RemoteAgent.discover("research-agent.agents.acme.com")  — DNS well-known discovery
     AgentRegistry("http://registry:9000").find(name="research")  — registry-based
     RemoteAgent("code", env="CODE_AGENT_URL")  — environment variable configuration
-## Builder inventory
 
-133 builders across 9 modules.
+---
+
+## Builder Inventory (133 builders)
 
 ### agent module (3 builders)
 
-BaseAgent, Agent, RemoteA2aAgent
+`Agent`, `BaseAgent`, `RemoteA2aAgent`
 
 ### config module (39 builders)
 
-A2aAgentExecutorConfig, AgentConfig, BaseAgentConfig, AgentRefConfig, ArgumentConfig, CodeConfig, ContextCacheConfig, LlmAgentConfig, LoopAgentConfig, ParallelAgentConfig, RunConfig, ToolThreadPoolConfig, SequentialAgentConfig, EventsCompactionConfig, ResumabilityConfig, FeatureConfig, AudioCacheConfig, SimplePromptOptimizerConfig, BigQueryLoggerConfig, RetryConfig, GetSessionConfig, BaseGoogleCredentialsConfig, AgentSimulatorConfig, InjectionConfig, ToolSimulationConfig, AgentToolConfig, BigQueryCredentialsConfig, BigQueryToolConfig, BigtableCredentialsConfig, DataAgentToolConfig, DataAgentCredentialsConfig, ExampleToolConfig, McpToolsetConfig, PubSubToolConfig, PubSubCredentialsConfig, SpannerCredentialsConfig, BaseToolConfig, ToolArgsConfig, ToolConfig
+`A2aAgentExecutorConfig`, `AgentConfig`, `AgentRefConfig`, `AgentSimulatorConfig`, `AgentToolConfig`, `ArgumentConfig`, `AudioCacheConfig`, `BaseAgentConfig`, `BaseGoogleCredentialsConfig`, `BaseToolConfig`, `BigQueryCredentialsConfig`, `BigQueryLoggerConfig`, `BigQueryToolConfig`, `BigtableCredentialsConfig`, `CodeConfig`, `ContextCacheConfig`, `DataAgentCredentialsConfig`, `DataAgentToolConfig`, `EventsCompactionConfig`, `ExampleToolConfig`, `FeatureConfig`, `GetSessionConfig`, `InjectionConfig`, `LlmAgentConfig`, `LoopAgentConfig`, `McpToolsetConfig`, `ParallelAgentConfig`, `PubSubCredentialsConfig`, `PubSubToolConfig`, `ResumabilityConfig`, `RetryConfig`, `RunConfig`, `SequentialAgentConfig`, `SimplePromptOptimizerConfig`, `SpannerCredentialsConfig`, `ToolArgsConfig`, `ToolConfig`, `ToolSimulationConfig`, `ToolThreadPoolConfig`
 
 ### executor module (6 builders)
 
-A2aAgentExecutor, AgentEngineSandboxCodeExecutor, BaseCodeExecutor, BuiltInCodeExecutor, UnsafeLocalCodeExecutor, VertexAiCodeExecutor
+`A2aAgentExecutor`, `AgentEngineSandboxCodeExecutor`, `BaseCodeExecutor`, `BuiltInCodeExecutor`, `UnsafeLocalCodeExecutor`, `VertexAiCodeExecutor`
 
 ### planner module (3 builders)
 
-BasePlanner, BuiltInPlanner, PlanReActPlanner
+`BasePlanner`, `BuiltInPlanner`, `PlanReActPlanner`
 
 ### plugin module (12 builders)
 
-RecordingsPlugin, ReplayPlugin, BasePlugin, BigQueryAgentAnalyticsPlugin, ContextFilterPlugin, DebugLoggingPlugin, GlobalInstructionPlugin, LoggingPlugin, MultimodalToolResultsPlugin, ReflectAndRetryToolPlugin, SaveFilesAsArtifactsPlugin, AgentSimulatorPlugin
+`AgentSimulatorPlugin`, `BasePlugin`, `BigQueryAgentAnalyticsPlugin`, `ContextFilterPlugin`, `DebugLoggingPlugin`, `GlobalInstructionPlugin`, `LoggingPlugin`, `MultimodalToolResultsPlugin`, `RecordingsPlugin`, `ReflectAndRetryToolPlugin`, `ReplayPlugin`, `SaveFilesAsArtifactsPlugin`
 
 ### runtime module (3 builders)
 
-App, InMemoryRunner, Runner
+`App`, `InMemoryRunner`, `Runner`
 
 ### service module (15 builders)
 
-BaseArtifactService, FileArtifactService, GcsArtifactService, InMemoryArtifactService, PerAgentDatabaseSessionService, BaseMemoryService, InMemoryMemoryService, VertexAiMemoryBankService, VertexAiRagMemoryService, BaseSessionService, DatabaseSessionService, InMemorySessionService, SqliteSessionService, VertexAiSessionService, ForwardingArtifactService
+`BaseArtifactService`, `BaseMemoryService`, `BaseSessionService`, `DatabaseSessionService`, `FileArtifactService`, `ForwardingArtifactService`, `GcsArtifactService`, `InMemoryArtifactService`, `InMemoryMemoryService`, `InMemorySessionService`, `PerAgentDatabaseSessionService`, `SqliteSessionService`, `VertexAiMemoryBankService`, `VertexAiRagMemoryService`, `VertexAiSessionService`
 
 ### tool module (49 builders)
 
-ActiveStreamingTool, AgentTool, APIHubToolset, ApplicationIntegrationToolset, IntegrationConnectorTool, BaseAuthenticatedTool, BaseTool, BaseToolset, BigQueryToolset, BigtableToolset, ComputerUseTool, ComputerUseToolset, DataAgentToolset, DiscoveryEngineSearchTool, EnterpriseWebSearchTool, ExampleTool, FunctionTool, GoogleApiTool, GoogleApiToolset, CalendarToolset, DocsToolset, GmailToolset, SheetsToolset, SlidesToolset, YoutubeToolset, GoogleMapsGroundingTool, GoogleSearchAgentTool, GoogleSearchTool, GoogleTool, LoadArtifactsTool, LoadMcpResourceTool, LoadMemoryTool, LongRunningFunctionTool, McpTool, McpToolset, OpenAPIToolset, RestApiTool, PreloadMemoryTool, PubSubToolset, BaseRetrievalTool, SetModelResponseTool, LoadSkillResourceTool, LoadSkillTool, SkillToolset, SpannerToolset, ToolboxToolset, TransferToAgentTool, UrlContextTool, VertexAiSearchTool
+`APIHubToolset`, `ActiveStreamingTool`, `AgentTool`, `ApplicationIntegrationToolset`, `BaseAuthenticatedTool`, `BaseRetrievalTool`, `BaseTool`, `BaseToolset`, `BigQueryToolset`, `BigtableToolset`, `CalendarToolset`, `ComputerUseTool`, `ComputerUseToolset`, `DataAgentToolset`, `DiscoveryEngineSearchTool`, `DocsToolset`, `EnterpriseWebSearchTool`, `ExampleTool`, `FunctionTool`, `GmailToolset`, `GoogleApiTool`, `GoogleApiToolset`, `GoogleMapsGroundingTool`, `GoogleSearchAgentTool`, `GoogleSearchTool`, `GoogleTool`, `IntegrationConnectorTool`, `LoadArtifactsTool`, `LoadMcpResourceTool`, `LoadMemoryTool`, `LoadSkillResourceTool`, `LoadSkillTool`, `LongRunningFunctionTool`, `McpTool`, `McpToolset`, `OpenAPIToolset`, `PreloadMemoryTool`, `PubSubToolset`, `RestApiTool`, `SetModelResponseTool`, `SheetsToolset`, `SkillToolset`, `SlidesToolset`, `SpannerToolset`, `ToolboxToolset`, `TransferToAgentTool`, `UrlContextTool`, `VertexAiSearchTool`, `YoutubeToolset`
 
 ### workflow module (3 builders)
 
-Loop, FanOut, Pipeline
+`FanOut`, `Loop`, `Pipeline`
+
+---
+
 ## Best practices
 
 1. Use deterministic routing (Route) over LLM routing when the decision is rule-based
@@ -1080,6 +726,9 @@ Loop, FanOut, Pipeline
     pick the right specialist during transfer routing
 18. Use `.ask_async()` and `.map_async()` in async contexts (Jupyter, FastAPI).
     The sync variants (.ask, .map) raise RuntimeError inside running event loops.
+
+---
+
 ## Development commands
 
     pip install adk-fluent                  # install

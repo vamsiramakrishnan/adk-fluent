@@ -186,8 +186,8 @@ class TestRunEvents:
         assert "run_events" in _helpers.__all__
 
     def test_events_method_on_agent(self):
-        """Agent builder has .events() method from seed extra."""
+        """Agent builder exposes .run.events()."""
         from adk_fluent import Agent
 
         agent = Agent("test").model("gemini-2.5-flash")
-        assert hasattr(agent, "events")
+        assert callable(agent.run.events)

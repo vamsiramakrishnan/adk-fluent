@@ -106,7 +106,7 @@ def generate_seed_from_manifest(manifest: dict, renames: dict[str, str] | None =
         tag = classify_class(name, module, mro_chain)
 
         # Filter
-        if not is_builder_worthy(tag):
+        if not is_builder_worthy(tag, name=name):
             continue
 
         # Constructor args

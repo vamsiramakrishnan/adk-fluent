@@ -1,6 +1,6 @@
 # API Reference
 
-Complete API reference for all **135 builders** across
+Complete API reference for all **133 builders** across
 **9 modules**.
 
 ## Modules
@@ -14,7 +14,7 @@ Complete API reference for all **135 builders** across
 | `plugin` | 12 | [plugin](plugin.md) |
 | `runtime` | 3 | [runtime](runtime.md) |
 | `service` | 15 | [service](service.md) |
-| `tool` | 51 | [tool](tool.md) |
+| `tool` | 49 | [tool](tool.md) |
 | `workflow` | 3 | [workflow](workflow.md) |
 | `prompt` | P | [prompt](prompt.md) |
 | `context` | C | [context](context.md) |

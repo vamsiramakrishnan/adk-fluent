@@ -16,7 +16,7 @@ if not TYPE_CHECKING:
         _ADK_RemoteA2aAgent = None  # type: ignore[assignment,misc]
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Awaitable
+    from collections.abc import Awaitable
     from typing import Literal
 
     from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
@@ -402,63 +402,6 @@ class Agent(BuilderBase):
         from adk_fluent._helpers import _guard_dispatch
 
         return _guard_dispatch(self, value)
-
-    def ask(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask()``. One-shot SYNC execution (blocking). Builds agent, sends prompt, returns response text. Raises RuntimeError inside async event loops (Jupyter, FastAPI) — use .ask_async() instead."""
-        from adk_fluent._helpers import run_one_shot
-
-        return run_one_shot(self, prompt)
-
-    async def ask_async(self, prompt: str) -> str:
-        """Deprecated: prefer ``.run.ask_async()``. One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts."""
-        from adk_fluent._helpers import run_one_shot_async
-
-        return await run_one_shot_async(self, prompt)
-
-    async def stream(self, prompt: str) -> AsyncIterator[str]:
-        """Deprecated: prefer ``.run.stream()``. ASYNC streaming execution. Yields response text chunks as they arrive. Use with ``async for chunk in agent.stream(prompt):``."""
-        from adk_fluent._helpers import run_stream
-
-        async for chunk in run_stream(self, prompt):
-            yield chunk
-
-    def test(
-        self,
-        prompt: str,
-        *,
-        contains: str | None = None,
-        matches: str | None = None,
-        equals: str | None = None,
-    ) -> Self:
-        """Deprecated: prefer ``.run.test()``. Run a smoke test. Calls .ask() internally, asserts output matches condition."""
-        from adk_fluent._helpers import run_inline_test
-
-        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
-
-    def session(self) -> Any:
-        """Deprecated: prefer ``.run.session()``. Create an interactive multi-turn chat session. Returns an async context manager — use with ``async with agent.session() as chat:``. The agent is auto-built."""
-        from adk_fluent._helpers import create_session
-
-        return create_session(self)
-
-    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map()``. Batch SYNC execution (blocking). Run agent against multiple prompts with bounded concurrency. Raises RuntimeError inside async event loops — use .map_async() instead."""
-        from adk_fluent._helpers import run_map
-
-        return run_map(self, prompts, concurrency=concurrency)
-
-    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Deprecated: prefer ``.run.map_async()``. Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts."""
-        from adk_fluent._helpers import run_map_async
-
-        return await run_map_async(self, prompts, concurrency=concurrency)
-
-    async def events(self, prompt: str) -> AsyncIterator[Any]:
-        """Deprecated: prefer ``.run.events()``. Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
-        from adk_fluent._helpers import run_events
-
-        async for chunk in run_events(self, prompt):
-            yield chunk
 
     def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() | P.task()). Raises TypeError if passed a CTransform (use .context() instead)."""

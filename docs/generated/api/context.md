@@ -347,7 +347,7 @@ Designed for pipeline agents that need the user's original
 message plus structured data from upstream agents, but should
 NOT see raw intermediate agent conversation history.
 
-Equivalent to `C.user_only() + C.from_state(*keys)` but
+Equivalent to `C.user_only() | C.from_state(*keys)` but
 with clearer intent and better contract checker support.
 
 Example:
@@ -390,7 +390,7 @@ into the agent's context as a `<ui_state>` block.
 
 Usage:
     Agent("renderer").context(C.with_ui("dashboard"))
-    Agent("updater").context(C.from_state("total") + C.with_ui())
+    Agent("updater").context(C.from_state("total") | C.with_ui())
 
 **Parameters:**
 

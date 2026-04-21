@@ -197,7 +197,7 @@ agent = Agent("agent").global_instruct("...")
 (method-Agent-instruct)=
 #### `.instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
 
-Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead).
+Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() | P.task()). Raises TypeError if passed a CTransform (use .context() instead).
 
 **Example:**
 
@@ -385,9 +385,9 @@ agent = Agent("safe", "gemini-2.5-flash").guard(my_guard_fn)
 (method-Agent-hide)=
 #### `.hide() -> Self` {bdg-info}`Configuration`
 
-Force this agent's events to be internal (override topology inference).
+Force this agent's events to be internal (override topology inference). Pair with .reveal() for the inverse.
 
-**See also:** `Agent.show`
+**See also:** `Agent.reveal`
 
 **Example:**
 
@@ -460,10 +460,10 @@ Publish this agent as an A2A server (returns Starlette app). Shorthand for `A2AS
 agent = Agent("agent").publish("...")
 ```
 
-(method-Agent-show)=
-#### `.show() -> Self` {bdg-info}`Configuration`
+(method-Agent-reveal)=
+#### `.reveal() -> Self` {bdg-info}`Configuration`
 
-Force this agent's events to be user-facing (override topology inference).
+Force this agent's events to be user-facing (override topology inference). Pair with .hide() for the inverse.
 
 **See also:** `Agent.hide`
 
@@ -471,7 +471,7 @@ Force this agent's events to be user-facing (override topology inference).
 
 ```python
 # Force intermediate agent output to be visible to users
-agent = Agent("logger").model("m").instruct("Log progress.").show()
+agent = Agent("logger").model("m").instruct("Log progress.").reveal()
 ```
 
 (method-Agent-skill)=
@@ -483,6 +483,18 @@ Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by
 
 ```python
 agent = Agent("agent").skill("...")
+```
+
+(method-Agent-static_instruct)=
+#### `.static_instruct(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-info}`Configuration`
+
+- **Maps to:** `static_instruction`
+- Set cached instruction. When set, `.instruct()` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change.
+
+**Example:**
+
+```python
+agent = Agent("agent").static_instruct("...")
 ```
 
 (method-Agent-stay)=
@@ -772,31 +784,6 @@ agent = Agent("agent").on_tool_error_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
-(method-Agent-ask)=
-#### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot SYNC execution (blocking). Builds agent, sends prompt, returns response text. Raises RuntimeError inside async event loops (Jupyter, FastAPI) — use .ask_async() instead.
-
-**See also:** `Agent.ask_async`, `Agent.stream`
-
-**Example:**
-
-```python
-reply = Agent("qa", "gemini-2.5-flash").instruct("Answer questions.").ask("What is Python?")
-print(reply)
-```
-
-(method-Agent-ask_async)=
-#### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts.
-
-**Example:**
-
-```python
-agent = Agent("agent").ask_async("...")
-```
-
 (method-Agent-build)=
 #### `.build() -> LlmAgent` {bdg-primary}`Control Flow & Execution`
 
@@ -806,17 +793,6 @@ Resolve into a native ADK LlmAgent.
 
 ```python
 agent = Agent("agent").build("...")
-```
-
-(method-Agent-events)=
-#### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
-
-Stream raw ADK Event objects. Yields every event including state deltas and function calls.
-
-**Example:**
-
-```python
-agent = Agent("agent").events("...")
 ```
 
 (method-Agent-isolate)=
@@ -837,64 +813,6 @@ specialist = (
     .returns(Invoice)
     .build()
 )
-```
-
-(method-Agent-map)=
-#### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch SYNC execution (blocking). Run agent against multiple prompts with bounded concurrency. Raises RuntimeError inside async event loops — use .map_async() instead.
-
-**Example:**
-
-```python
-agent = Agent("agent").map("...")
-```
-
-(method-Agent-map_async)=
-#### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts.
-
-**Example:**
-
-```python
-agent = Agent("agent").map_async("...")
-```
-
-(method-Agent-session)=
-#### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
-
-Create an interactive multi-turn chat session. Returns an async context manager — use with `async with agent.session() as chat:`. The agent is auto-built.
-
-**Example:**
-
-```python
-agent = Agent("agent").session("...")
-```
-
-(method-Agent-stream)=
-#### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
-
-ASYNC streaming execution. Yields response text chunks as they arrive. Use with `async for chunk in agent.stream(prompt):`.
-
-**See also:** `Agent.ask`, `Agent.events`
-
-**Example:**
-
-```python
-async for chunk in Agent("writer", "gemini-2.5-flash").instruct("Write a poem.").stream("About the sea"):
-    print(chunk, end="")
-```
-
-(method-Agent-test)=
-#### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
-
-Run a smoke test. Calls .ask() internally, asserts output matches condition.
-
-**Example:**
-
-```python
-agent = Agent("agent").test("...")
 ```
 
 ### Forwarded Fields

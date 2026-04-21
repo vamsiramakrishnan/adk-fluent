@@ -190,8 +190,6 @@ fanout = (
 | `LongRunningFunctionTool` | [LongRunningFunctionTool](../api/tool.md#builder-LongRunningFunctionTool) | `from adk_fluent import LongRunningFunctionTool` |
 | `LoopAgent` | [Loop](../api/workflow.md#builder-Loop) | `from adk_fluent import Loop` |
 | `LoopAgentConfig` | [LoopAgentConfig](../api/config.md#builder-LoopAgentConfig) | `from adk_fluent import LoopAgentConfig` |
-| `MCPTool` | [MCPTool](../api/tool.md#builder-MCPTool) | `from adk_fluent import MCPTool` |
-| `MCPToolset` | [MCPToolset](../api/tool.md#builder-MCPToolset) | `from adk_fluent import MCPToolset` |
 | `McpTool` | [McpTool](../api/tool.md#builder-McpTool) | `from adk_fluent import McpTool` |
 | `McpToolset` | [McpToolset](../api/tool.md#builder-McpToolset) | `from adk_fluent import McpToolset` |
 | `McpToolsetConfig` | [McpToolsetConfig](../api/config.md#builder-McpToolsetConfig) | `from adk_fluent import McpToolsetConfig` |
@@ -252,6 +250,7 @@ The tables below show fluent method names that differ from the native field name
 | `global_instruction` | `.global_instruct()` | alias |
 | `instruction` | `.instruct()` | alias |
 | `static_instruction` | `.static()` | alias |
+| `static_instruction` | `.static_instruct()` | alias |
 | `after_agent_callback` | `.after_agent()` | callback, additive |
 | `after_model_callback` | `.after_model()` | callback, additive |
 | `after_tool_callback` | `.after_tool()` | callback, additive |
@@ -313,10 +312,7 @@ The tables below show fluent method names that differ from the native field name
 | Native Field | Fluent Method | Notes |
 |-------------|---------------|-------|
 | `description` | `.describe()` | alias |
-| `include_contents` | `.history()` | alias |
-| `include_contents` | `.include_history()` | alias |
 | `instruction` | `.instruct()` | alias |
-| `output_key` | `.outputs()` | alias |
 | `static_instruction` | `.static()` | alias |
 | `static_instruction` | `.static_instruct()` | alias |
 

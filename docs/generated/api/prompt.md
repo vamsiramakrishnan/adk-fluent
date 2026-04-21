@@ -196,7 +196,7 @@ Attach version metadata + fingerprint to a prompt.
 Inject A2UI schema and catalog documentation as a prompt section.
 
 Use with `.instruct()` to give the LLM knowledge of the A2UI protocol:
-    agent.instruct(P.role("UI Designer") + P.ui_schema() + P.task("Build a dashboard"))
+    agent.instruct(P.role("UI Designer") | P.ui_schema() | P.task("Build a dashboard"))
 
 **Args:**
 

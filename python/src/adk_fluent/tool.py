@@ -117,20 +117,12 @@ if TYPE_CHECKING:
         LongRunningFunctionTool as _ADK_LongRunningFunctionTool,
     )
     from google.adk.tools.mcp_tool.mcp_tool import (
-        MCPTool as _ADK_MCPTool,
-    )
-    from google.adk.tools.mcp_tool.mcp_tool import (
         McpTool as _ADK_McpTool,
     )
     from google.adk.tools.mcp_tool.mcp_tool import (
         ProgressCallbackFactory,
     )
-    from google.adk.tools.mcp_tool.mcp_toolset import (
-        MCPToolset as _ADK_MCPToolset,
-    )
-    from google.adk.tools.mcp_tool.mcp_toolset import (
-        McpToolset as _ADK_McpToolset,
-    )
+    from google.adk.tools.mcp_tool.mcp_toolset import McpToolset as _ADK_McpToolset
     from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import (
         OpenAPIToolset as _ADK_OpenAPIToolset,
     )
@@ -1602,26 +1594,6 @@ class LongRunningFunctionTool(BuilderBase):
         return self._apply_native_hooks(result)
 
 
-class MCPTool(BuilderBase):
-    """Deprecated name, use `McpTool` instead."""
-
-    _ALIASES: dict[str, str] = {}
-    _CALLBACK_ALIASES: dict[str, str] = {}
-    _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = set()
-
-    def __init__(self, args: str, kwargs: str) -> None:
-        self._init_storage(args, kwargs=kwargs)
-
-    def build(self) -> _ADK_MCPTool:
-        """Deprecated name, use `McpTool` instead. Resolve into a native ADK _ADK_MCPTool."""
-        from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _ADK_MCPTool
-
-        config = self._prepare_build_config()
-        result = self._safe_build(_ADK_MCPTool, config)
-        return self._apply_native_hooks(result)
-
-
 class McpTool(BuilderBase):
     """Turns an MCP Tool into an ADK Tool."""
 
@@ -1677,26 +1649,6 @@ class McpTool(BuilderBase):
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_McpTool, config)
-        return self._apply_native_hooks(result)
-
-
-class MCPToolset(BuilderBase):
-    """Deprecated name, use `McpToolset` instead."""
-
-    _ALIASES: dict[str, str] = {}
-    _CALLBACK_ALIASES: dict[str, str] = {}
-    _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = set()
-
-    def __init__(self, args: str, kwargs: str) -> None:
-        self._init_storage(args, kwargs=kwargs)
-
-    def build(self) -> _ADK_MCPToolset:
-        """Deprecated name, use `McpToolset` instead. Resolve into a native ADK _ADK_MCPToolset."""
-        from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset as _ADK_MCPToolset
-
-        config = self._prepare_build_config()
-        result = self._safe_build(_ADK_MCPToolset, config)
         return self._apply_native_hooks(result)
 
 

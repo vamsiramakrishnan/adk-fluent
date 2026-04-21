@@ -94,14 +94,10 @@ from google.adk.tools.long_running_tool import (
     LongRunningFunctionTool as _ADK_LongRunningFunctionTool,
 )
 from google.adk.tools.mcp_tool.mcp_tool import (
-    MCPTool as _ADK_MCPTool,
     McpTool as _ADK_McpTool,
     ProgressCallbackFactory,
 )
-from google.adk.tools.mcp_tool.mcp_toolset import (
-    MCPToolset as _ADK_MCPToolset,
-    McpToolset as _ADK_McpToolset,
-)
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset as _ADK_McpToolset
 from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import (
     OpenAPIToolset as _ADK_OpenAPIToolset,
 )
@@ -413,11 +409,6 @@ class LongRunningFunctionTool(BuilderBase):
     def __init__(self, func: str) -> None: ...
     def build(self) -> _ADK_LongRunningFunctionTool: ...
 
-class MCPTool(BuilderBase):
-    """Deprecated name, use `McpTool` instead."""
-    def __init__(self, args: str, kwargs: str) -> None: ...
-    def build(self) -> _ADK_MCPTool: ...
-
 class McpTool(BuilderBase):
     """Turns an MCP Tool into an ADK Tool."""
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None: ...
@@ -431,11 +422,6 @@ class McpTool(BuilderBase):
         self, value: ProgressFnT | ProgressCallbackFactory | None
     ) -> Self: ...
     def build(self) -> _ADK_McpTool: ...
-
-class MCPToolset(BuilderBase):
-    """Deprecated name, use `McpToolset` instead."""
-    def __init__(self, args: str, kwargs: str) -> None: ...
-    def build(self) -> _ADK_MCPToolset: ...
 
 class McpToolset(BuilderBase):
     """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools."""

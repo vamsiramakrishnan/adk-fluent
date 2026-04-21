@@ -1,17 +1,15 @@
-"""Tests for .ask() one-shot execution -- builder mechanics only."""
+"""Tests for .run.ask() one-shot execution -- builder mechanics only."""
 
 from adk_fluent.agent import Agent
 
 
 class TestAskMechanics:
     def test_ask_exists_on_agent(self):
-        """Agent builder has .ask() method."""
+        """Agent builder exposes .run.ask()."""
         builder = Agent("test").instruct("test")
-        assert hasattr(builder, "ask")
-        assert callable(builder.ask)
+        assert callable(builder.run.ask)
 
     def test_ask_async_exists_on_agent(self):
-        """Agent builder has .ask_async() method."""
+        """Agent builder exposes .run.ask_async()."""
         builder = Agent("test").instruct("test")
-        assert hasattr(builder, "ask_async")
-        assert callable(builder.ask_async)
+        assert callable(builder.run.ask_async)

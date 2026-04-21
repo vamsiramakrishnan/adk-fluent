@@ -37,9 +37,7 @@
 | [LoadMcpResourceTool](builder-LoadMcpResourceTool) | A tool that loads the MCP resources and adds them to the session. |
 | [LoadMemoryTool](builder-LoadMemoryTool) | A tool that loads the memory for the current user. |
 | [LongRunningFunctionTool](builder-LongRunningFunctionTool) | A function tool that returns the result asynchronously. |
-| [MCPTool](builder-MCPTool) | Deprecated name, use `McpTool` instead. |
 | [McpTool](builder-McpTool) | Turns an MCP Tool into an ADK Tool. |
-| [MCPToolset](builder-MCPToolset) | Deprecated name, use `McpToolset` instead. |
 | [McpToolset](builder-McpToolset) | Connects to a MCP Server, and retrieves MCP Tools into ADK Tools. |
 | [OpenAPIToolset](builder-OpenAPIToolset) | Class for parsing OpenAPI spec into a list of RestApiTool. |
 | [RestApiTool](builder-RestApiTool) | A generic tool that interacts with a REST API. |
@@ -1579,50 +1577,6 @@ longrunningfunctiontool = LongRunningFunctionTool("longrunningfunctiontool").bui
 
 ---
 
-(builder-MCPTool)=
-## MCPTool
-
-> Fluent builder for `google.adk.tools.mcp_tool.mcp_tool.MCPTool`
-
-Deprecated name, use `McpTool` instead.
-
-**Quick start:**
-
-```python
-from adk_fluent import MCPTool
-
-result = (
-    MCPTool("args_value", "kwargs_value")
-    .build()
-)
-```
-
-### Constructor
-
-```python
-MCPTool(args: Any, kwargs: Any)
-```
-
-| Argument | Type |
-|----------|------|
-| `args` | `Any` |
-| `kwargs` | `Any` |
-
-### Control Flow & Execution
-
-(method-MCPTool-build)=
-#### `.build() -> MCPTool` {bdg-primary}`Control Flow & Execution`
-
-Resolve into a native ADK MCPTool.
-
-**Example:**
-
-```python
-mcptool = MCPTool("mcptool").build("...")
-```
-
----
-
 (builder-McpTool)=
 ## McpTool
 
@@ -1676,50 +1630,6 @@ These fields are available via `__getattr__` forwarding.
 | `.require_confirmation(value)` | `bool | Callable[..., bool]` |
 | `.header_provider(value)` | `Callable[[ReadonlyContext], dict[str, str]] | None` |
 | `.progress_callback(value)` | `ProgressFnT | ProgressCallbackFactory | None` |
-
----
-
-(builder-MCPToolset)=
-## MCPToolset
-
-> Fluent builder for `google.adk.tools.mcp_tool.mcp_toolset.MCPToolset`
-
-Deprecated name, use `McpToolset` instead.
-
-**Quick start:**
-
-```python
-from adk_fluent import MCPToolset
-
-result = (
-    MCPToolset("args_value", "kwargs_value")
-    .build()
-)
-```
-
-### Constructor
-
-```python
-MCPToolset(args: Any, kwargs: Any)
-```
-
-| Argument | Type |
-|----------|------|
-| `args` | `Any` |
-| `kwargs` | `Any` |
-
-### Control Flow & Execution
-
-(method-MCPToolset-build)=
-#### `.build() -> MCPToolset` {bdg-primary}`Control Flow & Execution`
-
-Resolve into a native ADK MCPToolset.
-
-**Example:**
-
-```python
-mcptoolset = MCPToolset("mcptoolset").build("...")
-```
 
 ---
 

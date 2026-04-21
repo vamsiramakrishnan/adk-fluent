@@ -153,28 +153,6 @@ loop = Loop("loop").before_agent_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
-(method-Loop-ask)=
-#### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot SYNC execution (blocking). Builds loop, sends prompt, returns response text.
-
-**Example:**
-
-```python
-loop = Loop("loop").ask("...")
-```
-
-(method-Loop-ask_async)=
-#### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot ASYNC execution (non-blocking, use with await).
-
-**Example:**
-
-```python
-loop = Loop("loop").ask_async("...")
-```
-
 (method-Loop-build)=
 #### `.build() -> LoopAgent` {bdg-primary}`Control Flow & Execution`
 
@@ -186,50 +164,6 @@ Resolve into a native ADK LoopAgent.
 loop = Loop("loop").build("...")
 ```
 
-(method-Loop-events)=
-#### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
-
-Stream raw ADK Event objects. Yields every event including state deltas and function calls.
-
-**Example:**
-
-```python
-loop = Loop("loop").events("...")
-```
-
-(method-Loop-map)=
-#### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch SYNC execution (blocking). Run loop against multiple prompts with bounded concurrency.
-
-**Example:**
-
-```python
-loop = Loop("loop").map("...")
-```
-
-(method-Loop-map_async)=
-#### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch ASYNC execution (non-blocking, use with await).
-
-**Example:**
-
-```python
-loop = Loop("loop").map_async("...")
-```
-
-(method-Loop-session)=
-#### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
-
-Create an interactive multi-turn chat session. Returns an async context manager.
-
-**Example:**
-
-```python
-loop = Loop("loop").session("...")
-```
-
 (method-Loop-step)=
 #### `.step(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
@@ -239,28 +173,6 @@ Append to `sub_agents` (lazy — built at .build() time).
 
 ```python
 loop = Loop("loop").step("...")
-```
-
-(method-Loop-stream)=
-#### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
-
-ASYNC streaming execution. Yields response text chunks as they arrive.
-
-**Example:**
-
-```python
-loop = Loop("loop").stream("...")
-```
-
-(method-Loop-test)=
-#### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
-
-Run a smoke test. Calls .ask() internally, asserts output matches condition.
-
-**Example:**
-
-```python
-loop = Loop("loop").test("...")
 ```
 
 ### Forwarded Fields
@@ -419,28 +331,6 @@ fanout = FanOut("fanout").before_agent_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
-(method-FanOut-ask)=
-#### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot SYNC execution (blocking). Builds fan-out, sends prompt, returns response text.
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").ask("...")
-```
-
-(method-FanOut-ask_async)=
-#### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot ASYNC execution (non-blocking, use with await).
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").ask_async("...")
-```
-
 (method-FanOut-branch)=
 #### `.branch(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
@@ -463,50 +353,6 @@ Resolve into a native ADK ParallelAgent.
 fanout = FanOut("fanout").build("...")
 ```
 
-(method-FanOut-events)=
-#### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
-
-Stream raw ADK Event objects. Yields every event including state deltas and function calls.
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").events("...")
-```
-
-(method-FanOut-map)=
-#### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch SYNC execution (blocking). Run fan-out against multiple prompts with bounded concurrency.
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").map("...")
-```
-
-(method-FanOut-map_async)=
-#### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch ASYNC execution (non-blocking, use with await).
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").map_async("...")
-```
-
-(method-FanOut-session)=
-#### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
-
-Create an interactive multi-turn chat session. Returns an async context manager.
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").session("...")
-```
-
 (method-FanOut-step)=
 #### `.step(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
@@ -516,28 +362,6 @@ Alias for .branch() — consistent API across workflow builders.
 
 ```python
 fanout = FanOut("fanout").step("...")
-```
-
-(method-FanOut-stream)=
-#### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
-
-ASYNC streaming execution. Yields response text chunks as they arrive.
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").stream("...")
-```
-
-(method-FanOut-test)=
-#### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
-
-Run a smoke test. Calls .ask() internally, asserts output matches condition.
-
-**Example:**
-
-```python
-fanout = FanOut("fanout").test("...")
 ```
 
 ### Forwarded Fields
@@ -695,28 +519,6 @@ pipeline = Pipeline("pipeline").before_agent_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
-(method-Pipeline-ask)=
-#### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot SYNC execution (blocking). Builds pipeline, sends prompt, returns response text.
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").ask("...")
-```
-
-(method-Pipeline-ask_async)=
-#### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
-
-One-shot ASYNC execution (non-blocking, use with await).
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").ask_async("...")
-```
-
 (method-Pipeline-build)=
 #### `.build() -> SequentialAgent` {bdg-primary}`Control Flow & Execution`
 
@@ -728,50 +530,6 @@ Resolve into a native ADK SequentialAgent.
 pipeline = Pipeline("pipeline").build("...")
 ```
 
-(method-Pipeline-events)=
-#### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
-
-Stream raw ADK Event objects. Yields every event including state deltas and function calls.
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").events("...")
-```
-
-(method-Pipeline-map)=
-#### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch SYNC execution (blocking). Run pipeline against multiple prompts with bounded concurrency.
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").map("...")
-```
-
-(method-Pipeline-map_async)=
-#### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
-
-Batch ASYNC execution (non-blocking, use with await).
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").map_async("...")
-```
-
-(method-Pipeline-session)=
-#### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
-
-Create an interactive multi-turn chat session. Returns an async context manager.
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").session("...")
-```
-
 (method-Pipeline-step)=
 #### `.step(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
@@ -781,28 +539,6 @@ Append to `sub_agents` (lazy — built at .build() time).
 
 ```python
 pipeline = Pipeline("pipeline").step("...")
-```
-
-(method-Pipeline-stream)=
-#### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
-
-ASYNC streaming execution. Yields response text chunks as they arrive.
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").stream("...")
-```
-
-(method-Pipeline-test)=
-#### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
-
-Run a smoke test. Calls .ask() internally, asserts output matches condition.
-
-**Example:**
-
-```python
-pipeline = Pipeline("pipeline").test("...")
 ```
 
 ### Forwarded Fields

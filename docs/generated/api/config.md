@@ -480,18 +480,6 @@ LlmAgentConfig(name: str, instruction: str)
 config = LlmAgentConfig("config").describe("...")
 ```
 
-(method-LlmAgentConfig-history)=
-#### `.history(value: Literal['default', 'none']) -> Self` {bdg-success}`Core Configuration`
-
-- **Maps to:** `include_contents`
-- Optional. LlmAgent.include_contents.
-
-**Example:**
-
-```python
-config = LlmAgentConfig("config").history("none")
-```
-
 (method-LlmAgentConfig-instruct)=
 #### `.instruct(value: str) -> Self` {bdg-success}`Core Configuration`
 
@@ -502,18 +490,6 @@ config = LlmAgentConfig("config").history("none")
 
 ```python
 config = LlmAgentConfig("config").instruct("You are a helpful assistant.")
-```
-
-(method-LlmAgentConfig-outputs)=
-#### `.outputs(value: str | None) -> Self` {bdg-success}`Core Configuration`
-
-- **Maps to:** `output_key`
-- Deprecated: use `.writes(key)` instead. Session state key where the agent's response text is stored.
-
-**Example:**
-
-```python
-config = LlmAgentConfig("config").outputs("result_key")
 ```
 
 (method-LlmAgentConfig-static)=
@@ -618,18 +594,6 @@ Append to `before_tool_callbacks` (lazy — built at .build() time).
 config = LlmAgentConfig("config").before_tool_callback(my_callback_fn)
 ```
 
-(method-LlmAgentConfig-include_history)=
-#### `.include_history(value: Literal['default', 'none']) -> Self` {bdg-info}`Configuration`
-
-- **Maps to:** `include_contents`
-- Optional. LlmAgent.include_contents.
-
-**Example:**
-
-```python
-config = LlmAgentConfig("config").include_history("none")
-```
-
 (method-LlmAgentConfig-static_instruct)=
 #### `.static_instruct(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-info}`Configuration`
 
@@ -671,6 +635,8 @@ These fields are available via `__getattr__` forwarding.
 | `.disallow_transfer_to_peers(value)` | `bool | None` |
 | `.input_schema(value)` | `CodeConfig | None` |
 | `.output_schema(value)` | `CodeConfig | None` |
+| `.output_key(value)` | `str | None` |
+| `.include_contents(value)` | `Literal['default', 'none']` |
 | `.tools(value)` | `list[ToolConfig] | None` |
 | `.before_model_callbacks(value)` | `list[CodeConfig] | None` |
 | `.after_model_callbacks(value)` | `list[CodeConfig] | None` |

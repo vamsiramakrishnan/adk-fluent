@@ -684,9 +684,9 @@ C.notes) are neutral — they inject state without suppressing conversation
 history. History-filtering transforms (C.none, C.window, C.user_only)
 explicitly control visibility. Compose them to get both::
 
-    C.none() + C.from_state("key")   # inject state, no history
+    C.none() | C.from_state("key")   # inject state, no history
     C.from_state("key")              # inject state, keep history
-    C.window(n=3) + C.from_state("key")  # last 3 turns + state
+    C.window(n=3) | C.from_state("key")  # last 3 turns + state
 :link: 49_context_engineering
 :link-type: doc
 
@@ -820,7 +820,7 @@ Uses: S.capture, C.none, C.from_state, C.user_only, Route, gate, save_as
 
 Note: C.from_state() is a pure data-injection transform — it injects state
 values without suppressing conversation history. To suppress history AND
-inject state, compose: C.none() + C.from_state("key").
+inject state, compose: C.none() | C.from_state("key").
 :link: 56_customer_support_triage
 :link-type: doc
 
@@ -1427,6 +1427,38 @@ Run: ``uv run pytest examples/cookbook/80_reactor_basic.py -v``
 
 How to manage interactive sessions with agents.
 ```
+```{grid-item-card} R + Agent.on() — declarative reactors, zero ceremony.
+
+The 0.17.0 reactor refresh makes signals and rules a first-class part
+of the fluent builder surface. Before, wiring a reactor required
+hand-building every object in sequence::
+
+    bus = H.event_bus()
+    tape = bus.tape()
+    temp = Signal("temp", 72, bus=bus)
+    reactor = Reactor(tape, bus=bus)
+    reactor.when(temp.rising.where(lambda v, _: v > 90), my_handler, priority=10)
+    await reactor.run()
+
+Now::
+
+    temp = R.signal("temp", 72)
+
+    cooler = (
+        Agent("cooler", "gemini-2.5-flash")
+        .instruct("Plan a cool-down.")
+        .on(R.rising("temp").where(lambda v, _: v > 90), priority=10)
+    )
+
+    reactor = R.compile(cooler, tape=tape, bus=bus)
+    await reactor.run()
+
+Run: ``uv run pytest examples/cookbook/81_reactor_native.py -v``
+:link: 81_reactor_native
+:link-type: doc
+
+How to run inline smoke tests on agents.
+```
 ````
 
 ```{toctree}
@@ -1440,6 +1472,7 @@ How to manage interactive sessions with agents.
 78_harness_and_skills
 79_coding_agent_harness
 80_reactor_basic
+81_reactor_native
 ```
 
 ```{toctree}

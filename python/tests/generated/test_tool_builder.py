@@ -36,9 +36,7 @@ from adk_fluent.tool import (
     LoadSkillResourceTool,
     LoadSkillTool,
     LongRunningFunctionTool,
-    MCPTool,
     McpTool,
-    MCPToolset,
     McpToolset,
     OpenAPIToolset,
     PreloadMemoryTool,
@@ -849,22 +847,6 @@ class TestLongRunningFunctionToolBuilder:
             builder.zzz_not_a_real_field("oops")
 
 
-class TestMCPToolBuilder:
-    """Tests for MCPTool builder mechanics (no .build() calls)."""
-
-    def test_builder_creation(self):
-        """Builder constructor stores args in _config."""
-        builder = MCPTool("test_args", "test_kwargs")
-        assert builder is not None
-        assert isinstance(builder._config, dict)
-
-    def test_typo_detection(self):
-        """Typos in method names raise clear AttributeError."""
-        builder = MCPTool("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized field"):
-            builder.zzz_not_a_real_field("oops")
-
-
 class TestMcpToolBuilder:
     """Tests for McpTool builder mechanics (no .build() calls)."""
 
@@ -889,22 +871,6 @@ class TestMcpToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = McpTool("test_mcp_tool", "test_mcp_session_manager")
-        with pytest.raises(AttributeError, match="not a recognized field"):
-            builder.zzz_not_a_real_field("oops")
-
-
-class TestMCPToolsetBuilder:
-    """Tests for MCPToolset builder mechanics (no .build() calls)."""
-
-    def test_builder_creation(self):
-        """Builder constructor stores args in _config."""
-        builder = MCPToolset("test_args", "test_kwargs")
-        assert builder is not None
-        assert isinstance(builder._config, dict)
-
-    def test_typo_detection(self):
-        """Typos in method names raise clear AttributeError."""
-        builder = MCPToolset("test_args", "test_kwargs")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
