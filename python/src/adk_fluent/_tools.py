@@ -130,7 +130,15 @@ def _build_flux_a2ui_toolset(*, schema: Any = None) -> TComposite:
 class T:
     """Fluent tool composition. Consistent with P, C, S, M modules.
 
-    Factory methods return ``TComposite`` instances that compose with ``|``.
+    Operators (see ``shared/parity.toml`` for the cross-language contract)::
+
+        a | b   → chain: aggregate tools into one TComposite (tools have no
+                  union / overlap semantics — ``|`` is just concatenation).
+                  TS: ``a.pipe(b)`` (no ``.union()`` — chain is the only verb).
+        a >> Builder  → attach: ``builder.tools(a)``.
+                        TS: ``a.attachTo(builder)``.
+
+    Factory methods return ``TComposite`` instances.
     """
 
     # --- Wrapping ---

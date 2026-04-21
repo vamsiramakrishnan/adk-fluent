@@ -2,7 +2,13 @@
  * T — Tool composition namespace.
  *
  * Factory methods returning composable tool collections.
- * Compose with .pipe() to combine tool sets.
+ *
+ * Operators (see `shared/parity.toml` for the cross-language contract):
+ *   a.pipe(b)  → chain: aggregate tools into one TComposite (tools have no
+ *                union / overlap semantics — `.pipe()` is just
+ *                concatenation). Mirrors Python `a | b`.
+ *   a.attachTo(builder) → equivalent to Python's `a >> builder`.
+ *                         Calls `builder.tools(a)`.
  *
  * Usage:
  *   agent.tools(T.fn(search).pipe(T.fn(email)))

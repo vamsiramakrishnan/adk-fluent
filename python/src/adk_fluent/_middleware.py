@@ -56,7 +56,16 @@ class MComposite(Composite, kind="middleware_chain"):
 class M:
     """Fluent middleware composition. Consistent with P, C, S modules.
 
-    Factory methods return ``MComposite`` instances that compose with ``|``.
+    Operators (see ``shared/parity.toml`` for the cross-language contract)::
+
+        a | b   → chain: middleware stack is applied outer→inner, so
+                  ``M.retry() | M.log()`` runs retry's before-hook first,
+                  then log's. No union semantics; ``|`` is concatenation.
+                  TS: ``a.pipe(b)`` (no ``.union()`` — chain is the only verb).
+        a >> Builder  → attach: ``builder.middleware(a)``.
+                        TS: ``a.attachTo(builder)``.
+
+    Factory methods return ``MComposite`` instances.
     """
 
     # --- Built-in factories ---

@@ -494,7 +494,20 @@ class PVersioned(PTransform):
 class P:
     """Prompt composition namespace. Each method returns a frozen PTransform.
 
-    Usage:
+    Operators (see ``shared/parity.toml`` for the cross-language contract)::
+
+        a | b   → union: section set union. Canonical section order is
+                  preserved (role → context → task → constraint → format →
+                  example) regardless of the order you ``|`` them.
+                  TS: ``a.union(b)``.
+        a >> b  → pipe:  post-process the rendered output through b.
+                  TS: ``a.pipe(b)``.
+
+    Attach to a builder with ``>>`` (Python) or ``.attachTo(builder)`` (TS);
+    both resolve to ``builder.instruct(transform)``.
+
+    Usage::
+
         Agent("writer").instruct(
             P.role("You are a senior code reviewer.")
             | P.task("Review the code for bugs.")

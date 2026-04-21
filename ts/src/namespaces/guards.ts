@@ -2,7 +2,15 @@
  * G — Guards (output validation) namespace.
  *
  * Guards validate/transform the LLM response (after_model).
- * Compose with .pipe() to chain multiple guards.
+ *
+ * Operators (see `shared/parity.toml` for the cross-language contract):
+ *   a.pipe(b)  → chain: run a, then b (both guards must pass). Guards have
+ *                no union semantics — `.pipe()` is conjunctive chaining.
+ *                Mirrors Python `a | b`.
+ *   a.attachTo(builder) → equivalent to Python's `a >> builder`.
+ *                         Calls `builder.guard(a)`.
+ *
+ * Guards raise `GuardViolation` on failure.
  *
  * Usage:
  *   agent.guard(G.length({ max: 500 }))

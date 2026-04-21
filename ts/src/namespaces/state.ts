@@ -2,13 +2,18 @@
  * S — State transform namespace.
  *
  * Factory methods returning composable state transforms.
- * Compose with .pipe() (chain) or .combine() (combine). Mirrors Python ``>>`` / ``|``.
+ *
+ * Operators (see `shared/parity.toml` for the cross-language contract):
+ *   a.pipe(b)     → chain: a's output feeds b. Mirrors Python `a >> b`.
+ *   a.combine(b)  → combine: both see the original state; deltas merge
+ *                   key-wise. Mirrors Python `a | b`.
  *
  * Usage:
- *   S.pick("key1", "key2")        // keep only named keys
- *   S.rename({ old: "new" })      // rename keys
- *   S.default_({ x: 0 })          // fill missing keys
- *   S.pick("a").pipe(S.set({b:1})) // chain transforms
+ *   S.pick("key1", "key2")                      // keep only named keys
+ *   S.rename({ old: "new" })                    // rename keys
+ *   S.default_({ x: 0 })                        // fill missing keys
+ *   S.pick("a").pipe(S.set({ b: 1 }))           // chain
+ *   S.default_({ a: 1 }).combine(S.set({ b: 2 })) // combine
  */
 
 import type { State, StateTransform } from "../core/types.js";

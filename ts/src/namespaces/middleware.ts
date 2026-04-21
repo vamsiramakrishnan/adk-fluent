@@ -2,7 +2,14 @@
  * M — Middleware namespace.
  *
  * Composable middleware for cross-cutting concerns.
- * Compose with .pipe() to stack middleware layers.
+ *
+ * Operators (see `shared/parity.toml` for the cross-language contract):
+ *   a.pipe(b)  → chain: middleware stack is applied outer→inner. So
+ *                `M.retry().pipe(M.log())` runs retry's before-hook first,
+ *                then log's. No union semantics; `.pipe()` is concatenation.
+ *                Mirrors Python `a | b`.
+ *   a.attachTo(builder) → equivalent to Python's `a >> builder`.
+ *                         Calls `builder.middleware(a)`.
  *
  * Usage:
  *   agent.middleware(M.retry({ maxAttempts: 3 }).pipe(M.log()))

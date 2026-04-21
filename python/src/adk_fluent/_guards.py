@@ -486,8 +486,16 @@ def _noop_compile(_builder: Any) -> None:
 class G:
     """Factory for composable guard specs.
 
-    Every method returns a ``GComposite`` that can be chained with ``|``
-    and compiled into a builder via ``.guard()``.
+    Operators (see ``shared/parity.toml`` for the cross-language contract)::
+
+        a | b   → chain: run a, then b (both guards must pass). Guards have
+                  no union semantics — ``|`` is conjunctive chaining.
+                  TS: ``a.pipe(b)`` (no ``.union()`` — chain is the only verb).
+        a >> Builder  → attach: ``builder.guard(a)``.
+                        TS: ``a.attachTo(builder)``.
+
+    Guards run as after_model callbacks and raise ``GuardViolation`` on
+    failure. Every method returns a ``GComposite``.
     """
 
     # ------------------------------------------------------------------

@@ -948,13 +948,25 @@ class CSharedThread(CTransform):
 
 
 class C:
-    """Context engineering namespace. Each method returns a frozen CTransform descriptor.
+    """Context engineering namespace. Each method returns a frozen CTransform.
 
-    Usage:
+    Operators (see ``shared/parity.toml`` for the cross-language contract)::
+
+        a | b   → union: set-union of history filters; suppression wins
+                  (if ANY child suppresses history, the composite does).
+                  TS: ``a.union(b)``.
+        a >> b  → pipe:  post-process the compiled output through b.
+                  TS: ``a.pipe(b)``.
+
+    Attach to a builder with ``>>`` (Python) or ``.attachTo(builder)`` (TS);
+    both resolve to ``builder.context(transform)``.
+
+    Usage::
+
         Agent("writer").context(C.window(n=3))
         Agent("summarizer").context(C.from_state("topic", "style"))
         Agent("reviewer").context(C.user_only())
-        Agent("analyst").context(C.none())
+        Agent("analyst").context(C.none() | C.from_state("goal"))
     """
 
     @staticmethod

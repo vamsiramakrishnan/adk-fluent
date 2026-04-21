@@ -6,7 +6,14 @@
  * - History-filtering: suppress/filter conversation history
  * - Data-injection: inject state without touching history
  *
- * Compose with .union() (union). Suppression wins: if ANY child suppresses, composite does.
+ * Operators (see `shared/parity.toml` for the cross-language contract):
+ *   a.union(b)  → set-union of filters. Suppression wins: if ANY child
+ *                 suppresses history, the composite does.
+ *                 Mirrors Python `a | b`.
+ *   a.pipe(b)   → post-process the compiled output through b.
+ *                 Mirrors Python `a >> b`.
+ *   a.attachTo(builder) → equivalent to Python's `a >> builder`.
+ *                         Calls `builder.context(a)`.
  *
  * Usage:
  *   agent.context(C.none())                             // suppress all history

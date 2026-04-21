@@ -362,7 +362,15 @@ def _combine_transforms(first: STransform, second: STransform) -> STransform:
 
 
 class S:
-    """State transform factories. Each method returns an ``STransform`` for use with ``>>``.
+    """State transform factories. Each method returns an ``STransform``.
+
+    Operators (see ``shared/parity.toml`` for the cross-language contract)::
+
+        a | b   → combine: both see the original state; deltas merge key-wise.
+                  TS: ``a.combine(b)``.
+        a >> b  → pipe:    a's output feeds b (chain). Also used to splice
+                  transforms into a Pipeline (``Agent >> S.pick(...) >> Agent``).
+                  TS: ``a.pipe(b)``.
 
     Methods that *replace* session-scoped state return ``StateReplacement``:
     ``pick``, ``drop``, ``rename``.
@@ -370,15 +378,10 @@ class S:
     Methods that *additively merge* into state return ``StateDelta``:
     ``default``, ``merge``, ``transform``, ``compute``, ``set``, ``guard``, ``log``.
 
-    All methods return ``STransform`` objects which support composition::
+    Example::
 
-        # Chain with >>
-        cleanup = S.pick("a") >> S.rename(a="x") >> S.default(y=1)
-
-        # Combine with |
-        defaults = S.default(a=1) | S.set(b=2)
-
-        # Use in pipelines
+        cleanup  = S.pick("a") >> S.rename(a="x") >> S.default(y=1)   # chain
+        defaults = S.default(a=1) | S.set(b=2)                         # combine
         pipeline = Agent("a") >> cleanup >> Agent("b")
 
     Each returned transform carries ``_reads_keys`` and ``_writes_keys``

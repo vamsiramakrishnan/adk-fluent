@@ -2,7 +2,16 @@
  * A — Artifacts namespace.
  *
  * Artifact lifecycle management: publish, snapshot, save, load, and transforms.
- * Compose with .pipe() (chain).
+ *
+ * Operators (see `shared/parity.toml` for the cross-language contract):
+ *   a.pipe(b)  → chain: apply a, then b in sequence. Mirrors Python
+ *                `a >> b`. Every operation is order-sensitive
+ *                (e.g. `A.snapshot().pipe(A.load())`).
+ *   a.attachTo(builder) → equivalent to Python's `a >> builder`.
+ *                         Calls `builder.artifacts(a)`.
+ *
+ * Artifact composites do not expose `.union()` — there is no union
+ * semantic for artifacts.
  *
  * Usage:
  *   agent.artifacts(A.publish("report.md", { fromKey: "report" }))

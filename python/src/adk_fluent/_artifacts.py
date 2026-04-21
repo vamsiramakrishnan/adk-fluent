@@ -431,6 +431,16 @@ class A:
     - snapshot: artifact -> state (bridge, copy in)
     - save: content -> artifact (direct, no state bridge)
     - load: artifact -> pipeline (direct, no state bridge)
+
+    Operators (see ``shared/parity.toml`` for the cross-language contract)::
+
+        a >> b  → chain: apply a, then b in sequence.
+                  TS: ``a.pipe(b)``.
+        a >> Builder  → attach: ``builder.artifacts(a)``.
+                        TS: ``a.attachTo(builder)``.
+
+    Artifact composites do not support ``|`` — every operation is sequential
+    and order-sensitive (e.g. ``A.snapshot() >> A.load()``).
     """
 
     mime = _MimeConstants()

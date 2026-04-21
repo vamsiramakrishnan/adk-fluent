@@ -2,8 +2,16 @@
  * P — Prompt composition namespace.
  *
  * Factory methods returning composable prompt sections.
- * Compose with .union() (union) or .pipe() (chain).
- * Section order: role → context → task → constraint → format → example.
+ *
+ * Operators (see `shared/parity.toml` for the cross-language contract):
+ *   a.union(b)  → section set union. Canonical section order is preserved
+ *                 (role → context → task → constraint → format → example)
+ *                 regardless of the order you `.union()` them.
+ *                 Mirrors Python `a | b`.
+ *   a.pipe(b)   → post-process the rendered output through b.
+ *                 Mirrors Python `a >> b`.
+ *   a.attachTo(builder) → equivalent to Python's `a >> builder`.
+ *                         Calls `builder.instruct(a)`.
  *
  * Usage:
  *   agent.instruct(
