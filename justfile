@@ -204,6 +204,45 @@ check-gen: _require-manifest _require-seed
         exit 1
     fi
 
+# --- Verify ALL autogen outputs are up-to-date ---
+# Runs every generator that emits source-tracked files (Python + TS
+# builders, llms.txt / editor rules, skills) and fails if anything
+# changed.  Use this as the single gate in CI — it subsumes `check-gen`
+# (Python builders only) and `check-skills` (skills only) and extends
+# coverage to llms/editor-rules and TS builders.
+check-generated: _require-manifest _require-seed
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Verifying all generated files are up-to-date..."
+    # Paths covered by this gate — keep in sync with every `just <gen>` recipe.
+    targets=(
+        # Python builders (owned by `just generate`)
+        {{GENERATED_PY}} {{TEST_DIR}}
+        # TS builders (owned by `just ts-generate`)
+        {{TS_DIR}}/src/builders
+        # llms.txt + editor rules (owned by `just llms`)
+        CLAUDE.md docs/llms.txt docs/llms-ts.txt {{TS_DIR}}/CLAUDE.md
+        .cursor/rules/adk-fluent.mdc .clinerules/adk-fluent.md
+        .windsurfrules .github/instructions/adk-fluent.instructions.md
+        # Skills (owned by `just skills`)
+        shared/skills skills .gemini/skills
+    )
+    # Run every generator.  Each one is already idempotent in isolation;
+    # running them all here guarantees the union is stable too.
+    just generate
+    just ts-generate
+    just llms
+    just skills
+    if git diff --quiet -- "${targets[@]}"; then
+        echo "All generated files are up-to-date."
+    else
+        echo "ERROR: Generated files are stale. Run the command(s) below, then commit the result:"
+        echo "    just generate && just ts-generate && just llms && just skills"
+        echo
+        git diff --stat -- "${targets[@]}"
+        exit 1
+    fi
+
 # --- Tests ---
 test:
     @echo "Running tests..."
@@ -225,7 +264,7 @@ preflight:
     @{{PYTOOL}} pre-commit run --all-files --show-diff-on-failure
 
 # --- Local CI: full pipeline matching GitHub Actions ---
-ci: preflight check-gen flux-check test
+ci: preflight check-generated flux-check test
     @echo "\nLocal CI passed. Safe to push."
 
 # --- Type checking ---

@@ -133,20 +133,23 @@ jobs:
         run: npm run typecheck
 
   # ─── stage 3: codegen idempotency ───────────────────────────────────────
+  # Single composite gate: `just check-generated` re-runs every generator
+  # (Python builders, TS builders, llms.txt + editor rules, skills) and
+  # fails if anything drifted.  Subsumes the previous split between
+  # `check-gen` (Python only) and `check-skills` (skills only).
   codegen-verify:
     name: codegen · idempotency
     needs: detect
-    if: needs.detect.outputs.shared == 'true' || needs.detect.outputs.python == 'true' || needs.detect.outputs.ci == 'true'
+    if: needs.detect.outputs.shared == 'true' || needs.detect.outputs.python == 'true' || needs.detect.outputs.ts == 'true' || needs.detect.outputs.ci == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-python-env
         with:
           uv-version: ${{ env.UV_VERSION }}
-      - name: Verify Python generated files are up-to-date
-        run: just check-gen
-      - name: Verify skill freshness
-        run: just check-skills
+      - uses: ./.github/actions/setup-ts-env
+      - name: Verify every generated file is up-to-date
+        run: just check-generated
 
   # ─── stage 4a: python tests ─────────────────────────────────────────────
   python-test:
