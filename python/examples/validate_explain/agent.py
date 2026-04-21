@@ -40,11 +40,11 @@ claims_pipeline = (
 intake = Agent("intake_agent").model("gemini-2.5-flash").instruct("Receive claims.")
 validation = intake.validate()
 
-# 2. explain() -- human-readable summary for team review
-explanation = claims_pipeline.explain()
+# 2. show() -- human-readable summary for team review
+explanation = claims_pipeline.show()
 
-# 3. inspect() -- full config values for debugging
-inspection = claims_pipeline.inspect()
+# 3. show("plain") -- full config values for debugging
+inspection = claims_pipeline.show("plain")
 
 # 4. Copy-on-write -- frozen builders fork safely
 base = Agent("agent").model("gemini-2.5-flash").instruct("Base instruction.")

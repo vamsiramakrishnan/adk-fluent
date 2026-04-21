@@ -280,17 +280,21 @@ Sync methods (.ask, .map) raise RuntimeError inside an async event loop
 
 ### Introspection
 
-  .explain()                   — print builder state
+  .show(mode="default")        — one verb, many views. Modes:
+                                 "default"|"rich" rich tree, "plain" text dump,
+                                 "doctor" formatted diagnostic report,
+                                 "diagnose" structured Diagnosis dataclass,
+                                 "data_flow" five-concern snapshot,
+                                 "llm"|"anatomy" LLM call anatomy,
+                                 "mermaid" topology diagram,
+                                 "sequence" sequence diagram,
+                                 "json"|"dict" serializable dict,
+                                 "yaml" YAML string.
   .validate()                  — early error detection
   .clone(name)                 — deep copy with new name
   .with_(**overrides)          — immutable variant
   .to_ir()                     — convert to IR tree
-  .to_mermaid()                — generate Mermaid diagram
-  .diagnose()                  — structured IR diagnosis
-  .doctor()                    — formatted diagnostic report
-  .data_flow()                 — unified five-concern view
-  .llm_anatomy()               — what the LLM sees
-  .inspect()                   — plain-text state
+  .to_mermaid()                — generate Mermaid diagram (alias for .show("mermaid"))
   .to_dict() / .to_yaml()     — serialization
 
 ## Namespace modules (S, C, P, A, M, T, E, G)

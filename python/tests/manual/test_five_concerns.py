@@ -48,7 +48,7 @@ def test_five_concern_agent():
         .consumes(SearchQuery)
     )
 
-    df = agent.data_flow()
+    df = agent.show("data_flow")
     assert isinstance(df, DataFlow)
     assert "query" in df.sees
     assert "SearchQuery" in df.accepts
@@ -61,7 +61,7 @@ def test_five_concern_agent():
 def test_five_concern_str_readable():
     """Five-concern DataFlow __str__ is human-readable."""
     agent = Agent("classifier", "gemini-2.0-flash").reads("query").accepts(SearchQuery).returns(Intent).writes("intent")
-    text = str(agent.data_flow())
+    text = str(agent.show("data_flow"))
 
     # Each line should be clear
     assert "reads:" in text
@@ -171,7 +171,7 @@ def test_explain_json_includes_data_flow():
         .writes("out")
         .produces(Intent)
     )
-    result = agent.explain(format="json")
+    result = agent.show(format="json")
 
     assert "data_flow" in result
     df = result["data_flow"]
@@ -185,7 +185,7 @@ def test_explain_json_includes_data_flow():
 def test_explain_json_data_flow_schemas():
     """.explain(format='json') data_flow includes schema details."""
     agent = Agent("test", "gemini-2.0-flash").accepts(SearchQuery).returns(Intent)
-    result = agent.explain(format="json")
+    result = agent.show(format="json")
 
     df = result.get("data_flow", {})
     assert df.get("accepts", {}).get("schema") == "SearchQuery"
@@ -205,8 +205,8 @@ def test_pipeline_data_flow():
     _pipeline = classifier >> handler  # noqa: F841 — verifies composition works
 
     # Each agent in the pipeline retains its own data flow
-    df1 = classifier.data_flow()
-    df2 = handler.data_flow()
+    df1 = classifier.show("data_flow")
+    df2 = handler.show("data_flow")
 
     assert "query" in df1.sees
     assert "Intent" in df1.format
@@ -221,8 +221,8 @@ def test_pipeline_llm_anatomy_per_agent():
     a1 = Agent("writer", "gemini-2.0-flash").instruct("Write").writes("draft")
     a2 = Agent("editor", "gemini-2.0-flash").reads("draft").writes("final")
 
-    anatomy1 = a1.llm_anatomy()
-    anatomy2 = a2.llm_anatomy()
+    anatomy1 = a1.show("llm")
+    anatomy2 = a2.show("llm")
 
     assert "writer" in anatomy1
     assert "FULL conversation history" in anatomy1
@@ -239,7 +239,7 @@ def test_pipeline_llm_anatomy_per_agent():
 def test_reads_plus_context_composition():
     """.context() + .reads() compose additively."""
     agent = Agent("test", "gemini-2.0-flash").context(C.window(n=3)).reads("topic")
-    df = agent.data_flow()
+    df = agent.show("data_flow")
     # Should show both window and state keys
     assert "topic" in df.sees
 
@@ -247,7 +247,7 @@ def test_reads_plus_context_composition():
 def test_data_flow_defaults_explicit():
     """DataFlow defaults are informative, not empty."""
     agent = Agent("bare", "gemini-2.0-flash")
-    df = agent.data_flow()
+    df = agent.show("data_flow")
 
     text = str(df)
     # Every line should have content, not just empty

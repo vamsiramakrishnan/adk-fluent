@@ -1,6 +1,6 @@
 """Structured build-time diagnostics for adk-fluent pipelines.
 
-Provides programmatic access to the same information as ``.explain()`` and
+Provides programmatic access to the same information as ``.show()`` and
 ``check_contracts()``, returned as typed dataclasses for use in CI gates,
 notebook widgets, IDE integrations, and test assertions.
 
@@ -15,12 +15,12 @@ Usage::
     )
 
     # Structured diagnostics
-    diag = pipeline.diagnose()
+    diag = pipeline.show("diagnose")
     assert diag.ok  # no errors
     assert len(diag.data_flow) > 0
 
     # Formatted report
-    pipeline.doctor()
+    pipeline.show("doctor")
 """
 
 from __future__ import annotations
@@ -708,7 +708,7 @@ def diagnose(ir_node: Any) -> Diagnosis:
 def format_diagnosis(diag: Diagnosis) -> str:
     """Format a Diagnosis into a human-readable report string.
 
-    This powers the ``.doctor()`` method.
+    This powers the ``.show("doctor")`` dispatcher mode.
     """
     lines: list[str] = []
     width = 60

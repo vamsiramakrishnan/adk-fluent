@@ -276,17 +276,17 @@ dash = ui_dashboard_agent(
 ## Introspection
 
 ```python
-# .explain() shows UI surface info
-agent.explain()
+# .show() shows UI surface info
+agent.show()
 # => ui: {mode: declarative, surface: ticket, components: 3}
 
-# .data_flow() includes UI concern
-flow = agent.data_flow()
+# .show("data_flow") includes UI concern
+flow = agent.show("data_flow")
 print(flow)
 # => ui: declarative surface 'ticket'
 
-# .doctor() warns about unbound input fields
-agent.doctor()
+# .show("doctor") warns about unbound input fields
+agent.show("doctor")
 # => [INFO] support: UI input 'Email' has no data binding
 #    Hint: Add bind='/path' to connect this field to the data model.
 ```

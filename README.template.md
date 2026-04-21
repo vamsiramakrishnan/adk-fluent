@@ -155,7 +155,7 @@ Install additional capabilities as needed:
 ```bash
 pip install adk-fluent[a2a]            # A2A remote agent-to-agent communication
 pip install adk-fluent[yaml]           # .to_yaml() / .from_yaml() serialization
-pip install adk-fluent[rich]           # Rich terminal output for .explain()
+pip install adk-fluent[rich]           # Rich terminal output for .show()
 pip install adk-fluent[search]         # BM25-indexed tool discovery (T.search)
 pip install adk-fluent[pii]            # PII detection guard (G.pii with Cloud DLP)
 pip install adk-fluent[observability]  # OpenTelemetry tracing and metrics
@@ -1290,7 +1290,7 @@ creative = base.with_(name="creative", model="gemini-2.5-pro")
 | Method                      | Description                                                                         |
 | --------------------------- | ----------------------------------------------------------------------------------- |
 | `.validate()`               | Try `.build()` and raise `ValueError` with clear message on failure. Returns `self` |
-| `.explain()`                | Multi-line summary of builder state (config fields, callbacks, lists)               |
+| `.show(mode="default")`     | Unified introspection verb. Modes: default (rich tree), plain, doctor, diagnose, data_flow, llm, mermaid, sequence, json, yaml |
 | `.to_dict()` / `.to_yaml()` | Serialize builder state (inspection only, no round-trip)                            |
 
 #### Dynamic Field Forwarding
@@ -1607,7 +1607,7 @@ adk web race                  # race() first-to-finish
 | 22  | Presets              | `Preset` + `.use()`                  |
 | 23  | With Variants        | `.with_()` immutable copy            |
 | 24  | @agent Decorator     | Decorator syntax                     |
-| 25  | Validate & Explain   | `.validate()` `.explain()`           |
+| 25  | Validate & Show      | `.validate()` `.show()`              |
 | 26  | Serialization        | `to_dict` / `to_yaml`                |
 | 27  | Delegate Pattern     | `.agent_tool()`                        |
 | 28  | Real-World Pipeline  | Full composition                     |

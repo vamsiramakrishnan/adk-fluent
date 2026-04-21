@@ -242,17 +242,19 @@ ______________________________________________________________________
 
 ## Debugging tips
 
-### Use .explain() to inspect builder state
+### Use .show() to inspect builder state
 
 ```python
 agent = Agent("helper").model("gemini-2.5-flash").instruct("Be helpful.")
-agent.explain()
+agent.show()
 # Agent: helper
 #   Config fields: model, instruction
 ```
 
-With `rich` installed (`pip install adk-fluent[rich]`), `.explain()` renders
-a colored box-drawing tree. Use `.inspect()` for full config values.
+With `rich` installed (`pip install adk-fluent[rich]`), `.show()` renders
+a colored box-drawing tree. Use `.show("plain")` for full config values,
+`.show("doctor")` for a diagnostic report, or `.show("data_flow")` for a
+five-concern snapshot.
 
 ### Use .validate() before .build()
 

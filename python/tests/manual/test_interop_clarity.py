@@ -180,7 +180,7 @@ def test_builder_chain_reads_accepts_returns_writes():
 def test_data_flow_method_exists():
     """Agent has .data_flow() method."""
     agent = Agent("test", "gemini-2.0-flash").writes("out")
-    df = agent.data_flow()
+    df = agent.show("data_flow")
     assert isinstance(df, DataFlow)
     assert df.stores == "state['out']"
 
@@ -188,7 +188,7 @@ def test_data_flow_method_exists():
 def test_data_flow_str():
     """DataFlow __str__ produces readable five-concern output."""
     agent = Agent("test", "gemini-2.0-flash").reads("topic").writes("findings")
-    df = agent.data_flow()
+    df = agent.show("data_flow")
     text = str(df)
     assert "Data Flow:" in text
     assert "reads:" in text
@@ -203,7 +203,7 @@ def test_data_flow_str():
 def test_data_flow_repr():
     """DataFlow __repr__ is informative."""
     agent = Agent("test", "gemini-2.0-flash")
-    df = agent.data_flow()
+    df = agent.show("data_flow")
     r = repr(df)
     assert "DataFlow" in r
     assert "accepts=" in r
@@ -217,7 +217,7 @@ def test_data_flow_repr():
 def test_llm_anatomy_basic():
     """Agent has .llm_anatomy() method returning formatted string."""
     agent = Agent("test", "gemini-2.0-flash").instruct("Hello")
-    anatomy = agent.llm_anatomy()
+    anatomy = agent.show("llm")
     assert "LLM Call Anatomy: test" in anatomy
     assert "1. System:" in anatomy
     assert "2. History:" in anatomy
@@ -230,14 +230,14 @@ def test_llm_anatomy_basic():
 def test_llm_anatomy_with_reads():
     """LLM anatomy shows history suppression when .reads() is used."""
     agent = Agent("test", "gemini-2.0-flash").reads("topic")
-    anatomy = agent.llm_anatomy()
+    anatomy = agent.show("llm")
     assert "SUPPRESSED" in anatomy
 
 
 def test_llm_anatomy_with_returns():
     """LLM anatomy shows output constraint when .returns() is used."""
     agent = Agent("test", "gemini-2.0-flash").returns(FindingsModel)
-    anatomy = agent.llm_anatomy()
+    anatomy = agent.show("llm")
     assert "FindingsModel" in anatomy
     assert "DISABLED" in anatomy  # tools disabled
 
@@ -245,14 +245,14 @@ def test_llm_anatomy_with_returns():
 def test_llm_anatomy_with_writes():
     """LLM anatomy shows state storage after response."""
     agent = Agent("test", "gemini-2.0-flash").writes("result")
-    anatomy = agent.llm_anatomy()
+    anatomy = agent.show("llm")
     assert 'state["result"]' in anatomy
 
 
 def test_llm_anatomy_default():
     """LLM anatomy shows defaults for bare agent."""
     agent = Agent("test", "gemini-2.0-flash")
-    anatomy = agent.llm_anatomy()
+    anatomy = agent.show("llm")
     assert "FULL conversation history" in anatomy
     assert "none — free-form text" in anatomy
 
@@ -260,7 +260,7 @@ def test_llm_anatomy_default():
 def test_llm_anatomy_with_template_vars():
     """LLM anatomy shows template variables in instruction."""
     agent = Agent("test", "gemini-2.0-flash").instruct("Classify: {query}")
-    anatomy = agent.llm_anatomy()
+    anatomy = agent.show("llm")
     assert "{query}" in anatomy
     assert "templated from state" in anatomy
 
@@ -280,7 +280,7 @@ def test_explain_shows_five_concerns():
         .writes("out")
         .produces(FindingsModel)
     )
-    text = agent.explain()
+    text = agent.show()
     assert "reads:" in text
     assert "accepts:" in text
     assert "returns:" in text
@@ -291,7 +291,7 @@ def test_explain_shows_five_concerns():
 def test_explain_shows_defaults():
     """.explain() shows defaults for bare agent."""
     agent = Agent("test", "gemini-2.0-flash")
-    text = agent.explain()
+    text = agent.show()
     assert "reads:" in text
     assert "full conversation history" in text or "default" in text
 

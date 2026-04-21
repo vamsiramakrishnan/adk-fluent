@@ -131,7 +131,7 @@ Generating code from seed + manifest...
 
 ### ir_generator.py — Intermediate representation
 
-**Why:** Generates frozen dataclass nodes (`AgentNode`, `SequenceNode`, `ParallelNode`, `LoopNode`) used by `.to_ir()` and `.diagnose()` introspection methods.
+**Why:** Generates frozen dataclass nodes (`AgentNode`, `SequenceNode`, `ParallelNode`, `LoopNode`) used by `.to_ir()` and `.show("diagnose")` introspection methods.
 
 **How:**
 ```bash
@@ -332,7 +332,7 @@ Located in `.claude/skills/` and `.gemini/skills/`. Activate automatically based
 | `/develop-feature` | `.claude/skills/develop-feature/SKILL.md` | Change classification and implementation guide. Knows where every type of change belongs in the codebase. |
 | `/write-tests` | `.claude/skills/write-tests/SKILL.md` | Test patterns. Mock-based testing, contract checking, namespace verification, golden file testing. |
 | `/add-cookbook` | `.claude/skills/add-cookbook/SKILL.md` | Example scaffolding. Creates runnable pytest files that serve as both documentation and test. |
-| `/debug-builder` | `.claude/skills/debug-builder/SKILL.md` | Systematic debugging. `.explain()` → `.diagnose()` → `.doctor()` → fix. |
+| `/debug-builder` | `.claude/skills/debug-builder/SKILL.md` | Systematic debugging. `.show()` → `.show("diagnose")` → `.show("doctor")` → fix. |
 
 #### Skill maintenance
 

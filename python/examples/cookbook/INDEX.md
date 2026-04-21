@@ -69,7 +69,7 @@ Production-grade architectures combining many features.
 | --- | ------------------------------------------------------ | -------------------------------------------------------- |
 | 09  | [Live Translation Pipeline](09_streaming.py)           | `.stream()` in a real pipeline                           |
 | 15  | [Production Deployment](15_production_runtime.py)      | `to_app()`, middleware stack                             |
-| 25  | [Introspection & Debugging](25_validate_explain.py)    | `.validate()`, `.explain()`, `.inspect()`, copy-on-write |
+| 25  | [Introspection & Debugging](25_validate_explain.py)    | `.validate()`, `.show()`, `.show("plain")`, copy-on-write |
 | 28  | [Investment Analysis](28_real_world_pipeline.py)       | Route, Preset, loop_until, proceed_if                    |
 | 34  | [Code Review Pipeline](34_full_algebra.py)             | `>>`, `\|`, `@`, `//` in a real workflow                 |
 | 43  | [Primitives Showcase](43_primitives_showcase.py)       | All primitives in e-commerce order system                |
@@ -77,7 +77,7 @@ Production-grade architectures combining many features.
 | 45  | [Middleware](45_middleware.py)                         | `RetryMiddleware`, `StructuredLogMiddleware`             |
 | 46  | [Contracts & Testing](46_contracts_and_testing.py)     | `.produces()`, `.consumes()`, `check_contracts()`        |
 | 47  | [Dependency Injection](47_dependency_injection.py)     | `.inject()`, `inject_resources()`                        |
-| 48  | [Architecture Documentation](48_visualization.py)      | `to_mermaid()`, `.explain()`, diagrams                   |
+| 48  | [Architecture Documentation](48_visualization.py)      | `to_mermaid()`, `.show()`, diagrams                   |
 | 49  | [Context Engineering](49_context_engineering.py)       | `C.none()`, `C.from_state()`, `C.window()`               |
 | 50  | [Capture & Route](50_capture_and_route.py)             | `S.capture` + `Route` pattern                            |
 | 51  | [Visibility Policies](51_visibility_policies.py)       | `.reveal()`, `.hide()`, visibility inference             |
@@ -169,8 +169,8 @@ ______________________________________________________________________
 
 | #   | Example                    | Key Methods                               |
 | --- | -------------------------- | ----------------------------------------- |
-| 25  | Introspection & Debugging  | `.validate()`, `.explain()`, `.inspect()` |
-| 48  | Architecture Documentation | `to_mermaid()`, `.explain()`              |
+| 25  | Introspection & Debugging  | `.validate()`, `.show()`, `.show("plain")` |
+| 48  | Architecture Documentation | `to_mermaid()`, `.show()`              |
 
 ### Primitives — tap, expect, gate, race, etc.
 

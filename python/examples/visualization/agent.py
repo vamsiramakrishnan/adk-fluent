@@ -55,7 +55,7 @@ incident_pipeline = triage >> diagnosis >> resolution
 mermaid_diagram = incident_pipeline.to_mermaid()
 
 # Generate human-readable explanation
-explanation = incident_pipeline.explain()
+explanation = incident_pipeline.show()
 
 # Build for deployment
 built = incident_pipeline.build()

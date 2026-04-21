@@ -2,15 +2,15 @@
 
 A Skill is a composable runtime unit parsed from a SKILL.md file.  It extends
 :class:`BuilderBase` and inherits all operators (``>>``, ``|``, ``*``,
-``//``, ``@``), execution helpers (``.ask()``, ``.stream()``), and
-introspection (``.explain()``, ``.validate()``).
+``//``, ``@``), execution helpers (``.run.ask()``, ``.run.stream()``), and
+introspection (``.show()``, ``.validate()``).
 
 Usage::
 
     from adk_fluent import Skill
 
     # Load and execute
-    result = Skill("skills/deep-research/").ask("Research quantum computing")
+    result = Skill("skills/deep-research/").run.ask("Research quantum computing")
 
     # Compose with other builders
     pipeline = Skill("skills/research/") >> Skill("skills/writing/")

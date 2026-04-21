@@ -170,14 +170,24 @@ agent.instuction("oops")
 
 Typos are caught at builder definition time, not at runtime, making it easy to spot mistakes early.
 
-## `.explain()` -- Introspection
+## `.show()` -- Introspection
 
-`.explain()` returns a multi-line summary of the builder's current state:
+`.show()` returns a multi-line summary of the builder's current state. It is
+the single introspection verb — pass a mode string for alternative views:
 
 ```python
-print(Agent("demo").model("gemini-2.5-flash").instruct("Help.").explain())
+print(Agent("demo").model("gemini-2.5-flash").instruct("Help.").show())
 # Agent: demo
 #   Config fields: model, instruction
+
+# Other modes:
+#   .show("plain")       -- full config dump
+#   .show("doctor")      -- formatted diagnostic report
+#   .show("diagnose")    -- structured Diagnosis dataclass
+#   .show("data_flow")   -- five-concern snapshot
+#   .show("llm")         -- what the LLM sees
+#   .show("mermaid")     -- topology diagram
+#   .show("json")        -- serializable dict
 ```
 
 This is useful for debugging complex builders to verify what configuration has been applied.

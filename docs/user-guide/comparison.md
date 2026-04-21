@@ -39,7 +39,7 @@ Below, three real patterns are implemented in all four frameworks. Count the lin
 | Typed output         | Pydantic via output_parser | Pydantic          | output_schema    | `@ Schema`            |
 | Built-in testing     | No                         | No                | No               | `.mock()`, `.test()`  |
 | IDE autocomplete     | Partial                    | Partial           | Yes              | Yes (typed stubs)     |
-| Visualization        | LangGraph Studio           | No                | No               | `.explain()`, Mermaid |
+| Visualization        | LangGraph Studio           | No                | No               | `.show()`, Mermaid    |
 | Streaming            | Yes                        | No                | Yes              | `.stream()`           |
 | State management     | TypedDict                  | Shared memory     | Session state    | `S.*` module          |
 | Result type          | LangGraph Runnable         | CrewOutput        | ADK Agent        | ADK Agent (native)    |

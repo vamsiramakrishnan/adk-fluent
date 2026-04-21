@@ -15,7 +15,7 @@ metadata:
 # adk-fluent Observability Guide
 
 > **adk-fluent provides observability at two levels:**
-> 1. Build-time introspection (`.explain()`, `.doctor()`, `.data_flow()`)
+> 1. Build-time introspection (`.show()` with modes: default, doctor, data_flow, llm, …)
 > 2. Runtime middleware (M namespace — logging, tracing, metrics, cost)
 >
 > Since `.build()` returns native ADK objects, all ADK observability integrations
@@ -26,7 +26,7 @@ metadata:
 | File | Contents |
 |------|----------|
 | [`namespace-methods.md`](namespace-methods.md) | M namespace — all middleware methods and signatures |
-| [`api-surface.md`](api-surface.md) | Introspection methods (`.explain()`, `.doctor()`, etc.) |
+| [`api-surface.md`](api-surface.md) | Introspection methods (`.show()` dispatcher and modes) |
 
 ---
 
@@ -34,7 +34,7 @@ metadata:
 
 | Tier | What It Does | adk-fluent API | Default |
 |------|-------------|----------------|---------|
-| **Build-time introspection** | Config inspection, topology, data flow | `.explain()`, `.doctor()`, `.data_flow()` | Always available |
+| **Build-time introspection** | Config inspection, topology, data flow | `.show()` dispatcher (modes: default, doctor, data_flow, llm, mermaid, …) | Always available |
 | **Debug tracing** | Runtime stderr tracing | `.debug()` | Off |
 | **Structured logging** | Agent lifecycle events | `M.log()` | Opt-in |
 | **Token cost tracking** | Usage per agent | `M.cost()` | Opt-in |
@@ -61,17 +61,17 @@ agent = (
     .tool(search_fn)
 )
 
-# Quick config summary
-agent.explain()
+# Quick config summary (rich tree)
+agent.show()
 
 # What the LLM actually sees (instruction, tools, context)
-agent.llm_anatomy()
+agent.show("llm")
 
 # Five-concern data flow view
-agent.data_flow()
+agent.show("data_flow")
 
 # Formatted diagnostic report
-agent.doctor()
+agent.show("doctor")
 
 # Validate contracts and configuration
 issues = agent.validate()
@@ -286,8 +286,8 @@ agent = (
 )
 
 # Inspect before running
-agent.explain()
-agent.doctor()
+agent.show()
+agent.show("doctor")
 ```
 
 ### Staging
@@ -335,7 +335,7 @@ agent = (
 |-------|----------|
 | No traces in Cloud Trace | Verify `otel_to_cloud=True`; check SA has `cloudtrace.agent` role |
 | `M.trace()` produces nothing | Install `opentelemetry-sdk` and configure an exporter |
-| `.explain()` shows unexpected config | Config methods may have been called in wrong order — check chaining |
+| `.show()` shows unexpected config | Config methods may have been called in wrong order — check chaining |
 | Agent silently fails | Add `M.log()` to see lifecycle events |
 | High token costs | Add `M.cost()` to track per-agent usage; use `C.window()` to limit context |
 | Slow responses | Add `M.latency()` to find bottleneck agent; add `M.timeout()` |

@@ -1686,38 +1686,17 @@ class BuilderBase:
                 page = "api"
         return f"{base}/{page}/"
 
-    def explain(
+    def _render_explain(
         self,
         *,
         format: str = "text",
         docs_url: str | None = None,
         open_browser: bool = False,
     ) -> str | dict:
-        """Return a multi-line summary of this builder's state.
+        """Backing renderer for :meth:`show` modes ``"default"`` / ``"json"``.
 
-        .. deprecated:: 0.18.0
-            Use :meth:`show` instead: ``agent.show("default")`` for the
-            default rich tree, or ``agent.show("json")`` for a structured
-            dict. ``explain()`` is a thin shim and will be removed in 0.19.
-
-        Parameters
-        ----------
-        format:
-            ``"text"`` (default) for human-readable output (rich if available,
-            plain otherwise).  ``"json"`` for a machine-readable dict.
-        docs_url:
-            Base URL for docs links appended to output.  Defaults to the
-            published GitHub Pages site.  Set ``ADKFLUENT_DOCS_URL`` env
-            var to override globally.
-        open_browser:
-            If ``True``, open the relevant API docs page in the default
-            browser after printing.
-
-        Returns
-        -------
-        str | dict
-            Formatted text when ``format="text"``, a dict when
-            ``format="json"``.
+        ``format="text"`` returns a rich tree (or plain) summary; ``"json"``
+        returns a structured dict. External callers use :meth:`show`.
         """
         if format == "json":
             result = self._explain_json(docs_url=docs_url)
@@ -1881,13 +1860,8 @@ class BuilderBase:
 
         webbrowser.open(self._docs_url_for(docs_url))
 
-    def inspect(self) -> str:
-        """Return a detailed view of this builder's full config values.
-
-        .. deprecated:: 0.18.0
-            Use ``agent.show("plain")`` instead. ``inspect()`` is kept
-            as a thin shim and will be removed in 0.19.
-        """
+    def _render_inspect(self) -> str:
+        """Backing renderer for :meth:`show` mode ``"plain"``."""
         cls_name = self.__class__.__name__
         name = self._config.get("name", "?")
         lines = [f"{cls_name}: {name}"]
@@ -2650,9 +2624,10 @@ class BuilderBase:
     def produces(self, schema: type) -> Self:
         """Annotate what state keys this agent writes. Contract-only, no runtime effect.
 
-        Used exclusively by the data-flow contract checker (``.diagnose()``,
-        ``.doctor()``, ``check_contracts()``) to verify that downstream
-        agents can read what upstream agents produce.
+        Used exclusively by the data-flow contract checker
+        (``.show("diagnose")``, ``.show("doctor")``, ``check_contracts()``)
+        to verify that downstream agents can read what upstream agents
+        produce.
 
         **This does NOT affect what the LLM outputs.** To constrain the
         LLM's response format, use ``.output(Model)`` or ``@ Model``.
@@ -3114,33 +3089,21 @@ class BuilderBase:
             show_context=show_context,
         )
 
-    def diagnose(self):
-        """Return a structured Diagnosis of this builder's IR.
-
-        .. deprecated:: 0.18.0
-            Use ``agent.show("diagnose")`` instead. This method is kept
-            as a thin shim and will be removed in 0.19.
+    def _render_diagnose(self):
+        """Backing renderer for :meth:`show` mode ``"diagnose"``.
 
         Returns a ``Diagnosis`` dataclass with ``agents``, ``data_flow``,
-        ``issues``, and ``topology`` fields.  Use ``.ok`` to check if
-        there are no errors.  Use ``agent.show("doctor")`` for a
-        formatted report.
-
-        Raises NotImplementedError if this builder doesn't support IR.
+        ``issues``, and ``topology`` fields. Use ``.ok`` to check if there
+        are no errors; use ``.show("doctor")`` for a formatted report.
         """
         from adk_fluent.testing.diagnosis import diagnose as _diagnose
 
         return _diagnose(self.to_ir())
 
-    def doctor(self) -> str:
-        """Print a formatted diagnostic report and return the report text.
+    def _render_doctor(self) -> str:
+        """Backing renderer for :meth:`show` mode ``"doctor"``.
 
-        .. deprecated:: 0.18.0
-            Use ``agent.show("doctor")`` instead. This method is kept
-            as a thin shim and will be removed in 0.19.
-
-        Combines agent summaries, data flow analysis, contract issues,
-        and Mermaid topology into a single readable report.
+        Prints the formatted diagnostic report and returns its text.
         """
         from adk_fluent.testing.diagnosis import diagnose as _diagnose
         from adk_fluent.testing.diagnosis import format_diagnosis
@@ -3150,36 +3113,11 @@ class BuilderBase:
         print(report)
         return report
 
-    def data_flow(self):
-        """Show all five data-flow concerns at once for this builder.
+    def _render_data_flow(self):
+        """Backing renderer for :meth:`show` mode ``"data_flow"``.
 
-        .. deprecated:: 0.18.0
-            Use ``agent.show("data_flow")`` instead. This method is kept
-            as a thin shim and will be removed in 0.19.
-
-        Returns a ``DataFlow`` snapshot showing exactly what this agent
-        is configured for across all five orthogonal concerns:
-
-        - **Context** (reads): what state/history the agent sees
-        - **Input** (accepts): what input schema is validated in tool mode
-        - **Output** (returns): plain text or structured JSON
-        - **Storage** (writes): where the response is saved in state
-        - **Contract** (produces/consumes): annotations for the checker
-
-        This is the definitive way to understand what an agent does with
-        data — it surfaces all five concerns in one view, eliminating
-        confusion between ``.returns()``, ``.writes()``, ``.produces()``, etc.
-
-        Usage::
-
-            agent = Agent("classifier").reads("query").returns(Intent).writes("intent")
-            print(agent.data_flow())
-            # Data Flow:
-            #   reads:    C.from_state('query') — state keys only
-            #   accepts:  (not set — accepts any input as tool)
-            #   returns:  structured JSON → Intent (tools disabled)
-            #   writes:   state['intent']
-            #   contract: (not set)
+        Returns a ``DataFlow`` snapshot of the five orthogonal data-flow
+        concerns (context / input / output / storage / contract).
         """
         from adk_fluent._interop import _extract_data_flow
 
@@ -3313,37 +3251,11 @@ class BuilderBase:
         self._config["_auto_wire"] = True
         return self
 
-    def llm_anatomy(self) -> str:
-        """Show exactly what will be sent to the LLM for this agent.
+    def _render_llm_anatomy(self) -> str:
+        """Backing renderer for :meth:`show` mode ``"llm"`` / ``"anatomy"``.
 
-        .. deprecated:: 0.18.0
-            Use ``agent.show("llm")`` instead. This method is kept as a
-            thin shim and will be removed in 0.19.
-
-        Returns a formatted string showing each component in the order
-        it is assembled for the LLM call:
-
-        1. **System** — instruction text (with {template} variables)
-        2. **History** — whether conversation history is included
-        3. **Context** — injected state values from ``.reads()``
-        4. **Tools** — registered tools (disabled if output_schema set)
-        5. **Constraint** — output schema (forces JSON response)
-        6. **After** — what happens after the LLM responds
-
-        This is the definitive reference for "what does the LLM see?"
-
-        Usage::
-
-            agent = Agent("classifier").instruct("Classify: {query}").reads("query").returns(Intent)
-            print(agent.llm_anatomy())
-            # LLM Call Anatomy: classifier
-            #   1. System:     "Classify: {query}"
-            #                  → {query} templated from state at runtime
-            #   2. History:    SUPPRESSED (set by .reads())
-            #   3. Context:    state["query"] injected as <conversation_context>
-            #   4. Tools:      DISABLED (output_schema is set)
-            #   5. Constraint: must return Intent {category: ..., confidence: ...}
-            #   6. After:      response in conversation history only
+        Returns a formatted string showing what the LLM will actually see
+        (system / history / context / tools / constraint / after).
         """
         from adk_fluent._interop import _build_llm_anatomy
 
@@ -3496,11 +3408,6 @@ class BuilderBase:
     def show(self, mode: str = "default", **kwargs: Any) -> Any:
         """One verb for every way of looking at a builder.
 
-        Collapses ``.explain()`` / ``.inspect()`` / ``.doctor()`` /
-        ``.diagnose()`` / ``.data_flow()`` / ``.llm_anatomy()`` /
-        ``.to_mermaid()`` / ``.to_sequence_diagram()`` / ``.to_dict()`` /
-        ``.to_yaml()`` into a single dispatcher keyed by ``mode``.
-
         Args:
             mode: Render mode. One of:
 
@@ -3529,17 +3436,17 @@ class BuilderBase:
         """
         mode = mode.lower()
         if mode in ("default", "rich", "text", "explain"):
-            return self.explain(**kwargs)
+            return self._render_explain(**kwargs)
         if mode in ("plain", "inspect"):
-            return self.inspect()
+            return self._render_inspect()
         if mode == "doctor":
-            return self.doctor()
+            return self._render_doctor()
         if mode == "diagnose":
-            return self.diagnose()
+            return self._render_diagnose()
         if mode in ("data_flow", "dataflow", "flow"):
-            return self.data_flow()
+            return self._render_data_flow()
         if mode in ("llm", "llm_anatomy", "anatomy"):
-            return self.llm_anatomy()
+            return self._render_llm_anatomy()
         if mode == "mermaid":
             return self.to_mermaid(**kwargs)
         if mode == "sequence":

@@ -171,7 +171,7 @@ agent = Agent("classifier").instruct("Classify.").use(config).context(C.none()).
 2. **Keep presets small and composable.** A `model_preset`, `logging_preset`, and `safety_preset` compose better than one monolithic `everything_preset`
 3. **Don't put instructions in presets.** Instructions are agent-specific -- they belong on the agent, not in a shared config
 4. **Use presets for agents, middleware for pipelines.** Presets don't have a `retry` or `circuit_breaker` concept -- that's middleware's job
-5. **Test that presets apply correctly.** Use `.explain()` to verify the built agent has the expected model and callbacks
+5. **Test that presets apply correctly.** Use `.show()` to verify the built agent has the expected model and callbacks
 
 :::{seealso}
 - [Callbacks](callbacks.md) -- per-agent callback attachment

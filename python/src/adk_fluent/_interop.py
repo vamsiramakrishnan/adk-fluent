@@ -78,7 +78,7 @@ from typing import Any
 class DataFlow:
     """Snapshot of a builder's five data-flow concerns.
 
-    Returned by ``builder.data_flow()`` to show developers exactly
+    Returned by ``builder.show("data_flow")`` to show developers exactly
     what each concern is configured to.
     """
 

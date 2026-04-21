@@ -1,7 +1,7 @@
 """Typed middleware declarations for adk-fluent agents.
 
 MiddlewareSchema declares what state keys an agent's middleware collectively
-reads and writes, making them visible to the contract checker and .explain().
+reads and writes, making them visible to the contract checker and .show().
 
 Usage::
 

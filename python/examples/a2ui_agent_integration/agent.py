@@ -58,7 +58,7 @@ ps = P.ui_schema()
 # Compose with other prompt sections
 full_prompt = P.role("UI designer") | P.ui_schema() | P.task("Build a dashboard")
 
-# --- 7. .explain() includes UI info ---
+# --- 7. .show() includes UI info ---
 info = agent._explain_json()
 
 # --- 8. Pattern helpers ---

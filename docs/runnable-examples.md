@@ -134,7 +134,7 @@ State management, presets, decorators, and serialization.
 | `presets`             | `Preset` reusable config      | .env          | `adk web presets`             |
 | `with_variants`       | `.with_()` immutable variants | .env          | `adk web with_variants`       |
 | `agent_decorator`     | `@agent` decorator            | .env          | `adk web agent_decorator`     |
-| `validate_explain`    | `.validate()`, `.explain()`   | .env          | `adk web validate_explain`    |
+| `validate_explain`    | `.validate()`, `.show()`      | .env          | `adk web validate_explain`    |
 | `serialization`       | `to_dict`, `to_yaml`          | .env          | `adk web serialization`       |
 | `delegate_pattern`    | LLM-driven agent_tool         | .env          | `adk web delegate_pattern`    |
 | `real_world_pipeline` | Full expression language      | .env          | `adk web real_world_pipeline` |

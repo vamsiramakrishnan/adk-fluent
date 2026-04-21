@@ -1,7 +1,7 @@
 """Typed prompt declarations for adk-fluent agents.
 
 PromptSchema declares what state keys a prompt reads, making them visible
-to the contract checker and .explain(). Prompts only read state — they
+to the contract checker and .show(). Prompts only read state — they
 never write it.
 
 Usage::

@@ -87,7 +87,7 @@ _INSTALL = """
 
     pip install adk-fluent[a2a]            # A2A remote agent-to-agent communication
     pip install adk-fluent[yaml]           # .to_yaml() / .from_yaml() serialization
-    pip install adk-fluent[rich]           # Rich terminal output for .explain()
+    pip install adk-fluent[rich]           # Rich terminal output for .show()
     pip install adk-fluent[search]         # BM25-indexed tool discovery (T.search)
     pip install adk-fluent[pii]            # PII detection guard (G.pii with Cloud DLP)
     pip install adk-fluent[observability]  # OpenTelemetry tracing and metrics
@@ -346,17 +346,21 @@ Sync methods (.ask, .map) raise RuntimeError inside an async event loop
 
 ### Introspection
 
-  .explain()                   — print builder state
+  .show(mode="default")        — one verb, many views. Modes:
+                                 "default"|"rich" rich tree, "plain" text dump,
+                                 "doctor" formatted diagnostic report,
+                                 "diagnose" structured Diagnosis dataclass,
+                                 "data_flow" five-concern snapshot,
+                                 "llm"|"anatomy" LLM call anatomy,
+                                 "mermaid" topology diagram,
+                                 "sequence" sequence diagram,
+                                 "json"|"dict" serializable dict,
+                                 "yaml" YAML string.
   .validate()                  — early error detection
   .clone(name)                 — deep copy with new name
   .with_(**overrides)          — immutable variant
   .to_ir()                     — convert to IR tree
-  .to_mermaid()                — generate Mermaid diagram
-  .diagnose()                  — structured IR diagnosis
-  .doctor()                    — formatted diagnostic report
-  .data_flow()                 — unified five-concern view
-  .llm_anatomy()               — what the LLM sees
-  .inspect()                   — plain-text state
+  .to_mermaid()                — generate Mermaid diagram (alias for .show("mermaid"))
   .to_dict() / .to_yaml()     — serialization
 """
 

@@ -137,19 +137,19 @@ class TestDoctorCommonMistakes:
     def test_doctor_catches_no_model(self):
         """doctor() reports agents without model."""
         pipeline = Agent("a") >> Agent("b")
-        report = pipeline.doctor()
+        report = pipeline.show("doctor")
         assert "no model" in report.lower()
 
     def test_doctor_catches_no_instruction(self):
         """doctor() reports agents without instruction."""
         pipeline = Agent("a", "gemini-2.5-flash") >> Agent("b", "gemini-2.5-flash")
-        report = pipeline.doctor()
+        report = pipeline.show("doctor")
         assert "no instruction" in report.lower()
 
     def test_doctor_catches_missing_key(self):
         """doctor() reports consumed-but-not-produced keys."""
         pipeline = Agent("a", "gemini-2.5-flash") >> Agent("b", "gemini-2.5-flash").instruct("Use {missing}.")
-        report = pipeline.doctor()
+        report = pipeline.show("doctor")
         assert "missing" in report
 
     def test_doctor_clean_pipeline(self):
@@ -157,7 +157,7 @@ class TestDoctorCommonMistakes:
         pipeline = Agent("a", "gemini-2.5-flash").instruct("Analyze.").writes("result") >> Agent(
             "b", "gemini-2.5-flash"
         ).instruct("Summarize {result}.")
-        diag = pipeline.diagnose()
+        diag = pipeline.show("diagnose")
         # Should have no errors (may have advisories)
         assert diag.error_count == 0
 
@@ -235,7 +235,7 @@ class TestDoctorCommonMistakes:
         pipeline = Agent("a", "gemini-2.5-flash").instruct("Go.") >> Agent("b", "gemini-2.5-flash").instruct(
             "Use {required_key}."
         )
-        diag = pipeline.diagnose()
+        diag = pipeline.show("diagnose")
         req_errors = [i for i in diag.issues if "required_key" in i.message and i.level == "error"]
         assert len(req_errors) > 0
 
@@ -365,13 +365,13 @@ class TestIntegration:
         ).instruct("Step 2 with {x}.")
         # Both should work without errors
         pipeline.validate()
-        diag = pipeline.diagnose()
+        diag = pipeline.show("diagnose")
         assert diag.ok
 
     def test_validate_catches_what_doctor_reports(self):
         """If doctor() finds errors, validate() raises."""
         pipeline = Agent("a") >> Agent("b").instruct("Use {missing}.")
-        diag = pipeline.diagnose()
+        diag = pipeline.show("diagnose")
         assert not diag.ok
         with pytest.raises(ValueError):
             pipeline.validate()

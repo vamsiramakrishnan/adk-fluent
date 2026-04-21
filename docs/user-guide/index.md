@@ -79,7 +79,7 @@ The core of the library. Full programmatic control with expression operators, na
 
 | Chapter | What you'll learn |
 |---|---|
-| [Builders](builders.md) | Constructor args, method chaining, `.build()`, typo detection, `.explain()`, serialization |
+| [Builders](builders.md) | Constructor args, method chaining, `.build()`, typo detection, `.show()`, serialization |
 | [Expression Language](expression-language.md) | All 9 operators (`>>`, `\|`, `*`, `@`, `//`, `>>` with functions, `Route`, `race`, `dispatch`) |
 | [Data Flow](data-flow.md) | `.writes()`, `.reads()`, `{key}` templates, state propagation between agents |
 | [Prompts](prompts.md) | The P module: `P.role()`, `P.task()`, `P.constraint()`, section ordering, composition |

@@ -1024,11 +1024,11 @@ ______________________________________________________________________
 
 ## Inspecting Data Flow
 
-### `.data_flow()`: Five-concern snapshot
+### `.show("data_flow")`: Five-concern snapshot
 
 ```python
 agent = Agent("classifier").reads("query").returns(Intent).writes("intent")
-print(agent.data_flow())
+print(agent.show("data_flow"))
 # Data Flow:
 #   reads:    C.from_state('query') — state keys only
 #   accepts:  (not set — accepts any input as tool)
@@ -1037,10 +1037,10 @@ print(agent.data_flow())
 #   contract: (not set)
 ```
 
-### `.llm_anatomy()`: What the LLM will see
+### `.show("llm")`: What the LLM will see
 
 ```python
-print(agent.llm_anatomy())
+print(agent.show("llm"))
 # LLM Call Anatomy: classifier
 #   1. System:     "Classify the user query: {query}"
 #   2. History:    SUPPRESSED
@@ -1050,10 +1050,10 @@ print(agent.llm_anatomy())
 #   6. After:      response stored → state["intent"]
 ```
 
-### `.explain()`: Full builder state
+### `.show()`: Full builder state
 
 ```python
-print(agent.explain())
+print(agent.show())
 ```
 
 Shows model, instruction, data flow (five concerns), tools, callbacks, children, and contract issues.

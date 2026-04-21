@@ -470,7 +470,7 @@ skill.contract()
 # → {"input": {"topic": "str"}, "output": {"report": "str"}}
 
 # Print configuration summary (inherited from BuilderBase)
-skill.explain()
+skill.show()
 # Returns a multi-line summary of builder state
 ```
 
@@ -490,7 +490,7 @@ skill.explain()
 | `.session()` | Multi-turn chat |
 | `.topology_expr()` | Return the topology expression string |
 | `.contract()` | Return input/output schema |
-| `.explain()` | Print configuration summary |
+| `.show()` | Print configuration summary (multi-mode introspection) |
 | `.mock(responses)` | Replace LLM with canned responses |
 | `.test(prompt, contains=)` | Inline smoke test |
 

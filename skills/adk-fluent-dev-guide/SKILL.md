@@ -220,19 +220,19 @@ Once evaluation thresholds are met, use `/deploy-agent` for deployment guidance.
 |-------|----------|
 | Import error | Use `from adk_fluent import ...`, never internal modules |
 | `.ask()` raises RuntimeError | Use `.ask_async()` in async contexts (Jupyter, FastAPI) |
-| `.build()` raises ValidationError | Run `agent.explain()` and `agent.validate()` to inspect config |
+| `.build()` raises ValidationError | Run `agent.show()` and `agent.validate()` to inspect config |
 | Pipeline data flow broken | Run `check_contracts(pipeline)` to find mismatched keys |
-| Agent ignores context | Check `.context()` and `.reads()` — use `agent.llm_anatomy()` to see what the LLM gets |
+| Agent ignores context | Check `.context()` and `.reads()` — use `agent.show("llm")` to see what the LLM gets |
 | Mock not working | Ensure enough mock responses are provided for all turns |
 | Model 404 error | Fix `GOOGLE_CLOUD_LOCATION` (e.g., use `global`), not the model name |
 
 ### Deep debugging
 
 ```python
-agent.explain()          # Config summary
-agent.llm_anatomy()      # What the LLM sees
-agent.data_flow()        # Five-concern view
-agent.doctor()           # Full diagnostic
+agent.show()             # Config summary (rich tree)
+agent.show("llm")        # What the LLM sees
+agent.show("data_flow")  # Five-concern view
+agent.show("doctor")     # Full diagnostic
 ```
 
 For builder-level debugging, use `/debug-builder`.
@@ -252,7 +252,7 @@ For builder-level debugging, use `/debug-builder`.
 1. **Start simple** — single agent first, add complexity only when needed
 2. **Use `.mock()`** in all tests — no API keys in CI
 3. **Use `.validate()`** early — catch config errors before `.build()`
-4. **Use `.explain()`** often — understand what you've configured
+4. **Use `.show()`** often — understand what you've configured
 5. **Use deterministic routing** when decisions are rule-based
 6. **Use `.inject()`** for infrastructure deps
 7. **Use `S.*` transforms** for data manipulation, not custom agents

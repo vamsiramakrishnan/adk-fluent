@@ -117,16 +117,16 @@ def test_builder_diagnose_method():
     from adk_fluent.testing.diagnosis import Diagnosis
 
     pipeline = Agent("a") >> Agent("b")
-    diag = pipeline.diagnose()
+    diag = pipeline.show("diagnose")
     assert isinstance(diag, Diagnosis)
 
 
 def test_builder_doctor_method(capsys):
-    """.doctor() prints and returns report."""
+    """.show("doctor") prints and returns report."""
     from adk_fluent import Agent
 
     pipeline = Agent("a").writes("x") >> Agent("b").instruct("Use {x}.")
-    report = pipeline.doctor()
+    report = pipeline.show("doctor")
     assert isinstance(report, str)
     assert "Pipeline Diagnosis" in report
     captured = capsys.readouterr()

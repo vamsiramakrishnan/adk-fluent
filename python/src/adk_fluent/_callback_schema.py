@@ -1,7 +1,7 @@
 """Typed callback declarations for adk-fluent agents.
 
 CallbackSchema declares what state keys the agent's callbacks collectively
-read and write, making them visible to the contract checker and .explain().
+read and write, making them visible to the contract checker and .show().
 
 Usage::
 

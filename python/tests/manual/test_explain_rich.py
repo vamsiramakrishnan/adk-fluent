@@ -1,4 +1,4 @@
-"""Tests for the enhanced .explain() method (rich output + v0.9.1 diagnostics)."""
+"""Tests for the enhanced .show() method (rich output + v0.9.1 diagnostics)."""
 
 from __future__ import annotations
 
@@ -26,12 +26,12 @@ class TestExplain:
     """explain() should return string in both rich and plain modes."""
 
     def test_explain_returns_string(self):
-        result = Agent("x").model("gemini-2.0-flash").instruct("hi").explain()
+        result = Agent("x").model("gemini-2.0-flash").instruct("hi").show()
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_explain_contains_builder_info(self):
-        result = Agent("x").model("gemini-2.0-flash").instruct("hi").explain()
+        result = Agent("x").model("gemini-2.0-flash").instruct("hi").show()
         assert "Agent" in result
         assert "x" in result
 
@@ -46,16 +46,16 @@ class TestInspect:
     """inspect() should show full config values."""
 
     def test_inspect_returns_string(self):
-        result = Agent("x").model("gemini-2.0-flash").instruct("hi").inspect()
+        result = Agent("x").model("gemini-2.0-flash").instruct("hi").show("plain")
         assert isinstance(result, str)
 
     def test_inspect_shows_actual_values(self):
-        result = Agent("x").model("gemini-2.0-flash").instruct("hi").inspect()
+        result = Agent("x").model("gemini-2.0-flash").instruct("hi").show("plain")
         assert "gemini-2.0-flash" in result
         assert "hi" in result
 
     def test_inspect_shows_field_names(self):
-        result = Agent("x").model("gemini-2.0-flash").instruct("hi").inspect()
+        result = Agent("x").model("gemini-2.0-flash").instruct("hi").show("plain")
         # Should show the fluent alias name (via _reverse_alias)
         assert "model" in result or "instruct" in result
 
@@ -64,28 +64,28 @@ class TestInspect:
 
 
 def test_explain_shows_model():
-    result = Agent("a").model("gemini-2.0-flash").explain()
+    result = Agent("a").model("gemini-2.0-flash").show()
     assert "gemini-2.0-flash" in result
 
 
 def test_explain_shows_instruction_preview():
-    result = Agent("a").instruct("Classify the intent of the user message.").explain()
+    result = Agent("a").instruct("Classify the intent of the user message.").show()
     assert "Classify the intent" in result
 
 
 def test_explain_shows_template_vars():
-    result = Agent("a").instruct("Review the {draft} carefully. Optional: {tone?}").explain()
+    result = Agent("a").instruct("Review the {draft} carefully. Optional: {tone?}").show()
     assert "Template vars" in result or "draft" in result
 
 
 def test_explain_shows_produces_consumes():
-    result = Agent("a").produces(Intent).consumes(Resolution).explain()
+    result = Agent("a").produces(Intent).consumes(Resolution).show()
     assert "Intent" in result
     assert "Resolution" in result
 
 
 def test_explain_shows_output_key():
-    result = Agent("a").writes("result").explain()
+    result = Agent("a").writes("result").show()
     assert "result" in result
 
 
@@ -93,21 +93,21 @@ def test_explain_shows_tools():
     def search_web(query: str) -> str:
         return "result"
 
-    result = Agent("a").tool(search_web).explain()
+    result = Agent("a").tool(search_web).show()
     assert "search_web" in result
 
 
 def test_explain_shows_context_strategy():
     from adk_fluent import C
 
-    result = Agent("a").context(C.user_only()).explain()
+    result = Agent("a").context(C.user_only()).show()
     assert "user_only" in result
 
 
 def test_explain_shows_context_window():
     from adk_fluent import C
 
-    result = Agent("a").context(C.window(n=3)).explain()
+    result = Agent("a").context(C.window(n=3)).show()
     assert "window" in result
     assert "3" in result
 
@@ -115,14 +115,14 @@ def test_explain_shows_context_window():
 def test_explain_shows_context_from_state():
     from adk_fluent import C
 
-    result = Agent("a").context(C.from_state("topic", "style")).explain()
+    result = Agent("a").context(C.from_state("topic", "style")).show()
     assert "from_state" in result
     assert "topic" in result
 
 
 def test_explain_shows_contract_issues_in_pipeline():
     pipeline = Agent("a").instruct("Write.") >> Agent("b").instruct("Review the {draft}.")
-    result = pipeline.explain()
+    result = pipeline.show()
     # Should show template var error since 'draft' is never produced
     assert "draft" in result
     assert "Contract issues" in result
@@ -130,17 +130,17 @@ def test_explain_shows_contract_issues_in_pipeline():
 
 def test_explain_pipeline_clean():
     pipeline = Agent("a").instruct("Write.").writes("draft") >> Agent("b").instruct("Review the {draft}.")
-    result = pipeline.explain()
+    result = pipeline.show()
     # draft is produced, so no error about it
     assert "ERROR" not in result or "draft" not in result.split("ERROR")[1] if "ERROR" in result else True
 
 
 def test_explain_no_data_flow():
-    result = Agent("a").instruct("Hello").explain()
+    result = Agent("a").instruct("Hello").show()
     # Five-concern view shows defaults when nothing is set
     assert "full conversation history" in result or "not set" in result
 
 
 def test_explain_structured_output():
-    result = (Agent("a") @ Intent).explain()
+    result = (Agent("a") @ Intent).show()
     assert "Structured output" in result or "Intent" in result
