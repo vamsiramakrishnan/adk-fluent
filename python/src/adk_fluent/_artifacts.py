@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from adk_fluent._context import CTransform
+from adk_fluent._frozen import _set_frozen_fields
 from adk_fluent._transforms import STransform
 
 __all__ = ["A", "ATransform"]
@@ -232,9 +233,11 @@ class _ArtifactContextBlock(CTransform):
     _version: int | None = None
 
     def __post_init__(self) -> None:
-        provider = _make_artifact_context_provider(self._filename, self._scope, self._version)
-        object.__setattr__(self, "instruction_provider", provider)
-        object.__setattr__(self, "include_contents", "none")
+        _set_frozen_fields(
+            self,
+            instruction_provider=_make_artifact_context_provider(self._filename, self._scope, self._version),
+            include_contents="none",
+        )
 
 
 class _ToolFactory:

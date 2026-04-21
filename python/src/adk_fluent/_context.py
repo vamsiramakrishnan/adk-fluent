@@ -66,6 +66,7 @@ from adk_fluent._context_providers import (  # noqa: F401 — re-exports for bac
     consolidate_notes,
     make_write_notes_callback,
 )
+from adk_fluent._frozen import _set_frozen_fields
 
 _DEFAULT_MODEL = "gemini-2.5-flash"
 
@@ -207,9 +208,11 @@ class CComposite(CTransform):
     blocks: tuple[CTransform, ...] = ()
 
     def __post_init__(self) -> None:
-        derived = _derive_include_contents(self.blocks)
-        object.__setattr__(self, "include_contents", derived)
-        object.__setattr__(self, "instruction_provider", _make_composite_provider(self.blocks))
+        _set_frozen_fields(
+            self,
+            include_contents=_derive_include_contents(self.blocks),
+            instruction_provider=_make_composite_provider(self.blocks),
+        )
 
     def _as_list(self) -> tuple[CTransform, ...]:
         return self.blocks
@@ -234,9 +237,11 @@ class CPipe(CTransform):
 
     def __post_init__(self) -> None:
         children = tuple(c for c in (self.source, self.transform) if c is not None)
-        derived = _derive_include_contents(children)
-        object.__setattr__(self, "include_contents", derived)
-        object.__setattr__(self, "instruction_provider", _make_pipe_provider(self.source, self.transform))
+        _set_frozen_fields(
+            self,
+            include_contents=_derive_include_contents(children),
+            instruction_provider=_make_pipe_provider(self.source, self.transform),
+        )
 
 
 # ======================================================================
@@ -261,12 +266,10 @@ class CWhen(CTransform):
 
     def __post_init__(self) -> None:
         children = (self.block,) if self.block is not None else ()
-        derived = _derive_include_contents(children)
-        object.__setattr__(self, "include_contents", derived)
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_when_provider(self.predicate, self.block),
+            include_contents=_derive_include_contents(children),
+            instruction_provider=_make_when_provider(self.predicate, self.block),
         )
 
 
@@ -296,10 +299,9 @@ class CFromState(CTransform):
     _kind: str = "from_state"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_from_state_provider(self.keys),
+            instruction_provider=_make_from_state_provider(self.keys),
         )
 
     @property
@@ -316,10 +318,9 @@ class CWindow(CTransform):
     _kind: str = "window"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_window_provider(self.n),
+            instruction_provider=_make_window_provider(self.n),
         )
 
 
@@ -331,10 +332,9 @@ class CUserOnly(CTransform):
     _kind: str = "user_only"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_user_only_provider(),
+            instruction_provider=_make_user_only_provider(),
         )
 
 
@@ -347,10 +347,9 @@ class CFromAgents(CTransform):
     _kind: str = "from_agents"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_from_agents_provider(self.agents),
+            instruction_provider=_make_from_agents_provider(self.agents),
         )
 
 
@@ -363,10 +362,9 @@ class CExcludeAgents(CTransform):
     _kind: str = "exclude_agents"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_exclude_agents_provider(self.agents),
+            instruction_provider=_make_exclude_agents_provider(self.agents),
         )
 
 
@@ -383,10 +381,9 @@ class CTemplate(CTransform):
     _kind: str = "template"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_template_provider(self.template),
+            instruction_provider=_make_template_provider(self.template),
         )
 
     @property
@@ -411,10 +408,9 @@ class CSelect(CTransform):
     _kind: str = "select"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_select_provider(self.author, self.type, self.tag),
+            instruction_provider=_make_select_provider(self.author, self.type, self.tag),
         )
 
 
@@ -429,10 +425,9 @@ class CRecent(CTransform):
     _kind: str = "recent"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_recent_provider(self.decay, self.half_life, self.min_weight),
+            instruction_provider=_make_recent_provider(self.decay, self.half_life, self.min_weight),
         )
 
 
@@ -450,10 +445,9 @@ class CCompact(CTransform):
     _kind: str = "compact"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_compact_provider(self.strategy),
+            instruction_provider=_make_compact_provider(self.strategy),
         )
 
 
@@ -467,10 +461,9 @@ class CDedup(CTransform):
     _kind: str = "dedup"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_dedup_provider(self.strategy, self.model),
+            instruction_provider=_make_dedup_provider(self.strategy, self.model),
         )
 
 
@@ -485,10 +478,9 @@ class CTruncate(CTransform):
     _kind: str = "truncate"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_truncate_provider(self.max_turns, self.max_tokens, self.strategy),
+            instruction_provider=_make_truncate_provider(self.max_turns, self.max_tokens, self.strategy),
         )
 
 
@@ -501,10 +493,9 @@ class CProject(CTransform):
     _kind: str = "project"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_project_provider(self.fields),
+            instruction_provider=_make_project_provider(self.fields),
         )
 
 
@@ -523,10 +514,9 @@ class CBudget(CTransform):
     _kind: str = "budget"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_budget_provider(self.max_tokens, self.overflow),
+            instruction_provider=_make_budget_provider(self.max_tokens, self.overflow),
         )
 
 
@@ -549,10 +539,9 @@ class CFit(CTransform):
     _kind: str = "fit"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_fit_provider(self.max_tokens, self.strategy, self.model),
+            instruction_provider=_make_fit_provider(self.max_tokens, self.strategy, self.model),
         )
 
 
@@ -571,10 +560,9 @@ class CFresh(CTransform):
     _kind: str = "fresh"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_fresh_provider(self.max_age, self.stale_action),
+            instruction_provider=_make_fresh_provider(self.max_age, self.stale_action),
         )
 
 
@@ -588,10 +576,9 @@ class CRedact(CTransform):
     _kind: str = "redact"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_redact_provider(self.patterns, self.replacement),
+            instruction_provider=_make_redact_provider(self.patterns, self.replacement),
         )
 
 
@@ -612,10 +599,9 @@ class CSummarize(CTransform):
     _kind: str = "summarize"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_summarize_provider(self.scope, self.model, self.prompt, self.schema),
+            instruction_provider=_make_summarize_provider(self.scope, self.model, self.prompt, self.schema),
         )
 
 
@@ -631,10 +617,9 @@ class CRelevant(CTransform):
     _kind: str = "relevant"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_relevant_provider(self.query_key, self.query, self.top_k, self.model),
+            instruction_provider=_make_relevant_provider(self.query_key, self.query, self.top_k, self.model),
         )
 
 
@@ -649,10 +634,9 @@ class CExtract(CTransform):
     _kind: str = "extract"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_extract_provider(self.schema or {}, self.key, self.model),
+            instruction_provider=_make_extract_provider(self.schema or {}, self.key, self.model),
         )
 
 
@@ -666,10 +650,9 @@ class CDistill(CTransform):
     _kind: str = "distill"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_distill_provider(self.key, self.model),
+            instruction_provider=_make_distill_provider(self.key, self.model),
         )
 
 
@@ -683,10 +666,9 @@ class CValidate(CTransform):
     _kind: str = "validate"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_validate_provider(self.checks, self.model),
+            instruction_provider=_make_validate_provider(self.checks, self.model),
         )
 
 
@@ -713,10 +695,9 @@ class CNotes(CTransform):
     _kind: str = "notes"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_notes_provider(self.key, self.format),
+            instruction_provider=_make_notes_provider(self.key, self.format),
         )
 
     @property
@@ -780,10 +761,9 @@ class CRolling(CTransform):
     _kind: str = "rolling"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_rolling_provider(self.n, self.summarize, self.model),
+            instruction_provider=_make_rolling_provider(self.n, self.summarize, self.model),
         )
 
 
@@ -806,10 +786,9 @@ class CFromAgentsWindowed(CTransform):
     _kind: str = "from_agents_windowed"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_from_agents_windowed_provider(self.agent_windows),
+            instruction_provider=_make_from_agents_windowed_provider(self.agent_windows),
         )
 
 
@@ -830,10 +809,9 @@ class CUser(CTransform):
     _kind: str = "user_strategy"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_user_strategy_provider(self.strategy),
+            instruction_provider=_make_user_strategy_provider(self.strategy),
         )
 
 
@@ -853,10 +831,9 @@ class CManusCascade(CTransform):
     _kind: str = "manus_cascade"
 
     def __post_init__(self) -> None:
-        object.__setattr__(
+        _set_frozen_fields(
             self,
-            "instruction_provider",
-            _make_fit_provider(self.budget, "cascade", self.model),
+            instruction_provider=_make_fit_provider(self.budget, "cascade", self.model),
         )
 
 
@@ -910,7 +887,7 @@ class CPipelineAware(CTransform):
                     parts.append(state_ctx)
             return "\n\n".join(parts)
 
-        object.__setattr__(self, "instruction_provider", _pipeline_aware_provider)
+        _set_frozen_fields(self, instruction_provider=_pipeline_aware_provider)
 
     @property
     def _reads_keys(self) -> frozenset[str]:
@@ -962,7 +939,7 @@ class CSharedThread(CTransform):
                 return ""
             return "<shared_thread>\n" + "\n\n".join(parts) + "\n</shared_thread>"
 
-        object.__setattr__(self, "instruction_provider", _shared_thread_provider)
+        _set_frozen_fields(self, instruction_provider=_shared_thread_provider)
 
 
 # ======================================================================

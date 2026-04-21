@@ -1025,9 +1025,9 @@ class _UIPaths:
             from adk_fluent._exceptions import A2UIError
 
             raise A2UIError(f"UI.paths expects a Pydantic BaseModel subclass, got {schema!r}")
-        object.__setattr__(self, "_schema", schema)
-        object.__setattr__(self, "_prefix", _prefix.rstrip("/"))
-        object.__setattr__(self, "_field_names", tuple(schema.model_fields.keys()))
+        self._schema = schema
+        self._prefix = _prefix.rstrip("/")
+        self._field_names = tuple(schema.model_fields.keys())
 
     def __getattr__(self, name: str) -> Any:
         # Dunder fast-path: don't intercept Python internals.

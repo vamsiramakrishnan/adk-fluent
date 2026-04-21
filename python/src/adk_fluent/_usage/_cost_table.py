@@ -15,6 +15,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
 
+from adk_fluent._frozen import _set_frozen_fields
 from adk_fluent._usage._turn import TurnUsage
 
 __all__ = ["CostTable", "ModelRate"]
@@ -52,7 +53,7 @@ class CostTable:
 
     def __post_init__(self) -> None:
         # Force an immutable view so the table is genuinely frozen.
-        object.__setattr__(self, "rates", MappingProxyType(dict(self.rates)))
+        _set_frozen_fields(self, rates=MappingProxyType(dict(self.rates)))
 
     @staticmethod
     def flat(input_per_million: float, output_per_million: float) -> CostTable:
