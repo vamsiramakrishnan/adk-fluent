@@ -6,10 +6,10 @@ predicate matches, the handler is scheduled with the rule's priority.
 Higher priority handlers are run first; a running handler can be
 preempted by a higher-priority rule if ``preemptive=True``.
 
-The rule handler is any awaitable: an ``await agent.ask_async(...)``,
-a plain ``async def``, or a bound Reactor subcomponent. This keeps the
-reactor orthogonal to the builder surface — it schedules whatever you
-hand it.
+The rule handler is any awaitable: an ``await agent.run.ask(...)`` (which
+returns a coroutine inside the running reactor loop), a plain
+``async def``, or a bound Reactor subcomponent. This keeps the reactor
+orthogonal to the builder surface — it schedules whatever you hand it.
 
 Execution loop::
 

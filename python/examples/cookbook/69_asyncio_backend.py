@@ -51,7 +51,7 @@ loop_ir = (
 loop_compiled = backend.compile(loop_ir)
 
 # 7. Builder shorthand: .engine("asyncio")
-#    When used with .ask_async(), routes through the asyncio backend.
+#    When used with .run.ask(), routes through the asyncio backend.
 agent = Agent("solver").instruct("Solve the problem.").engine("asyncio")
 assert agent._config["_engine"] == "asyncio"
 

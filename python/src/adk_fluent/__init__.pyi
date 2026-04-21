@@ -211,7 +211,6 @@ from ._guards import JudgmentResult as JudgmentResult
 from ._helpers import deep_clone_builder as deep_clone_builder
 from ._helpers import add_delegate_to as add_delegate_to
 from ._helpers import run_one_shot as run_one_shot
-from ._helpers import run_one_shot_async as run_one_shot_async
 from ._helpers import run_stream as run_stream
 from ._helpers import run_events as run_events
 from ._helpers import stream_from_cursor as stream_from_cursor
@@ -219,7 +218,6 @@ from ._helpers import run_inline_test as run_inline_test
 from ._helpers import ChatSession as ChatSession
 from ._helpers import create_session as create_session
 from ._helpers import run_map as run_map
-from ._helpers import run_map_async as run_map_async
 from ._helpers import StateKey as StateKey
 from ._helpers import Artifact as Artifact
 from ._ir import TransformNode as TransformNode
@@ -1164,7 +1162,6 @@ __all__ = [
     "deep_clone_builder",
     "add_delegate_to",
     "run_one_shot",
-    "run_one_shot_async",
     "run_stream",
     "run_events",
     "stream_from_cursor",
@@ -1172,7 +1169,6 @@ __all__ = [
     "ChatSession",
     "create_session",
     "run_map",
-    "run_map_async",
     "StateKey",
     "Artifact",
     "TransformNode",

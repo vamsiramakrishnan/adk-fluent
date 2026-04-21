@@ -578,21 +578,15 @@ class RunNamespace:
         label = name or type(self._builder).__name__
         return f"<RunNamespace for {label}>"
 
-    def ask(self, prompt: str) -> str:
-        """One-shot SYNC execution (blocking). Builds, prompts, returns text.
-
-        Raises ``RuntimeError`` inside async event loops (Jupyter, FastAPI);
-        use :meth:`ask_async` there instead.
+    def ask(self, prompt: str):
+        """One-shot execution. Blocks in sync contexts; returns an awaitable
+        coroutine inside a running event loop (Jupyter, FastAPI). Either way
+        the call site reads as ``result = agent.run.ask("hi")`` — add
+        ``await`` when you are already in async code.
         """
         from adk_fluent._helpers import run_one_shot
 
         return run_one_shot(self._builder, prompt)
-
-    async def ask_async(self, prompt: str) -> str:
-        """One-shot ASYNC execution (non-blocking, use with ``await``)."""
-        from adk_fluent._helpers import run_one_shot_async
-
-        return await run_one_shot_async(self._builder, prompt)
 
     async def stream(self, prompt: str) -> AsyncIterator[str]:
         """ASYNC streaming execution. Yields response text chunks.
@@ -625,23 +619,13 @@ class RunNamespace:
 
         return create_session(self._builder)
 
-    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Batch SYNC execution with bounded concurrency.
-
-        Raises ``RuntimeError`` inside async event loops; use
-        :meth:`map_async` there instead.
+    def map(self, prompts: list[str], *, concurrency: int = 5):
+        """Batch execution with bounded concurrency. Blocks in sync contexts;
+        returns an awaitable coroutine inside a running event loop.
         """
         from adk_fluent._helpers import run_map
 
         return run_map(self._builder, prompts, concurrency=concurrency)
-
-    async def map_async(
-        self, prompts: list[str], *, concurrency: int = 5
-    ) -> list[str]:
-        """Batch ASYNC execution with bounded concurrency."""
-        from adk_fluent._helpers import run_map_async
-
-        return await run_map_async(self._builder, prompts, concurrency=concurrency)
 
     def test(
         self,
@@ -3393,21 +3377,22 @@ class BuilderBase:
     def run(self) -> RunNamespace:
         """Execution façade. One namespace for every way of running a builder.
 
-        Collapses ``.ask()`` / ``.ask_async()`` / ``.stream()`` / ``.events()``
-        / ``.session()`` / ``.map()`` / ``.map_async()`` / ``.test()`` into
-        one cohesive surface:
+        Collapses ``.ask()`` / ``.stream()`` / ``.events()`` / ``.session()``
+        / ``.map()`` / ``.test()`` into one cohesive surface:
 
-        * ``agent.run("hi")`` — sync one-shot, same as ``agent.run.ask("hi")``
-        * ``await agent.run.ask_async("hi")`` — async one-shot
+        * ``agent.run("hi")`` — one-shot, same as ``agent.run.ask("hi")``
+        * ``await agent.run.ask("hi")`` — same call inside an event loop
         * ``async for chunk in agent.run.stream("hi"): ...``
         * ``async for event in agent.run.events("hi"): ...``
         * ``async with agent.run.session() as chat: ...``
-        * ``agent.run.map(["a", "b"])`` / ``await agent.run.map_async(...)``
+        * ``agent.run.map(["a", "b"])``
         * ``agent.run.test("hi", contains="foo")``
 
-        Every variant auto-builds the builder once per call and returns a
-        native Python primitive (``str`` / ``list[str]`` / async iterator),
-        so callers never touch the underlying ADK runner directly.
+        ``.ask()`` and ``.map()`` detect whether an event loop is running:
+        they block and return the result in sync code, and return an
+        awaitable coroutine inside a running loop (Jupyter, FastAPI,
+        pytest-asyncio). The call site reads the same either way — just
+        add ``await`` when you are already async.
         """
         return RunNamespace(self)
 
@@ -3494,19 +3479,23 @@ class BuilderBase:
 def _builder_handler(builder):
     """Default handler for ``builder.on(pred)`` without an explicit handler.
 
-    Calls ``builder.ask_async`` with a short prompt derived from the
-    :class:`_Change` payload. Errors never propagate — the reactor's
-    handler isolation owns failure policy.
+    Calls the builder's ``.run.ask`` with a short prompt derived from the
+    :class:`_Change` payload. ``.run.ask`` returns a coroutine inside the
+    running reactor loop, so we await the result. Errors never propagate —
+    the reactor's handler isolation owns failure policy.
     """
 
     async def _handler(change):
         value = getattr(change, "value", change)
         signal_name = getattr(change, "signal_name", "signal")
-        ask = getattr(builder, "ask_async", None)
-        if ask is None:
+        run = getattr(builder, "run", None)
+        if run is None:
             return None
         try:
-            return await ask(f"{signal_name} changed to {value!r}")
+            result = run.ask(f"{signal_name} changed to {value!r}")
+            if _asyncio.iscoroutine(result):
+                return await result
+            return result
         except Exception:
             return None
 

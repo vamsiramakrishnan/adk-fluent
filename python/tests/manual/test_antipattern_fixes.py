@@ -119,30 +119,37 @@ class TestStructuredOutputParseFailure:
 
 
 # ======================================================================
-# Fix 4: Sync wrappers raise RuntimeError in running event loops
+# Fix 4: .run.ask() / .run.map() transparently dispatch sync vs. async
 # ======================================================================
 
 
 class TestSyncAsyncBridge:
-    """Sync wrappers should raise RuntimeError inside running event loops."""
+    """``_dispatch`` blocks in sync code and returns a coroutine in async code."""
 
-    def test_run_sync_raises_in_running_loop(self):
-        from adk_fluent._helpers import _run_sync
+    def test_dispatch_returns_coroutine_in_running_loop(self):
+        """Inside a running event loop, _dispatch returns the coroutine so
+        callers can ``await`` it — no RuntimeError, no nested-loop hack.
+        """
+        from adk_fluent._helpers import _dispatch
 
         async def _inner():
-            with pytest.raises(RuntimeError, match="Cannot use synchronous methods"):
-                _run_sync(asyncio.sleep(0))
+            async def _return_7():
+                return 7
+
+            result = _dispatch(_return_7())
+            assert asyncio.iscoroutine(result)
+            assert await result == 7
 
         asyncio.run(_inner())
 
-    def test_run_sync_works_outside_loop(self):
-        """Outside a running loop, _run_sync should execute the coroutine."""
-        from adk_fluent._helpers import _run_sync
+    def test_dispatch_works_outside_loop(self):
+        """Outside a running loop, _dispatch blocks and returns the value."""
+        from adk_fluent._helpers import _dispatch
 
         async def _return_42():
             return 42
 
-        result = _run_sync(_return_42())
+        result = _dispatch(_return_42())
         assert result == 42
 
 

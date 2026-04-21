@@ -175,17 +175,13 @@ class Skill(BuilderBase):
     # Execution helpers (same delegation pattern as Pipeline/Loop)
     # ------------------------------------------------------------------
 
-    def ask(self, prompt: str) -> str:
-        """One-shot SYNC execution (blocking)."""
+    def ask(self, prompt: str):
+        """One-shot execution. Blocks in sync contexts; returns an awaitable
+        coroutine inside a running event loop (Jupyter, FastAPI).
+        """
         from adk_fluent._helpers import run_one_shot
 
         return run_one_shot(self, prompt)
-
-    async def ask_async(self, prompt: str) -> str:
-        """One-shot ASYNC execution (non-blocking)."""
-        from adk_fluent._helpers import run_one_shot_async
-
-        return await run_one_shot_async(self, prompt)
 
     async def stream(self, prompt: str) -> AsyncIterator[str]:
         """ASYNC streaming execution."""
@@ -207,17 +203,13 @@ class Skill(BuilderBase):
 
         return create_session(self)
 
-    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Batch SYNC execution (blocking)."""
+    def map(self, prompts: list[str], *, concurrency: int = 5):
+        """Batch execution. Blocks in sync contexts; returns an awaitable
+        coroutine inside a running event loop.
+        """
         from adk_fluent._helpers import run_map
 
         return run_map(self, prompts, concurrency=concurrency)
-
-    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Batch ASYNC execution."""
-        from adk_fluent._helpers import run_map_async
-
-        return await run_map_async(self, prompts, concurrency=concurrency)
 
     def test(
         self,

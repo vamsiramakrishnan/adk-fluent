@@ -6,7 +6,7 @@ Usage::
     adk_fluent.configure(engine="temporal", engine_config={"client": client})
 
     # All agents now use Temporal by default
-    result = await Agent("x").instruct("...").ask_async("hello")
+    result = await Agent("x").instruct("...").run.ask("hello")
 
     # Reset to defaults
     adk_fluent.reset_config()

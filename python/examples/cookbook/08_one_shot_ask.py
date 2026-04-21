@@ -53,6 +53,7 @@ builder = (
 # --- ASSERT ---
 assert hasattr(builder, "ask")
 assert callable(builder.ask)
-assert hasattr(builder, "ask_async")
-assert callable(builder.ask_async)
+# .run.ask() is the unified execution entry point — it blocks in sync
+# code and returns an awaitable coroutine inside a running event loop.
+assert callable(builder.run.ask)
 assert builder._config["name"] == "code_reviewer"

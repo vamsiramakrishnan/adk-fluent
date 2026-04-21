@@ -414,8 +414,8 @@ export abstract class BuilderBase<TBuild = unknown> {
    *
    * When ``R.compile()`` walks this tree it turns every attached
    * ``RuleSpec`` into a live ``ReactorRule``. If ``handler`` is omitted
-   * the default coerces the builder itself (``.askAsync()``) into a
-   * handler so the rule re-invokes the agent with a short description
+   * the default coerces the builder itself (``.run.ask()``, awaited) into
+   * a handler so the rule re-invokes the agent with a short description
    * of the triggering signal change.
    *
    * ``predicate`` accepts either a bare ``Signal`` (promoted to
@@ -454,7 +454,7 @@ export abstract class BuilderBase<TBuild = unknown> {
    */
   protected _defaultReactorHandler(): ReactorHandler {
     return async () => {
-      // base no-op; Agent overrides with an .askAsync() call.
+      // base no-op; Agent overrides with a .run.ask() call.
     };
   }
 

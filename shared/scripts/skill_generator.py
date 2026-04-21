@@ -158,12 +158,10 @@ def generate_api_surface(specs: list[BuilderSpec]) -> str:
         "unchecked": "Configuration",
         "prepend": "Configuration",
         "ask": "Execution",
-        "ask_async": "Execution",
         "stream": "Execution",
         "events": "Execution",
         "session": "Execution",
         "map": "Execution",
-        "map_async": "Execution",
         "test": "Execution",
         "mock": "Execution",
         "eval": "Execution",
@@ -937,11 +935,11 @@ def generate_distributable_cheatsheet(specs: list[BuilderSpec], version: str) ->
     body_parts.append("## Execution")
     body_parts.append("")
     body_parts.append("```python")
-    body_parts.append("# One-shot (sync)")
-    body_parts.append('result = agent.ask("What is 2+2?")')
+    body_parts.append("# One-shot (sync — blocking)")
+    body_parts.append('result = agent.run.ask("What is 2+2?")')
     body_parts.append("")
-    body_parts.append("# One-shot (async — use in Jupyter/FastAPI)")
-    body_parts.append('result = await agent.ask_async("What is 2+2?")')
+    body_parts.append("# Same call inside an event loop (Jupyter/FastAPI)")
+    body_parts.append('result = await agent.run.ask("What is 2+2?")')
     body_parts.append("")
     body_parts.append("# Streaming")
     body_parts.append('async for chunk in agent.stream("Tell me a story"):')
@@ -963,7 +961,7 @@ def generate_distributable_cheatsheet(specs: list[BuilderSpec], version: str) ->
     body_parts.append("| Mistake | Fix |")
     body_parts.append("|---------|-----|")
     body_parts.append("| `.build()` on sub-builders inside Pipeline/FanOut/Loop | Sub-builders auto-build |")
-    body_parts.append("| `.ask()` in async context | Use `.ask_async()` |")
+    body_parts.append("| Forgetting `await` inside an event loop | `.ask()`/`.map()` return a coroutine there — `await` the call |")
     body_parts.append(
         '| Missing `.writes()` upstream of `.reads()` | Every `.reads("key")` needs `.writes("key")` upstream |'
     )

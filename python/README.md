@@ -211,7 +211,7 @@ print(agent.run("What is the capital of France?"))
 # => The capital of France is Paris.
 ```
 
-`agent.run(...)` auto-builds the agent and handles Runner, Session, and cleanup internally. One line to define, one line to run. The full execution surface lives under `agent.run.*`: `.run.ask`, `.run.ask_async`, `.run.stream`, `.run.events`, `.run.session`, `.run.map`, `.run.map_async`, `.run.test`. See the [Getting Started guide](https://vamsiramakrishnan.github.io/adk-fluent/getting-started/) for credentials setup and more examples.
+`agent.run(...)` auto-builds the agent and handles Runner, Session, and cleanup internally. One line to define, one line to run. The full execution surface lives under `agent.run.*`: `.run.ask`, `.run.stream`, `.run.events`, `.run.session`, `.run.map`, `.run.test`. `.run.ask()` and `.run.map()` are dual-mode — they block in sync code and return an awaitable coroutine inside a running event loop (Jupyter, FastAPI, pytest-asyncio). See the [Getting Started guide](https://vamsiramakrishnan.github.io/adk-fluent/getting-started/) for credentials setup and more examples.
 
 **Try without an API key** — verify the library works using `.mock()`:
 
@@ -1276,12 +1276,10 @@ coordinator = (
 
 | Method                                        | Description                                                     |
 | --------------------------------------------- | --------------------------------------------------------------- |
-| `.ask(prompt)`                                | Send a prompt, get response text. No Runner/Session boilerplate |
-| `.ask_async(prompt)`                          | Async version of `.ask()`                                       |
+| `.ask(prompt)`                                | Dual-mode one-shot: blocks in sync code, returns an awaitable coroutine inside a running event loop |
 | `.stream(prompt)`                             | Async generator yielding response text chunks                   |
 | `.events(prompt)`                             | Async generator yielding raw ADK `Event` objects                |
-| `.map(prompts, concurrency=5)`                | Batch execution against multiple prompts                        |
-| `.map_async(prompts, concurrency=5)`          | Async batch execution                                           |
+| `.map(prompts, concurrency=5)`                | Dual-mode batch execution with bounded concurrency              |
 | `.session()`                                  | Create an interactive `async with` session context manager      |
 | `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output                   |
 

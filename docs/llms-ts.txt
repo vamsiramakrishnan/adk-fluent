@@ -786,8 +786,10 @@ Loop, FanOut, Pipeline
 16. Use ``.isolate()`` on specialist agents by default — it is the most predictable pattern
 17. Always set ``.describe()`` on sub-agents — the description helps the coordinator LLM
     pick the right specialist during transfer routing
-18. Use ``.askAsync()`` / ``.mapAsync()`` in async code paths;
-    the sync ``.ask()`` / ``.map()`` variants throw inside running event loops
+18. ``.ask()`` / ``.map()`` are dual-mode — they block in sync code and
+    return a Promise/awaitable inside async code. Write
+    ``const r = await agent.run.ask(...)`` in async contexts; the sync
+    call site is identical apart from the ``await``.
 ## Development commands (TypeScript)
 
     cd ts

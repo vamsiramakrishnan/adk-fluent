@@ -199,7 +199,8 @@ Each method controls exactly one concern. See `data_flow()` for a snapshot.
                                  ``handler`` fires with priority-based
                                  scheduling. If ``handler`` is omitted the
                                  builder itself becomes the handler and is
-                                 invoked via ``.ask_async``. Works on any
+                                 invoked via ``.run.ask`` (which returns a
+                                 coroutine inside the reactor loop). Works on any
                                  builder (Agent, Pipeline, FanOut, Loop).
                                  Accepts either a SignalPredicate or a bare
                                  Signal (promoted to ``.changed``). Rules are
@@ -262,17 +263,18 @@ Each method controls exactly one concern. See `data_flow()` for a snapshot.
 
 ### Execution
 
-Sync methods (.ask, .map) raise RuntimeError inside an async event loop
-(Jupyter, FastAPI, etc.). Use the async variants instead.
+``.ask`` and ``.map`` are dual-mode. In sync code they block and return
+the result. Inside a running event loop (Jupyter, FastAPI,
+pytest-asyncio) they return an awaitable coroutine, so just ``await`` the
+same call — there is no separate ``.ask_async`` / ``.map_async``.
 
   .build()                     — produce native ADK LlmAgent
-  .ask(prompt)                 — one-shot SYNC execution (blocking)
-  .ask_async(prompt)           — one-shot ASYNC execution (await)
+  .ask(prompt)                 — one-shot execution. Blocks in sync code;
+                                 returns an awaitable coroutine in async
   .stream(prompt)              — ASYNC streaming iterator (yields text chunks)
   .events(prompt)              — ASYNC raw ADK Event stream
   .session()                   — ASYNC context manager for multi-turn chat
-  .map(prompts, concurrency=5) — batch SYNC execution (blocking)
-  .map_async(prompts)          — batch ASYNC execution (await)
+  .map(prompts, concurrency=5) — batch execution (dual-mode, like .ask)
   .test(prompt, contains=)     — inline smoke test (sync, blocking)
   .mock(responses)             — replace LLM with canned responses
   .eval(prompt, expect=)       — inline evaluation
@@ -614,11 +616,11 @@ A2A patterns (remote agent-to-agent):
 ## Execution
 
 ```python
-# One-shot (sync)
-result = agent.ask("What is 2+2?")
+# One-shot (sync — blocking)
+result = agent.run.ask("What is 2+2?")
 
-# One-shot (async — use in Jupyter/FastAPI)
-result = await agent.ask_async("What is 2+2?")
+# Same call inside an event loop (Jupyter/FastAPI)
+result = await agent.run.ask("What is 2+2?")
 
 # Streaming
 async for chunk in agent.stream("Tell me a story"):
@@ -640,7 +642,7 @@ agent.mock(["canned response"]).test("input", contains="canned")
 | Mistake | Fix |
 |---------|-----|
 | `.build()` on sub-builders inside Pipeline/FanOut/Loop | Sub-builders auto-build |
-| `.ask()` in async context | Use `.ask_async()` |
+| Forgetting `await` inside an event loop | `.ask()`/`.map()` return a coroutine there — `await` the call |
 | Missing `.writes()` upstream of `.reads()` | Every `.reads("key")` needs `.writes("key")` upstream |
 | `.instruct()` for metadata | Use `.describe()` for metadata |
 | LLM routing when rules suffice | Use `Route()` |
@@ -679,5 +681,8 @@ agent.to_mermaid()       # Mermaid diagram (or agent.show('mermaid'))
 16. Use `.isolate()` on specialist agents by default — it is the most predictable pattern
 17. Always set `.describe()` on sub-agents — the description helps the coordinator LLM
     pick the right specialist during transfer routing
-18. Use `.ask_async()` and `.map_async()` in async contexts (Jupyter, FastAPI).
-    The sync variants (.ask, .map) raise RuntimeError inside running event loops.
+18. `.ask()` / `.map()` are dual-mode — they block in sync code and return
+    an awaitable coroutine inside a running event loop (Jupyter, FastAPI,
+    pytest-asyncio). Write `result = agent.run.ask(...)` synchronously or
+    `result = await agent.run.ask(...)` in async code. No separate
+    `.ask_async()` / `.map_async()` surface.

@@ -76,14 +76,14 @@ def test_emit_python_method():
 
 def test_emit_python_async_method():
     m = MethodNode(
-        name="ask_async",
+        name="stream",
         params=[Param("self"), Param("prompt", type="str")],
         returns="str",
         is_async=True,
         body=[ReturnStmt('"result"')],
     )
     source = emit_python(m)
-    assert "async def ask_async" in source
+    assert "async def stream" in source
 
 
 def test_emit_python_callback_method():

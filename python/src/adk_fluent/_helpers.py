@@ -14,7 +14,6 @@ __all__ = [
     "deep_clone_builder",
     "add_delegate_to",
     "run_one_shot",
-    "run_one_shot_async",
     "run_stream",
     "run_events",
     "stream_from_cursor",
@@ -22,7 +21,6 @@ __all__ = [
     "ChatSession",
     "create_session",
     "run_map",
-    "run_map_async",
     "StateKey",
     "Artifact",
     "_add_artifacts",
@@ -601,39 +599,41 @@ async def run_map_async(builder, prompts, *, concurrency=5):
     return await asyncio.gather(*[_one(p) for p in prompts])
 
 
-def _run_sync(coro):
-    """Run a coroutine synchronously. Raises RuntimeError inside async contexts."""
+def _dispatch(coro):
+    """Run or return ``coro`` based on whether an event loop is active.
+
+    Outside a running event loop, blocks until the coroutine completes
+    and returns its result. Inside a running loop (Jupyter, FastAPI,
+    pytest-asyncio), returns the coroutine itself so the caller can
+    ``await`` it. This collapses the historical sync/async split into
+    a single callable that works in both contexts.
+    """
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = None
 
-    if loop and loop.is_running():
-        raise RuntimeError(
-            "Cannot use synchronous methods (.ask(), .map(), run_one_shot(), "
-            "run_map()) inside an already-running event loop (e.g. Jupyter, "
-            "async frameworks). Use the async variants instead: "
-            ".ask_async(), .map_async(), run_one_shot_async(), run_map_async()."
-        )
+    if loop is not None and loop.is_running():
+        return coro
     return asyncio.run(coro)
 
 
 def run_map(builder, prompts, *, concurrency=5):
-    """Synchronous batch execution against multiple prompts.
+    """Batch execution against multiple prompts.
 
-    Raises RuntimeError if called inside an already-running event loop.
-    Use run_map_async() in async contexts.
+    Blocks in sync contexts; returns an awaitable coroutine inside a
+    running event loop. See :func:`_dispatch`.
     """
-    return _run_sync(run_map_async(builder, prompts, concurrency=concurrency))
+    return _dispatch(run_map_async(builder, prompts, concurrency=concurrency))
 
 
 def run_one_shot(builder, prompt: str) -> str:
-    """Synchronous wrapper around run_one_shot_async.
+    """One-shot execution.
 
-    Raises RuntimeError if called inside an already-running event loop.
-    Use run_one_shot_async() in async contexts.
+    Blocks in sync contexts; returns an awaitable coroutine inside a
+    running event loop. See :func:`_dispatch`.
     """
-    return _run_sync(run_one_shot_async(builder, prompt))
+    return _dispatch(run_one_shot_async(builder, prompt))
 
 
 async def run_stream(builder, prompt: str, *, tape=None):

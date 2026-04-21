@@ -80,7 +80,6 @@ METHOD_NAME_MAP: dict[str, str] = {
     # Execution
     "build": "build",
     "ask": "ask",
-    "ask_async": "askAsync",
     "stream": "stream",
     "test": "test",
     "mock": "mock",

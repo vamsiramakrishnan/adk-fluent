@@ -19,7 +19,7 @@ from adk_fluent.backends import available_backends, get_backend
 backends = available_backends()
 
 # 2. Per-agent engine selection with .engine()
-#    .engine() stores the backend choice; .ask_async() routes accordingly.
+#    .engine() stores the backend choice; .run.ask() routes accordingly.
 agent_adk = Agent("helper").instruct("You help users.").engine("adk")
 agent_asyncio = Agent("helper").instruct("You help users.").engine("asyncio")
 agent_temporal = Agent("helper").instruct("You help users.").engine("temporal", task_queue="research")
