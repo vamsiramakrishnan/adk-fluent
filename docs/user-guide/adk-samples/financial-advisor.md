@@ -194,17 +194,17 @@ root_agent = (
     )
     .instruct(FINANCIAL_COORDINATOR_PROMPT)
     .writes("financial_coordinator_output")
-    .agent_tool(data_analyst)
-    .agent_tool(trading_analyst)
-    .agent_tool(execution_analyst)
-    .agent_tool(risk_analyst)
+    .delegate_to(data_analyst)
+    .delegate_to(trading_analyst)
+    .delegate_to(execution_analyst)
+    .delegate_to(risk_analyst)
     .build()
 )
 ```
 
 ## What Changed
 
-- 4x `AgentTool(agent=...)` → `.agent_tool()`
+- 4x `AgentTool(agent=...)` → `.delegate_to()`
 - `output_key=` → `.writes()`
 - `instruction=` → `.instruct()`
 - `description=` → `.describe()`

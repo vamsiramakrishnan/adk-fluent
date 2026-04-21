@@ -164,7 +164,7 @@ class TestCanonicalMethods:
     def test_agent_tool_no_warning(self):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            Agent("a").agent_tool(Agent("b"))
+            Agent("a").delegate_to(Agent("b"))
             deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
             assert len(deprecation_warnings) == 0
 

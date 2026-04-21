@@ -18,6 +18,9 @@ if TYPE_CHECKING:
     from google.adk.a2a.executor.a2a_agent_executor import (
         A2aAgentExecutor as _ADK_A2aAgentExecutor,
     )
+    from google.adk.a2a.executor.a2a_agent_executor import (
+        A2aAgentExecutorConfig,
+    )
     from google.adk.code_executors.agent_engine_sandbox_code_executor import (
         AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
     )

@@ -305,7 +305,7 @@ class BaseAgentConfig(BuilderBase):
         self._config["after_agent_callbacks"] = value
         return self
 
-    def sub_agent(self, value: AgentRefConfig) -> Self:
+    def transfer_to(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
@@ -706,7 +706,7 @@ class LlmAgentConfig(BuilderBase):
         self._config["generate_content_config"] = value
         return self
 
-    def sub_agent(self, value: AgentRefConfig) -> Self:
+    def transfer_to(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
@@ -818,7 +818,7 @@ class LoopAgentConfig(BuilderBase):
         self._config["max_iterations"] = value
         return self
 
-    def sub_agent(self, value: AgentRefConfig) -> Self:
+    def step(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
@@ -894,11 +894,15 @@ class ParallelAgentConfig(BuilderBase):
         self._config["after_agent_callbacks"] = value
         return self
 
-    def sub_agent(self, value: AgentRefConfig) -> Self:
+    def branch(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
+
+    def step(self, value: AgentRefConfig) -> Self:
+        """Alias for .branch() — consistent API across workflow builders."""
+        return self.branch(value)
 
     def before_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_agent_callbacks`` (lazy — built at .build() time)."""
@@ -1121,7 +1125,7 @@ class SequentialAgentConfig(BuilderBase):
         self._config["after_agent_callbacks"] = value
         return self
 
-    def sub_agent(self, value: AgentRefConfig) -> Self:
+    def step(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)

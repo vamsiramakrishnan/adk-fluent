@@ -32,9 +32,9 @@ const coordinator = new Agent("service_coordinator", "gemini-2.5-flash")
     "You are the front-line coordinator. Route customers to billing, " +
       "technical, or general support.",
   )
-  .subAgent(billing)
-  .subAgent(technical)
-  .subAgent(general)
+  .transferTo(billing)
+  .transferTo(technical)
+  .transferTo(general)
   .build() as Record<string, unknown> & { sub_agents: Record<string, unknown>[] };
 
 // Coordinator can transfer freely (default → flag absent).

@@ -37,7 +37,7 @@ METHOD_NAME_MAP: dict[str, str] = {
     # Tools
     "tool": "tool",
     "tools": "tools",
-    "agent_tool": "agentTool",
+    "delegate_to": "delegateTo",
     # Callbacks
     "before_agent": "beforeAgent",
     "after_agent": "afterAgent",
@@ -55,7 +55,7 @@ METHOD_NAME_MAP: dict[str, str] = {
     "timeout": "timeout",
     "dispatch": "dispatch",
     # Transfer control
-    "sub_agent": "subAgent",
+    "transfer_to": "transferTo",
     "isolate": "isolate",
     "stay": "stay",
     "no_peers": "noPeers",

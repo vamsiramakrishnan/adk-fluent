@@ -75,7 +75,7 @@ export class BaseAgent extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  transferTo(value: unknown): this {
     return this._addToList("sub_agents", value);
   }
 
@@ -339,7 +339,7 @@ export class Agent extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  transferTo(value: unknown): this {
     return this._addToList("sub_agents", value);
   }
 
@@ -516,9 +516,9 @@ export class Agent extends BuilderBase {
   }
 
   /**
-   * Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child.
+   * Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .transferTo() which fully transfers control to the child.
    */
-  agentTool(agent: unknown): this {
+  delegateTo(agent: unknown): this {
     return this._addToList("tools", agent);
   }
 
@@ -737,7 +737,7 @@ export class RemoteA2aAgent extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  transferTo(value: unknown): this {
     return this._addToList("sub_agents", value);
   }
 

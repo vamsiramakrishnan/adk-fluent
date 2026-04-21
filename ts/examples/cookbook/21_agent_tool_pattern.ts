@@ -3,7 +3,7 @@
  *
  * Wrap an entire agent as a callable tool exposed to a parent LLM. The
  * parent stays in control and can decide when (and how often) to invoke
- * the specialist. Compare with `.subAgent()`, which fully transfers control.
+ * the specialist. Compare with `.transferTo()`, which fully transfers control.
  */
 import assert from "node:assert/strict";
 import { Agent } from "../../src/index.js";
@@ -14,7 +14,7 @@ const translator = new Agent("translator", "gemini-2.5-flash")
 
 const writer = new Agent("writer", "gemini-2.5-flash")
   .instruct("Write a short bilingual greeting. Use the translator tool to produce the French line.")
-  .agentTool(translator)
+  .delegateTo(translator)
   .build() as Record<string, unknown>;
 
 assert.equal(writer._type, "LlmAgent");

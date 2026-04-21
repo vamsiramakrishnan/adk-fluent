@@ -373,9 +373,9 @@ pipeline = (
 coordinator = (
     Agent("coordinator", "gemini-2.5-pro")
     .instruct("You have access to specialized skills. Use them as needed.")
-    .agent_tool(Skill("skills/deep-research/SKILL.md"))
-    .agent_tool(Skill("skills/code-review/SKILL.md"))
-    .agent_tool(Skill("skills/data-analysis/SKILL.md"))
+    .delegate_to(Skill("skills/deep-research/SKILL.md"))
+    .delegate_to(Skill("skills/code-review/SKILL.md"))
+    .delegate_to(Skill("skills/data-analysis/SKILL.md"))
 )
 ```
 
@@ -541,7 +541,7 @@ A meta-skill references OTHER skills by name. The runtime resolves them from the
 | Skill + Agent mixing | S | Phase 1 |
 | `.configure(agent_name, **overrides)` | M | Phase 1 |
 | `.inject()` for tool resolution | M | Phase 1 |
-| Skill as AgentTool (`.agent_tool(Skill(...))`) | S | Phase 1 |
+| Skill as AgentTool (`.delegate_to(Skill(...))`) | S | Phase 1 |
 
 ### Phase 3: Registry & Discovery
 
@@ -635,10 +635,10 @@ app = (
         Classify the user's request and delegate to the appropriate skill.
         For complex requests, chain multiple skills together.
     """)
-    .agent_tool(research.describe("Deep multi-source research"))
-    .agent_tool(coding.describe("Code generation and review"))
-    .agent_tool(analysis.describe("Data analysis and visualization"))
-    .agent_tool(writing.describe("Technical writing and editing"))
+    .delegate_to(research.describe("Deep multi-source research"))
+    .delegate_to(coding.describe("Code generation and review"))
+    .delegate_to(analysis.describe("Data analysis and visualization"))
+    .delegate_to(writing.describe("Technical writing and editing"))
     .middleware(M.log() | M.cost() | M.retry(max_attempts=2))
     .guard(G.pii() | G.length(max=5000))
 )
@@ -777,7 +777,7 @@ agent = Agent("assistant").use(safety)
 │  │  Skill * 3               Iterative skill                      │   │
 │  │  Skill // Skill          Fallback skills                      │   │
 │  │  Agent >> Skill >> Agent  Mixed pipelines                     │   │
-│  │  .agent_tool(Skill)      Skill as tool                        │   │
+│  │  .delegate_to(Skill)      Skill as tool                        │   │
 │  │  SkillRegistry.find()    Discovery                            │   │
 │  │  Meta-Skill(skills: {})  Skills that compose skills           │   │
 │  └──────────────────────────────────────────────────────────────┘   │

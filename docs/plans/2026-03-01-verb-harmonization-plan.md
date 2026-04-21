@@ -111,7 +111,7 @@ behavior = "runtime_helper"
 helper_func = "delegate_agent"
 ```
 
-Update the example to use `.agent_tool(specialist)` instead of `.delegate(specialist)`.
+Update the example to use `.delegate_to(specialist)` instead of `.delegate(specialist)`.
 
 **Step 5: Update `output_key` field docstring**
 
@@ -627,8 +627,8 @@ find tests/ examples/ -name '*.py' -exec sed -i 's/\.inject_context(/\.prepend(/
 # .guardrail( → .guard(
 find tests/ examples/ -name '*.py' -exec sed -i 's/\.guardrail(/\.guard(/g' {} +
 
-# .delegate( → .agent_tool(
-find tests/ examples/ -name '*.py' -exec sed -i 's/\.delegate(/\.agent_tool(/g' {} +
+# .delegate( → .delegate_to(
+find tests/ examples/ -name '*.py' -exec sed -i 's/\.delegate(/\.delegate_to(/g' {} +
 
 # C.capture( → S.capture(
 find tests/ examples/ -name '*.py' -exec sed -i 's/C\.capture(/S\.capture(/g' {} +
@@ -801,7 +801,7 @@ class TestRenamedMethods:
         from adk_fluent import Agent
 
         specialist = Agent("spec", "gemini-2.5-flash").instruct("Specialize.")
-        coordinator = Agent("coord", "gemini-2.5-flash").agent_tool(specialist)
+        coordinator = Agent("coord", "gemini-2.5-flash").delegate_to(specialist)
         assert len(coordinator._lists["tools"]) == 1
 
     def test_prepend(self):

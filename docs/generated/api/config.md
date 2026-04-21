@@ -175,14 +175,14 @@ config = BaseAgentConfig("config").describe("...")
 ```
 
 (method-BaseAgentConfig-sub_agent)=
-#### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-config = BaseAgentConfig("config").sub_agent("...")
+config = BaseAgentConfig("config").transfer_to("...")
 ```
 
 ### Configuration
@@ -505,14 +505,14 @@ config = LlmAgentConfig("config").static("You are a helpful assistant.")
 ```
 
 (method-LlmAgentConfig-sub_agent)=
-#### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-config = LlmAgentConfig("config").sub_agent("...")
+config = LlmAgentConfig("config").transfer_to("...")
 ```
 
 (method-LlmAgentConfig-tool)=
@@ -690,14 +690,14 @@ config = LoopAgentConfig("config").describe("...")
 ```
 
 (method-LoopAgentConfig-sub_agent)=
-#### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-config = LoopAgentConfig("config").sub_agent("...")
+config = LoopAgentConfig("config").transfer_to("...")
 ```
 
 ### Configuration
@@ -795,14 +795,14 @@ config = ParallelAgentConfig("config").describe("...")
 ```
 
 (method-ParallelAgentConfig-sub_agent)=
-#### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-config = ParallelAgentConfig("config").sub_agent("...")
+config = ParallelAgentConfig("config").transfer_to("...")
 ```
 
 ### Configuration
@@ -1022,14 +1022,14 @@ config = SequentialAgentConfig("config").describe("...")
 ```
 
 (method-SequentialAgentConfig-sub_agent)=
-#### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-config = SequentialAgentConfig("config").sub_agent("...")
+config = SequentialAgentConfig("config").transfer_to("...")
 ```
 
 ### Configuration

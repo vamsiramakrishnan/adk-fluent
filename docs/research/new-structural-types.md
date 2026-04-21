@@ -181,15 +181,15 @@ Route is deterministic — a Python predicate picks the next agent. But in a
 Swarm, the **LLM decides** which agent should handle the next step, and agents
 can hand off to each other dynamically.
 
-Today this requires `.sub_agent()` with manual transfer control:
+Today this requires `.transfer_to()` with manual transfer control:
 
 ```python
 coordinator = (
     Agent("coordinator", "gemini-2.5-pro")
     .instruct("Route to the right specialist.")
-    .sub_agent(researcher.isolate().describe("Research specialist"))
-    .sub_agent(writer.isolate().describe("Writing specialist"))
-    .sub_agent(coder.isolate().describe("Coding specialist"))
+    .transfer_to(researcher.isolate().describe("Research specialist"))
+    .transfer_to(writer.isolate().describe("Writing specialist"))
+    .transfer_to(coder.isolate().describe("Coding specialist"))
 )
 ```
 

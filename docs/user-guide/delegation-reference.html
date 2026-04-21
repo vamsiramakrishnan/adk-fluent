@@ -513,17 +513,17 @@
     <div class="subtitle">adk-fluent -- How agents hand off work and control flow between each other</div>
   </div>
 
-  <!-- Section 1: .sub_agent() vs .agent_tool() -->
+  <!-- Section 1: .transfer_to() vs .delegate_to() -->
   <div class="section">
     <div class="section-title">Sub-Agent vs Agent Tool</div>
     <div class="section-subtitle">Two fundamentally different ways to connect agents</div>
 
     <div class="comparison-grid">
 
-      <!-- LEFT: .sub_agent() -->
+      <!-- LEFT: .transfer_to() -->
       <div class="card card-red">
         <div class="card-header">
-          <span class="badge badge-red">.sub_agent(agent)</span>
+          <span class="badge badge-red">.transfer_to(agent)</span>
           <span class="label">Transfer-based</span>
         </div>
         <div class="svg-container">
@@ -564,10 +564,10 @@
         </div>
       </div>
 
-      <!-- RIGHT: .agent_tool() -->
+      <!-- RIGHT: .delegate_to() -->
       <div class="card card-blue">
         <div class="card-header">
-          <span class="badge badge-blue">.agent_tool(agent)</span>
+          <span class="badge badge-blue">.delegate_to(agent)</span>
           <span class="label">Tool-based</span>
         </div>
         <div class="svg-container">
@@ -800,18 +800,18 @@
         <text x="360" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">Does the parent need to stay</text>
         <text x="360" y="44" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">in control?</text>
 
-        <!-- Yes branch (left) -> .agent_tool() -->
+        <!-- Yes branch (left) -> .delegate_to() -->
         <line x1="290" y1="54" x2="140" y2="100" stroke="#10b981" stroke-width="1.5"/>
         <text x="200" y="72" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#10b981" font-weight="600">Yes</text>
         <rect x="50" y="100" width="180" height="40" rx="8" fill="#0ea5e915" stroke="#0ea5e9" stroke-width="1.5"/>
-        <text x="140" y="118" text-anchor="middle" font-family="SF Mono, monospace" font-size="12" fill="#0ea5e9" font-weight="600">.agent_tool()</text>
+        <text x="140" y="118" text-anchor="middle" font-family="SF Mono, monospace" font-size="12" fill="#0ea5e9" font-weight="600">.delegate_to()</text>
         <text x="140" y="133" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#8888a0">parent orchestrates</text>
 
-        <!-- No branch (right) -> .sub_agent() question -->
+        <!-- No branch (right) -> .transfer_to() question -->
         <line x1="430" y1="54" x2="530" y2="100" stroke="#e94560" stroke-width="1.5"/>
         <text x="490" y="72" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#e94560" font-weight="600">No</text>
         <rect x="430" y="100" width="200" height="40" rx="8" fill="#e9456010" stroke="#e94560" stroke-width="1"/>
-        <text x="530" y="118" text-anchor="middle" font-family="SF Mono, monospace" font-size="12" fill="#e94560" font-weight="600">.sub_agent()</text>
+        <text x="530" y="118" text-anchor="middle" font-family="SF Mono, monospace" font-size="12" fill="#e94560" font-weight="600">.transfer_to()</text>
         <text x="530" y="133" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#8888a0">child takes over</text>
 
         <!-- Second question -->
@@ -905,13 +905,13 @@
 coordinator = (
   <span class="fn">Agent</span>(<span class="str">"coord"</span>, <span class="str">"gemini-2.5-flash"</span>)
   .instruct(<span class="str">"Route to the right team."</span>)
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"billing"</span>).instruct(<span class="str">"..."</span>).<span class="fn">isolate</span>()
   )
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"support"</span>).instruct(<span class="str">"..."</span>).<span class="fn">isolate</span>()
   )
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"sales"</span>).instruct(<span class="str">"..."</span>).<span class="fn">isolate</span>()
   )
   .build()
@@ -970,13 +970,13 @@ coordinator = (
 chain = (
   <span class="fn">Agent</span>(<span class="str">"parent"</span>, <span class="str">"gemini-2.5-flash"</span>)
   .instruct(<span class="str">"Manage the pipeline."</span>)
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"draft"</span>).instruct(<span class="str">"..."</span>).<span class="fn">stay</span>()
   )
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"review"</span>).instruct(<span class="str">"..."</span>).<span class="fn">stay</span>()
   )
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"publish"</span>).instruct(<span class="str">"..."</span>).<span class="fn">isolate</span>()
   )
   .build()
@@ -1032,15 +1032,15 @@ chain = (
 root = (
   <span class="fn">Agent</span>(<span class="str">"root"</span>, <span class="str">"gemini-2.5-flash"</span>)
   .instruct(<span class="str">"Coordinate research and writing."</span>)
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"research"</span>).<span class="fn">isolate</span>()
-    .sub_agent(<span class="fn">Agent</span>(<span class="str">"web"</span>).<span class="fn">isolate</span>())
-    .sub_agent(<span class="fn">Agent</span>(<span class="str">"papers"</span>).<span class="fn">isolate</span>())
+    .transfer_to(<span class="fn">Agent</span>(<span class="str">"web"</span>).<span class="fn">isolate</span>())
+    .transfer_to(<span class="fn">Agent</span>(<span class="str">"papers"</span>).<span class="fn">isolate</span>())
   )
-  .sub_agent(
+  .transfer_to(
     <span class="fn">Agent</span>(<span class="str">"writing"</span>).<span class="fn">isolate</span>()
-    .sub_agent(<span class="fn">Agent</span>(<span class="str">"draft"</span>).<span class="fn">isolate</span>())
-    .sub_agent(<span class="fn">Agent</span>(<span class="str">"edit"</span>).<span class="fn">isolate</span>())
+    .transfer_to(<span class="fn">Agent</span>(<span class="str">"draft"</span>).<span class="fn">isolate</span>())
+    .transfer_to(<span class="fn">Agent</span>(<span class="str">"edit"</span>).<span class="fn">isolate</span>())
   )
   .build()
 )</div>

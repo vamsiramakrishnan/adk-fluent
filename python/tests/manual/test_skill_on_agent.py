@@ -234,7 +234,7 @@ class TestSkillInterop:
             .instruct("Research deeply.")
             .describe("Deep research expert")
         )
-        coordinator = Agent("coordinator", "gemini-2.5-pro").instruct("Use the expert when needed.").agent_tool(expert)
+        coordinator = Agent("coordinator", "gemini-2.5-pro").instruct("Use the expert when needed.").delegate_to(expert)
         built = coordinator.build()
         assert len(built.tools) > 0
 

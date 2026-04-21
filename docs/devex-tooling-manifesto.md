@@ -378,7 +378,7 @@ No deprecated methods found.
 **Expected output (violations):**
 ```
 src/my_agent.py:15  .output_key("result")  →  Use .writes("result") instead
-src/my_agent.py:23  .delegate(other)       →  Use .agent_tool(other) instead
+src/my_agent.py:23  .delegate(other)       →  Use .delegate_to(other) instead
 Found 2 deprecated method calls.
 ```
 

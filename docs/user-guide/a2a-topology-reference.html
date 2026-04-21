@@ -578,8 +578,8 @@
           </svg>
         </div>
         <div class="method-tags">
-          <span class="method-tag" style="background:#10b98118;color:var(--green);">.sub_agent()</span>
-          <span class="method-tag" style="background:#10b98118;color:var(--green);">.agent_tool()</span>
+          <span class="method-tag" style="background:#10b98118;color:var(--green);">.transfer_to()</span>
+          <span class="method-tag" style="background:#10b98118;color:var(--green);">.delegate_to()</span>
         </div>
         <ul>
           <li>Shared session state</li>
@@ -587,7 +587,7 @@
           <li>Zero network latency</li>
         </ul>
         <pre><code><span class="cm"># Local: same process, direct call</span>
-coordinator<span class="fn">.sub_agent</span>(local_agent)</code></pre>
+coordinator<span class="fn">.transfer_to</span>(local_agent)</code></pre>
       </div>
 
       <!-- Remote Agent Card -->
@@ -975,8 +975,8 @@ remote_researcher = (
 coordinator = (
     Agent(<span class="str">"coordinator"</span>, <span class="str">"gemini-2.5-flash"</span>)
     <span class="fn">.instruct</span>(<span class="str">"Coordinate research and writing."</span>)
-    <span class="fn">.sub_agent</span>(local_writer)
-    <span class="fn">.sub_agent</span>(remote_researcher)
+    <span class="fn">.transfer_to</span>(local_writer)
+    <span class="fn">.transfer_to</span>(remote_researcher)
     <span class="fn">.middleware</span>(M<span class="fn">.a2a_retry</span>(<span class="str">max</span>=<span class="num">3</span>) | M<span class="fn">.a2a_timeout</span>(<span class="str">seconds</span>=<span class="num">30</span>))
 )</code></pre>
     </div>

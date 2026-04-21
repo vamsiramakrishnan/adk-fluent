@@ -1,6 +1,6 @@
 """Extra methods engine — generate non-field helper methods for builders.
 
-Produces methods like .tool(), .step(), .branch(), .sub_agent(), .delegate()
+Produces methods like .tool(), .step(), .branch(), .transfer_to(), .delegate_to()
 that don't map directly to a single Pydantic field but provide ergonomic
 builder APIs.
 
@@ -73,29 +73,20 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
         )
         extras.append(
             {
-                "name": "sub_agent",
+                "name": "transfer_to",
                 "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-                "doc": "Add a sub-agent (appends). Multiple .sub_agent() calls accumulate.",
+                "doc": "Add a sub-agent as a transfer target (LLM decides when to hand off).",
                 "behavior": "list_append",
                 "target_field": "sub_agents",
             }
         )
         extras.append(
             {
-                "name": "member",
-                "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-                "doc": "Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern.",
-                "behavior": "deprecation_alias",
-                "target_method": "sub_agent",
-            }
-        )
-        extras.append(
-            {
-                "name": "delegate",
+                "name": "delegate_to",
                 "signature": "(self, agent) -> Self",
-                "doc": "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent.",
+                "doc": "Wrap another agent as a callable AgentTool and add it to this agent's tools.",
                 "behavior": "runtime_helper",
-                "helper_func": "delegate_agent",
+                "helper_func": "add_delegate_to",
             }
         )
 
@@ -141,6 +132,23 @@ _CONTAINER_ALIASES: dict[str, dict[str, str | list[str]]] = {
     "SequentialAgent": {"sub_agent": "step"},
     "LoopAgent": {"sub_agent": "step"},
     "ParallelAgent": {"sub_agent": ["branch", "step"]},  # branch is primary, step delegates to branch
+    "SequentialAgentConfig": {"sub_agent": "step"},
+    "LoopAgentConfig": {"sub_agent": "step"},
+    "ParallelAgentConfig": {"sub_agent": ["branch", "step"]},
+}
+
+# Classes where the generic singular form should be *replaced* by a semantic
+# verb, not aliased. Unlike ``_CONTAINER_ALIASES`` (which keeps the generic
+# singular as a delegate), these entries suppress the generic form entirely —
+# the primary name is the only name. Used for renames like ``sub_agent`` →
+# ``transfer_to`` on agent-like classes, where the old name adds noise
+# without carrying information the primary name doesn't already convey.
+_CONTAINER_RENAMES: dict[str, dict[str, str]] = {
+    "BaseAgent": {"sub_agent": "transfer_to"},
+    "LlmAgent": {"sub_agent": "transfer_to"},
+    "RemoteA2aAgent": {"sub_agent": "transfer_to"},
+    "BaseAgentConfig": {"sub_agent": "transfer_to"},
+    "LlmAgentConfig": {"sub_agent": "transfer_to"},
 }
 
 
@@ -169,6 +177,23 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
         # Build the default signature and doc for list_append extras
         sig = f"(self, value: {inner}) -> Self"
         doc = f"Append to ``{fname}`` (lazy — built at .build() time)."
+
+        # Check for a rename (primary-only, no generic singular fallback)
+        rename_map = _CONTAINER_RENAMES.get(class_name, {})
+        renamed = rename_map.get(singular)
+        if renamed:
+            if renamed not in seen_names:
+                extras.append(
+                    {
+                        "name": renamed,
+                        "signature": sig,
+                        "doc": doc,
+                        "behavior": "list_append",
+                        "target_field": fname,
+                    }
+                )
+                seen_names.add(renamed)
+            continue
 
         # Check for a semantic alias override
         alias_map = _CONTAINER_ALIASES.get(class_name, {})
@@ -206,18 +231,10 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
                     )
                     seen_names.add(secondary)
 
-            # Generic singular delegates to primary
-            if singular not in seen_names:
-                extras.append(
-                    {
-                        "name": singular,
-                        "signature": sig,
-                        "doc": doc,
-                        "behavior": "delegates_to",
-                        "target_method": primary,
-                    }
-                )
-                seen_names.add(singular)
+            # The generic singular (e.g. ``sub_agent``) is intentionally NOT
+            # emitted. Aliases like ``step`` / ``branch`` already cover the
+            # semantics for workflow builders; keeping ``sub_agent`` around
+            # as a delegate just adds a second way to say the same thing.
         else:
             # No alias — just the singular adder
             if singular not in seen_names:

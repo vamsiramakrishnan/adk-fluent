@@ -116,7 +116,7 @@ def test_skill_as_agent_tool():
     coordinator = (
         Agent("coordinator", "gemini-2.5-pro")
         .instruct("You have access to a research skill. Use it when needed.")
-        .agent_tool(research.describe("Deep multi-source research with citations"))
+        .delegate_to(research.describe("Deep multi-source research with citations"))
     )
     built = coordinator.build()
     # The coordinator has the research skill as a callable tool

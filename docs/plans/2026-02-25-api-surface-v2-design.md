@@ -251,7 +251,7 @@ ______________________________________________________________________
 - `Loop.step()` — exists, correct metaphor ✓
 - `FanOut.branch()` — exists, correct metaphor ✓
 - `FanOut.step()` — does NOT exist (good) ✓
-- `Agent.sub_agent()` — universal low-level method ✓
+- `Agent.transfer_to()` — universal low-level method ✓
 - `Agent.delegate()` — different mechanism (AgentTool wrapping) ✓
 
 ### Solution
@@ -263,7 +263,7 @@ Current state is correct. No code change. Add a "Choosing the right method" tabl
 | Pipeline | `.step(agent)`      | Sequential step in a chain      |
 | FanOut   | `.branch(agent)`    | Parallel branch                 |
 | Loop     | `.step(agent)`      | Step that repeats               |
-| Agent    | `.sub_agent(agent)` | Generic child agent             |
+| Agent    | `.transfer_to(agent)` | Generic child agent             |
 | Agent    | `.delegate(agent)`  | Tool-wrapped agent (LLM routes) |
 
 ______________________________________________________________________

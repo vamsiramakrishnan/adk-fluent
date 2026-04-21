@@ -155,8 +155,8 @@ assert len(built_full.sub_agents) == 7
 order_coordinator = (
     Agent("order_coordinator", MODEL)
     .instruct("Coordinate order processing across fulfillment centers.")
-    .sub_agent(Agent("east_warehouse", MODEL).instruct("Handle East Coast fulfillment."))
-    .sub_agent(Agent("west_warehouse", MODEL).instruct("Handle West Coast fulfillment."))
+    .transfer_to(Agent("east_warehouse", MODEL).instruct("Handle East Coast fulfillment."))
+    .transfer_to(Agent("west_warehouse", MODEL).instruct("Handle West Coast fulfillment."))
 )
 built_coord = order_coordinator.build()
 assert len(built_coord.sub_agents) == 2

@@ -28,13 +28,13 @@ from adk_fluent import Agent, Pipeline, Route
 coordinator = (
     Agent("support_router", "gemini-2.5-flash")
     .instruct("Route the customer to the right specialist.")
-    .sub_agent(
+    .transfer_to(
         Agent("billing", "gemini-2.5-flash")
         .instruct("Handle billing and payment questions.")
         .describe("Billing specialist — payments, invoices, refunds")
         .isolate()  # Completes task, auto-returns to parent
     )
-    .sub_agent(
+    .transfer_to(
         Agent("technical", "gemini-2.5-flash")
         .instruct("Handle technical troubleshooting.")
         .describe("Technical specialist — bugs, errors, setup issues")
@@ -71,7 +71,7 @@ researcher = Agent("fact_checker", "gemini-2.5-flash").instruct(
 analyst = (
     Agent("analyst", "gemini-2.5-flash")
     .instruct("Analyze the user's question. Use fact_checker for verification.")
-    .agent_tool(researcher)  # Analyst stays in control
+    .delegate_to(researcher)  # Analyst stays in control
 )
 
 # --- ASSERT ---

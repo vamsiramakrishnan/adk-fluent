@@ -116,7 +116,7 @@ export class BaseAgentConfig extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  transferTo(value: unknown): this {
     return this._addToList("sub_agents", value);
   }
 
@@ -521,7 +521,7 @@ export class LlmAgentConfig extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  transferTo(value: unknown): this {
     return this._addToList("sub_agents", value);
   }
 
@@ -642,7 +642,7 @@ export class LoopAgentConfig extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  step(value: unknown): this {
     return this._addToList("sub_agents", value);
   }
 
@@ -721,8 +721,15 @@ export class ParallelAgentConfig extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  branch(value: unknown): this {
     return this._addToList("sub_agents", value);
+  }
+
+  /**
+   * Alias for .branch() — consistent API across workflow builders.
+   */
+  step(value: unknown): this {
+    return this.branch(value);
   }
 
   /**
@@ -958,7 +965,7 @@ export class SequentialAgentConfig extends BuilderBase {
   /**
    * Append to ``sub_agents`` (lazy — built at .build() time).
    */
-  subAgent(value: unknown): this {
+  step(value: unknown): this {
     return this._addToList("sub_agents", value);
   }
 

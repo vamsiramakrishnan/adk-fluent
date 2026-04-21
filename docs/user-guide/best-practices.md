@@ -20,8 +20,8 @@ router = (
     Agent("router")
     .model("gemini-2.5-flash")
     .instruct("Look at the state. If customer_tier is 'VIP', transfer to vip_agent. Otherwise transfer to standard_agent.")
-    .sub_agent(vip_agent)
-    .sub_agent(standard_agent)
+    .transfer_to(vip_agent)
+    .transfer_to(standard_agent)
 )
 ```
 
@@ -42,7 +42,7 @@ router = (
 :::
 ::::
 
-*Rule of thumb:* Only use LLM-driven routing (like `.agent_tool()`) when the decision requires semantic understanding (e.g., "Which of these three domain experts is best suited to answer this vague question?").
+*Rule of thumb:* Only use LLM-driven routing (like `.delegate_to()`) when the decision requires semantic understanding (e.g., "Which of these three domain experts is best suited to answer this vague question?").
 
 ## 2. Infrastructure: Dependency Injection vs. Global State
 

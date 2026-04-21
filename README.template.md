@@ -1250,13 +1250,13 @@ coordinator = (
     Agent("coordinator")
     .model("gemini-2.5-flash")
     .instruct("Route tasks to the right specialist.")
-    .agent_tool(Agent("math").model("gemini-2.5-flash").instruct("Solve math."))
-    .agent_tool(Agent("code").model("gemini-2.5-flash").instruct("Write code."))
+    .delegate_to(Agent("math").model("gemini-2.5-flash").instruct("Solve math."))
+    .delegate_to(Agent("code").model("gemini-2.5-flash").instruct("Write code."))
     .build()
 )
 ```
 
-`.agent_tool(agent)` wraps the sub-agent in an `AgentTool` so the coordinator's LLM can invoke it by name.
+`.delegate_to(agent)` wraps the sub-agent in an `AgentTool` so the coordinator's LLM can invoke it by name.
 
 #### One-Shot Execution
 
@@ -1568,7 +1568,7 @@ adk web race                  # race() first-to-finish
 | 02  | Agent with Tools     | Attach tool functions                        |
 | 03  | Callbacks            | `before_model`, `after_model` hooks          |
 | 05  | Parallel FanOut      | Run agents in parallel with `FanOut` or `\|` |
-| 07  | Team Coordinator     | LLM-driven delegation with `.agent_tool()`     |
+| 07  | Team Coordinator     | LLM-driven delegation with `.transfer_to()`    |
 | 16  | Operator Composition | `>>` `\|` `*` operators together             |
 | 17  | Route Branching      | Deterministic routing with `Route`           |
 | 33  | State Transforms     | `S.pick`, `S.rename`, `S.merge`              |
@@ -1609,7 +1609,7 @@ adk web race                  # race() first-to-finish
 | 24  | @agent Decorator     | Decorator syntax                     |
 | 25  | Validate & Show      | `.validate()` `.show()`              |
 | 26  | Serialization        | `to_dict` / `to_yaml`                |
-| 27  | Delegate Pattern     | `.agent_tool()`                        |
+| 27  | Delegate Pattern     | `.delegate_to()`                       |
 | 28  | Real-World Pipeline  | Full composition                     |
 | 29  | Function Steps       | `>> fn` zero-cost transforms         |
 | 30  | Until Operator       | `* until(pred)` conditional loops    |

@@ -235,7 +235,7 @@ _INLINE_HELPERS: dict[str, object] = {
     "_add_tools": [("list", "tools", "PARAM")],
     "_add_artifacts": [("list", "artifacts", "PARAM")],
     "_add_skill": [("list", "skills", "PARAM")],
-    "add_agent_tool": [("list", "tools", "PARAM")],
+    "add_delegate_to": [("list", "tools", "PARAM")],
     # --- Callback dispatchers ---
     "_guard_dispatch": [
         ("callback", "before_model_callback", "PARAM"),

@@ -1232,23 +1232,6 @@ export class LongRunningFunctionTool extends BuilderBase {
 }
 
 /**
- * Deprecated name, use `McpTool` instead.
- */
-export class MCPTool extends BuilderBase {
-  constructor(args: string, kwargs: string) {
-    super(args);
-    this._config.set("kwargs", kwargs);
-  }
-
-  /**
-   * Deprecated name, use `McpTool` instead. Resolve into a native ADK _ADK_MCPTool.
-   */
-  build(): Record<string, unknown> {
-    return this._buildConfig("MCPTool");
-  }
-}
-
-/**
  * Turns an MCP Tool into an ADK Tool.
  */
 export class McpTool extends BuilderBase {
@@ -1297,23 +1280,6 @@ export class McpTool extends BuilderBase {
    */
   build(): Record<string, unknown> {
     return this._buildConfig("McpTool");
-  }
-}
-
-/**
- * Deprecated name, use `McpToolset` instead.
- */
-export class MCPToolset extends BuilderBase {
-  constructor(args: string, kwargs: string) {
-    super(args);
-    this._config.set("kwargs", kwargs);
-  }
-
-  /**
-   * Deprecated name, use `McpToolset` instead. Resolve into a native ADK _ADK_MCPToolset.
-   */
-  build(): Record<string, unknown> {
-    return this._buildConfig("MCPToolset");
   }
 }
 

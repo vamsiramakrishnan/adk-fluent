@@ -25,7 +25,7 @@ coordinator = (
         "You are a coordinator. For research questions, delegate to the "
         "research specialist. Handle casual questions yourself."
     )
-    .sub_agent(research)
+    .transfer_to(research)
     .build()
 )
 

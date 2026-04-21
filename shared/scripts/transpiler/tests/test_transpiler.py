@@ -125,9 +125,9 @@ class TestImports:
 class TestSnakeToCamel:
     """Test snake_case → camelCase method name conversion."""
 
-    def test_sub_agent(self):
-        result = transpile("x.sub_agent(y)")
-        assert ".subAgent(y)" in result
+    def test_transfer_to(self):
+        result = transpile("x.transfer_to(y)")
+        assert ".transferTo(y)" in result
 
     def test_before_model(self):
         result = transpile("x.before_model(fn)")

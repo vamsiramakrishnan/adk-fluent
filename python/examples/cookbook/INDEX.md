@@ -36,7 +36,7 @@ Combine agents into teams, pipelines, and routed systems.
 | 04  | [Sequential Pipeline](04_sequential_pipeline.py)         | `>>` operator for sequential agent chains      |
 | 05  | [Parallel FanOut](05_parallel_fanout.py)                 | `\|` operator for parallel execution           |
 | 06  | [Loop Agent](06_loop_agent.py)                           | `Loop` builder for iterative refinement        |
-| 07  | [Team Coordinator](07_team_coordinator.py)               | `.sub_agent()` for LLM-driven delegation       |
+| 07  | [Team Coordinator](07_team_coordinator.py)               | `.transfer_to()` for LLM-driven delegation       |
 | 12  | [Guardrails](12_guardrails.py)                           | `.guardrail()` for safety screening            |
 | 13  | [Interactive Session](13_interactive_session.py)         | `.session()` for multi-turn chat               |
 | 14  | [Dynamic Forwarding](14_dynamic_forwarding.py)           | Dynamic field-based routing                    |

@@ -12,7 +12,7 @@ from typing import Any
 
 __all__ = [
     "deep_clone_builder",
-    "add_agent_tool",
+    "add_delegate_to",
     "run_one_shot",
     "run_one_shot_async",
     "run_stream",
@@ -340,7 +340,7 @@ def _publish_agent(builder, *, port: int = 8000, host: str = "0.0.0.0"):
     return server.build()
 
 
-def add_agent_tool(builder, agent):
+def add_delegate_to(builder, agent):
     """Wrap an agent (or builder) as an AgentTool and add it to this agent's tools.
 
     The LLM can invoke the wrapped agent by name. This enables the

@@ -34,7 +34,7 @@ pages competing for attention alongside real workflows.
 | 23 | `with_variants`             | Single `.with_()` usage                    |
 | 24 | `agent_decorator`           | Single `@agent` decorator                  |
 | 26 | `serialization`             | Single `.to_dict()` / `.to_yaml()`         |
-| 27 | `agent_tool_pattern`        | Single `.agent_tool()` usage               |
+| 27 | `agent_tool_pattern`        | Single `.delegate_to()` usage               |
 | 31 | `typed_output`              | Single `@` operator                        |
 | 37 | `mock_testing`              | Single `.mock()` usage                     |
 | 38 | `loop_while`                | Single `.loop_while()` usage               |

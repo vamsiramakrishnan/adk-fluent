@@ -139,7 +139,7 @@ agent = (
     .tool(classify_tool)
     .writes("intent")
     .before_model(my_callback)
-    .agent_tool(handler_a, handler_b)
+    .delegate_to(handler_a, handler_b)
 )
 ```
 

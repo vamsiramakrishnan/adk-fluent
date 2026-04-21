@@ -519,7 +519,7 @@ def a2a_delegate(
     from adk_fluent.a2a import RemoteAgent
 
     for name, endpoint in remotes.items():
-        coordinator = coordinator.sub_agent(RemoteAgent(name, endpoint))
+        coordinator = coordinator.transfer_to(RemoteAgent(name, endpoint))
     return coordinator
 
 

@@ -140,7 +140,7 @@ Each method controls exactly one concern. See `data_flow()` for a snapshot.
   .context(C.xxx())            — CONTEXT: fine-grained control over what the agent sees.
                                  Pass a C transform (C.window(5), C.user_only(), etc.).
   .accepts(Schema)             — INPUT: validate input when this agent is invoked as a
-                                 tool via .agent_tool(). No effect for top-level agents.
+                                 tool via .delegate_to(). No effect for top-level agents.
   .returns(Schema)             — OUTPUT: constrain LLM response to structured JSON
                                  matching a Pydantic model. HAS runtime effect.
   .writes(key)                 — STORAGE: store the agent's text response in state[key]
@@ -154,9 +154,9 @@ Each method controls exactly one concern. See `data_flow()` for a snapshot.
 
   .tool(fn)                    — add a single tool (appends to existing tools)
   .tools(list | TComposite)    — set / replace all tools at once
-  .agent_tool(agent)           — wrap another agent as a callable AgentTool. The parent
+  .delegate_to(agent)          — wrap another agent as a callable AgentTool. The parent
                                  LLM invokes the child like any other tool and stays in
-                                 control. Compare with .sub_agent() which fully transfers
+                                 control. Compare with .transfer_to() which fully transfers
                                  control to the child.
 
 ### Callbacks
@@ -200,7 +200,7 @@ Each method controls exactly one concern. See `data_flow()` for a snapshot.
 
 ### Transfer control (multi-agent routing)
 
-  .sub_agent(agent)            — add child agent as a transfer target. The LLM decides
+  .transfer_to(agent)          — add child agent as a transfer target. The LLM decides
                                  when to hand off via the transfer_to_agent tool.
   .isolate()                   — prevent transfers to parent AND peers. Agent completes
                                  its task, then control auto-returns to parent.
@@ -750,7 +750,7 @@ crash-safe audit. These entry points live on ``adk_fluent`` directly
 ### _subagents — dynamic spawner + task tool
 
 Runtime-decided specialist dispatch — the missing piece between
-``.sub_agent()`` (compile-time transfer) and ``.agent_tool()`` (static tool)::
+``.transfer_to()`` (compile-time transfer) and ``.delegate_to()`` (static tool)::
 
     registry = H.subagent_registry([
         H.subagent_spec("researcher", "Find three papers.",
@@ -1071,14 +1071,14 @@ Loop, FanOut, Pipeline
 6. Use `.writes()` not deprecated `.output_key()` / `.outputs()`
 7. Use `.returns()` not deprecated `.output_schema()`
 8. Use `.context()` not deprecated `.history()` / `.include_history()`
-9. Use `.agent_tool()` not deprecated `.delegate()`
+9. Use `.delegate_to()` not deprecated `.delegate()`
 10. Use `.guard()` not deprecated `.guardrail()`
 11. Use `.loop_while()` not deprecated `.retry_if()`
 12. Use `.prepend()` not deprecated `.inject_context()`
 13. All operators are immutable — sub-expressions can be safely reused
 14. Every `.build()` returns a real ADK object compatible with adk web/run/deploy
-15. Use `.sub_agent()` for transfer-based delegation (LLM decides routing);
-    use `.agent_tool()` for tool-based invocation (parent stays in control)
+15. Use `.transfer_to()` for transfer-based delegation (LLM decides routing);
+    use `.delegate_to()` for tool-based invocation (parent stays in control)
 16. Use `.isolate()` on specialist agents by default — it is the most predictable pattern
 17. Always set `.describe()` on sub-agents — the description helps the coordinator LLM
     pick the right specialist during transfer routing

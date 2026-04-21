@@ -73,7 +73,7 @@ class Agent(BuilderBase):
         self._lists["tools"].append(value)
         return self
 
-    def sub_agent(self, value: BaseAgent) -> Self:
+    def transfer_to(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)

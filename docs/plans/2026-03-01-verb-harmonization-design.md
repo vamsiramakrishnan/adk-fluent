@@ -72,14 +72,14 @@ ______________________________________________________________________
 | Singular                | Plural                         | Mismatch                 |
 | ----------------------- | ------------------------------ | ------------------------ |
 | `.tool(fn)` appends     | `.tools(list)` replaces        | Plural != batch singular |
-| `.sub_agent(a)` appends | `.sub_agents([list])` replaces | Same                     |
+| `.transfer_to(a)` appends | `.sub_agents([list])` replaces | Same                     |
 
 ### After
 
 | Singular                    | Plural                                 | Rule                  |
 | --------------------------- | -------------------------------------- | --------------------- |
 | `.tool(fn)` appends one     | `.tools(list\|TComposite)` appends all | Plural = batch append |
-| `.sub_agent(a)` appends one | `.sub_agents([list])` appends all      | Same                  |
+| `.transfer_to(a)` appends one | `.sub_agents([list])` appends all      | Same                  |
 
 ### Implementation
 
@@ -145,7 +145,7 @@ ______________________________________________________________________
 
 | Current               | New                  | Rationale                                                                  |
 | --------------------- | -------------------- | -------------------------------------------------------------------------- |
-| `.delegate(agent)`    | `.agent_tool(agent)` | "delegate" sounds like "hand off work." It wraps agent as a callable tool. |
+| `.delegate(agent)`    | `.delegate_to(agent)` | "delegate" sounds like "hand off work." It wraps agent as a callable tool. |
 | `.inject_context(fn)` | `.prepend(fn)`       | Says what it does — prepends text to the LLM prompt.                       |
 | `.guardrail(fn)`      | `.guard(fn)`         | Shorter, consistent with `S.guard()`.                                      |
 | `.retry_if(pred)`     | `.loop_while(pred)`  | It was always a loop. Natural pair with `.loop_until()`.                   |
@@ -210,7 +210,7 @@ ______________________________________________________________________
 | File                            | Changes                                                                                                                                                                                                                         |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `seeds/seed.manual.toml`        | Remove `save_as` alias, remove `outputs` deprecated alias, add deprecated aliases for `output_key`/`output_schema`/`input_schema`, add removed method stubs, add Fallback builder                                               |
-| `src/adk_fluent/_base.py`       | Remove `.retry()`, `.fallback()`, rename `.retry_if()` → `.loop_while()`, rename `.inject_context()` → `.prepend()`, rename `.guardrail()` → `.guard()`, rename `.delegate()` → `.agent_tool()`, update return type annotations |
+| `src/adk_fluent/_base.py`       | Remove `.retry()`, `.fallback()`, rename `.retry_if()` → `.loop_while()`, rename `.inject_context()` → `.prepend()`, rename `.guardrail()` → `.guard()`, rename `.delegate()` → `.delegate_to()`, update return type annotations |
 | `src/adk_fluent/_helpers.py`    | Modify `_add_tools()` to always append (no replace), rename `_add_tool_delegate` → `_add_agent_tool`                                                                                                                            |
 | `src/adk_fluent/_primitives.py` | Rename `_TimeoutBuilder` → `TimedAgent`, `_DispatchBuilder` → `BackgroundTask`                                                                                                                                                  |
 | `src/adk_fluent/_routing.py`    | Add `Fallback` builder with `.attempt()`, add `Route.gte()`, `.lte()`, `.ne()`                                                                                                                                                  |
@@ -239,7 +239,7 @@ RENAMED:
   .retry_if(pred)        → .loop_while(pred)
   .inject_context(fn)    → .prepend(fn)
   .guardrail(fn)         → .guard(fn)
-  .delegate(agent)       → .agent_tool(agent)
+  .delegate(agent)       → .delegate_to(agent)
 
 REMOVED (use generate_content_config for model-level settings):
   .retry(max, backoff)   → removed (model config)

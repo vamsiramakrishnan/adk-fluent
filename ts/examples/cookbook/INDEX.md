@@ -39,7 +39,7 @@ Combine agents into pipelines, fan-outs, loops, and routed systems.
 | 04  | [Sequential Pipeline](04_sequential_pipeline.ts)   | `Pipeline.step(...)` for sequential chains                 |
 | 05  | [Parallel FanOut](05_parallel_fanout.ts)           | `FanOut.branch(...)` and `.parallel()` operator            |
 | 06  | [Loop Agent](06_loop_agent.ts)                     | `Loop.step().maxIterations().until()`                      |
-| 07  | [Team Coordinator](07_team_coordinator.ts)         | `.subAgent()` + `.isolate()` for LLM-driven delegation     |
+| 07  | [Team Coordinator](07_team_coordinator.ts)         | `.transferTo()` + `.isolate()` for LLM-driven delegation     |
 | 08  | [Operator Composition](08_operator_composition.ts) | `.then()` / `.parallel()` / `.times()` chaining            |
 | 09  | [Route Branching](09_route_branching.ts)           | `Route.eq().contains().otherwise()`                        |
 | 10  | [Fallback Operator](10_fallback_operator.ts)       | `.fallback()` and `Fallback.attempt()`                     |
@@ -48,7 +48,7 @@ Combine agents into pipelines, fan-outs, loops, and routed systems.
 | 15  | [Context Engineering](15_context_engineering.ts)   | `C.none`, `C.window`, `C.fromState`                        |
 | 16  | [Middleware-style telemetry](16_middleware.ts)     | `.beforeModel`/`.afterModel` for latency tracking          |
 | 17  | [Primitives](17_primitives.ts)                     | `tap`, `expect`, `gate`, `race`, `mapOver`                 |
-| 21  | [Agent-as-Tool](21_agent_tool_pattern.ts)          | `.agentTool()` vs `.subAgent()`                            |
+| 21  | [Agent-as-Tool](21_agent_tool_pattern.ts)          | `.delegateTo()` vs `.transferTo()`                            |
 | 22  | [Artifacts](22_artifacts.ts)                       | `A.publish` / `A.snapshot` for state ↔ artifact bridges    |
 
 ### Run — Higher-order patterns and the harness
@@ -68,7 +68,7 @@ Reusable patterns and the coding-agent harness.
 | 28  | [Function Steps](28_function_steps.ts)                   | Plain functions as pipeline steps (zero LLM cost)          |
 | 29  | [Until Operator](29_until_operator.ts)                   | `.timesUntil(pred, {max})` conditional loops               |
 | 30  | [Structured Schemas](30_structured_schemas.ts)           | Schema-driven validation and typing                        |
-| 31  | [Transfer Control](31_transfer_control.ts)               | `.subAgent()`, `.isolate()`, `.stay()`, `.noPeers()`       |
+| 31  | [Transfer Control](31_transfer_control.ts)               | `.transferTo()`, `.isolate()`, `.stay()`, `.noPeers()`       |
 | 32  | [Capture and Route](32_capture_and_route.ts)             | `S.capture` → `Route` for input-driven dispatch            |
 | 33  | [Dispatch and Join](33_dispatch_join.ts)                 | `dispatch()` / `join()` for background tasks               |
 | 34  | [M Module Composition](34_m_module_composition.ts)       | `M.*` middleware factories and `.pipe()` composition       |

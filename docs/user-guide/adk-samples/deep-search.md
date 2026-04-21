@@ -402,7 +402,7 @@ root_agent = (
     .describe("The primary research assistant.")
     .instruct(INTERACTIVE_PLANNER_PROMPT.format(today=TODAY))
     .sub_agents([research_pipeline.build()])
-    .agent_tool(plan_generator)
+    .delegate_to(plan_generator)
     .writes("research_plan")
     .build()
 )

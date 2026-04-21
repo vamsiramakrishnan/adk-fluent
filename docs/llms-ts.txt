@@ -604,7 +604,7 @@ because they span session + helpers + harness events::
 ### subagents — dynamic spawner + task tool
 
 Runtime-decided specialist dispatch — the missing piece between
-``.subAgent()`` (compile-time transfer) and ``.agentTool()`` (static
+``.transferTo()`` (compile-time transfer) and ``.delegateTo()`` (static
 tool)::
 
     const registry = H.subagentRegistry([
@@ -773,15 +773,15 @@ Loop, FanOut, Pipeline
 6. Use ``.writes()`` not deprecated ``.outputKey()`` / ``.outputs()``
 7. Use ``.outputAs()`` not deprecated ``.outputSchema()``
 8. Use ``.context()`` not deprecated ``.history()`` / ``.includeHistory()``
-9. Use ``.agentTool()`` not deprecated ``.delegate()``
+9. Use ``.delegateTo()`` not deprecated ``.delegate()``
 10. Use ``.guard()`` not deprecated ``.guardrail()``
 11. Use ``.loopWhile()`` not deprecated ``.retryIf()``
 12. Use ``.prepend()`` not deprecated ``.injectContext()``
 13. All builders are immutable — sub-expressions can be safely reused
 14. Workflow sub-builders passed to ``.then()`` / ``.parallel()`` / ``.step()``
     are auto-built; do not call ``.build()`` on individual steps
-15. Use ``.subAgent()`` for transfer-based delegation (LLM decides routing);
-    use ``.agentTool()`` for tool-based invocation (parent stays in control)
+15. Use ``.transferTo()`` for transfer-based delegation (LLM decides routing);
+    use ``.delegateTo()`` for tool-based invocation (parent stays in control)
 16. Use ``.isolate()`` on specialist agents by default — it is the most predictable pattern
 17. Always set ``.describe()`` on sub-agents — the description helps the coordinator LLM
     pick the right specialist during transfer routing

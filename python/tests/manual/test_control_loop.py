@@ -38,12 +38,12 @@ class TestContextNone:
 
 
 class TestDelegateMethod:
-    """Tests for .agent_tool() method."""
+    """Tests for .delegate_to() method."""
 
     def test_delegate_adds_to_tools_list(self):
         """agent_tool() wraps an agent as a tool and adds it to the tools list."""
         specialist = Agent("specialist").model("gemini-2.5-flash").instruct("You help.")
-        coordinator = Agent("coordinator").model("gemini-2.5-flash").agent_tool(specialist)
+        coordinator = Agent("coordinator").model("gemini-2.5-flash").delegate_to(specialist)
         # agent_tool adds to _lists["tools"]
         assert len(coordinator._lists.get("tools", [])) == 1
 
@@ -51,14 +51,14 @@ class TestDelegateMethod:
         """agent_tool() returns self for chaining."""
         specialist = Agent("spec").model("gemini-2.5-flash")
         coordinator = Agent("coord").model("gemini-2.5-flash")
-        result = coordinator.agent_tool(specialist)
+        result = coordinator.delegate_to(specialist)
         assert result is coordinator
 
     def test_multiple_delegates(self):
         """Multiple agent_tool() calls accumulate."""
         a = Agent("a").model("gemini-2.5-flash")
         b = Agent("b").model("gemini-2.5-flash")
-        coordinator = Agent("router").model("gemini-2.5-flash").agent_tool(a).agent_tool(b)
+        coordinator = Agent("router").model("gemini-2.5-flash").delegate_to(a).delegate_to(b)
         assert len(coordinator._lists.get("tools", [])) == 2
 
 

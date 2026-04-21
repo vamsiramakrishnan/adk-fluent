@@ -569,8 +569,8 @@ inspiration_agent = (
     Agent("inspiration_agent", MODEL)
     .describe("A travel inspiration agent...")
     .instruct(INSPIRATION_AGENT_PROMPT)
-    .agent_tool(place_agent)
-    .agent_tool(poi_agent)
+    .delegate_to(place_agent)
+    .delegate_to(poi_agent)
     .tool(map_tool)
 )
 
@@ -593,11 +593,11 @@ planning_agent = (
     Agent("planning_agent", MODEL)
     .describe("Helps users with travel planning...")
     .instruct(PLANNING_AGENT_PROMPT)
-    .agent_tool(flight_search_agent)
-    .agent_tool(flight_seat_selection_agent)
-    .agent_tool(hotel_search_agent)
-    .agent_tool(hotel_room_selection_agent)
-    .agent_tool(itinerary_agent)
+    .delegate_to(flight_search_agent)
+    .delegate_to(flight_seat_selection_agent)
+    .delegate_to(hotel_search_agent)
+    .delegate_to(hotel_room_selection_agent)
+    .delegate_to(itinerary_agent)
     .tool(memorize)
     .generate_content_config(GenerateContentConfig(temperature=0.1, top_p=0.5))
 )
@@ -608,9 +608,9 @@ booking_agent = (
     Agent("booking_agent", MODEL)
     .describe("Complete the bookings by handling payment choices and processing.")
     .instruct(BOOKING_AGENT_PROMPT)
-    .agent_tool(create_reservation)
-    .agent_tool(payment_choice)
-    .agent_tool(process_payment)
+    .delegate_to(create_reservation)
+    .delegate_to(payment_choice)
+    .delegate_to(process_payment)
     .generate_content_config(GenerateContentConfig(temperature=0.0, top_p=0.5))
 )
 
@@ -621,7 +621,7 @@ pre_trip_agent = (
     .describe("Provides relevant travel information before the trip.")
     .instruct(PRETRIP_AGENT_PROMPT)
     .tool(AgentTool(agent=google_search_grounding.build()))
-    .agent_tool(what_to_pack_agent)
+    .delegate_to(what_to_pack_agent)
 )
 
 in_trip_agent = (
@@ -629,7 +629,7 @@ in_trip_agent = (
     .describe("Provide information during the tour.")
     .instruct(INTRIP_AGENT_PROMPT)
     .sub_agents([trip_monitor_agent.build()])
-    .agent_tool(day_of_agent)
+    .delegate_to(day_of_agent)
     .tool(memorize)
 )
 
@@ -661,7 +661,7 @@ root_agent = (
 
 ## What Changed
 
-- 14x `AgentTool(agent=...)` wrapping calls replaced by `.agent_tool()`
+- 14x `AgentTool(agent=...)` wrapping calls replaced by `.delegate_to()`
 - `output_key=` replaced by `.writes()`
 - `instruction=` replaced by `.instruct()`
 - `description=` replaced by `.describe()`

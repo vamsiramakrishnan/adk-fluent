@@ -76,9 +76,9 @@ coordinator_fluent = (
         "specialist: billing for payment issues, technical for bugs "
         "and integrations, or general for everything else."
     )
-    .sub_agent(billing_isolated)
-    .sub_agent(technical_fluent)
-    .sub_agent(general_fluent)
+    .transfer_to(billing_isolated)
+    .transfer_to(technical_fluent)
+    .transfer_to(general_fluent)
     .build()
 )
 ```

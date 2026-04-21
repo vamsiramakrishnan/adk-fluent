@@ -379,9 +379,9 @@ The coordinator LLM decides **when** to invoke each skill:
 coordinator = (
     Agent("coordinator", "gemini-2.5-pro")
     .instruct("You have specialized skills. Use them as needed.")
-    .agent_tool(Skill("skills/research_pipeline/").describe("Deep research"))
-    .agent_tool(Skill("skills/code_review/").describe("Code review"))
-    .agent_tool(Skill("skills/data_analysis/").describe("Data analysis"))
+    .delegate_to(Skill("skills/research_pipeline/").describe("Deep research"))
+    .delegate_to(Skill("skills/code_review/").describe("Code review"))
+    .delegate_to(Skill("skills/data_analysis/").describe("Data analysis"))
 )
 ```
 

@@ -42,10 +42,10 @@ policies.
 The most delicate architectural call in this plan. adk-fluent already has two
 subagent mechanisms:
 
-- `.sub_agent(child)` — registers a child as a transfer target. The LLM
+- `.transfer_to(child)` — registers a child as a transfer target. The LLM
   decides when to hand off via ADK's `transfer_to_agent` tool. Full control
   handoff.
-- `.agent_tool(child)` — wraps a child as a callable tool. Parent stays in
+- `.delegate_to(child)` — wraps a child as a callable tool. Parent stays in
   control; child returns a single result.
 
 **Both are agent-scoped and build-time.** The topology is baked in when you
@@ -60,7 +60,7 @@ where the parent doesn't know at build time which subagents it will invoke.
 
 ### The principled answer
 
-**Do not replace `.sub_agent()` or `.agent_tool()`.** They are the right
+**Do not replace `.transfer_to()` or `.delegate_to()`.** They are the right
 primitives for their layer and rebuilding them would break the existing
 workflow surface and add zero value. They model build-time topology, and no
 part of the new mechanism wants to change that.
@@ -79,7 +79,7 @@ mechanisms, not replaces them.** The spawner:
 
 This gives us:
 
-- **Static topology** via `.sub_agent()` / `.agent_tool()` — unchanged.
+- **Static topology** via `.transfer_to()` / `.delegate_to()` — unchanged.
 - **Dynamic spawning** via `H.subagents().spawn(...)` and the `task` tool.
 - **Single runtime** — both paths use the same ADK `Runner` + plugin
   infrastructure, so hooks / permissions / budgets apply uniformly.
@@ -91,7 +91,7 @@ This gives us:
 - **A separate "subagent runtime"**. The spawner runs subagents through the
   same ADK `Runner` the parent uses, with the parent's plugins attached.
   Anything else is wasted complexity.
-- **A dynamic version of `.sub_agent()`**. `.sub_agent()` is for structural
+- **A dynamic version of `.transfer_to()`**. `.transfer_to()` is for structural
   handoff. Making it dynamic would muddy the semantic difference.
 - **Subagent-scoped tool registries**. The spec's `tools` field just lists
   tool names from the parent registry plus any new ones added via the spec.

@@ -383,7 +383,7 @@ def customize(adk_agent):
 agent = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route requests.")
-    .sub_agent(a).sub_agent(b).sub_agent(c).sub_agent(d)
+    .transfer_to(a).transfer_to(b).transfer_to(c).transfer_to(d)
     .native(customize)
     .build()
 )

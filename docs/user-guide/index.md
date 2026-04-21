@@ -404,7 +404,7 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
     </div>
     <div class="visual-ref-content">
       <h4><a href="../delegation-reference.html" target="_blank" rel="noopener">Delegation &amp; Transfer Reference ↗</a></h4>
-      <p><code>.sub_agent()</code> vs <code>.agent_tool()</code> control flow, transfer control matrix (<code>.isolate()</code>, <code>.stay()</code>, <code>.no_peers()</code>), and common topologies.</p>
+      <p><code>.transfer_to()</code> vs <code>.delegate_to()</code> control flow, transfer control matrix (<code>.isolate()</code>, <code>.stay()</code>, <code>.no_peers()</code>), and common topologies.</p>
       <div class="visual-ref-tags">
         <span class="vr-tag" style="--tag-color: #e94560">Transfer</span>
         <span class="vr-tag" style="--tag-color: #0ea5e9">AgentTool</span>

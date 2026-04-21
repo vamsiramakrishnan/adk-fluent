@@ -2,14 +2,14 @@
 
 :::{admonition} Why this matters
 :class: important
-Some routing decisions are too complex for deterministic rules -- "should this architecture question go to the database specialist or the frontend specialist?" requires understanding the question's content. The `.agent_tool()` pattern wraps specialist agents as tools that the coordinator's LLM can invoke based on its judgment. This provides flexible, context-aware delegation without sacrificing the specialist's focused expertise.
+Some routing decisions are too complex for deterministic rules -- "should this architecture question go to the database specialist or the frontend specialist?" requires understanding the question's content. The `.delegate_to()` pattern wraps specialist agents as tools that the coordinator's LLM can invoke based on its judgment. This provides flexible, context-aware delegation without sacrificing the specialist's focused expertise.
 :::
 
 :::{warning} Without this
-Without agent-as-tool delegation, you either force deterministic routing on complex decisions (requiring fragile keyword matching) or give a single agent all specialist knowledge (diluting its expertise). The `.agent_tool()` pattern lets the LLM decide who to delegate to while keeping each specialist focused on their domain.
+Without agent-as-tool delegation, you either force deterministic routing on complex decisions (requiring fragile keyword matching) or give a single agent all specialist knowledge (diluting its expertise). The `.delegate_to()` pattern lets the LLM decide who to delegate to while keeping each specialist focused on their domain.
 :::
 
-*How to delegate tasks between agents using .agent_tool().*
+*How to delegate tasks between agents using .delegate_to().*
 
 _Source: `27_delegate_pattern.py`_
 
@@ -65,7 +65,7 @@ frontend_expert = (
     )
 )
 
-# .agent_tool() wraps each agent as AgentTool — the senior architect's LLM
+# .delegate_to() wraps each agent as AgentTool — the senior architect's LLM
 # decides when to invoke them (LLM-driven routing, unlike Route which is deterministic)
 senior_architect = (
     Agent("senior_architect")
@@ -75,8 +75,8 @@ senior_architect = (
         "requests and delegate to the appropriate specialist based on the "
         "technical domain involved."
     )
-    .agent_tool(db_expert)
-    .agent_tool(frontend_expert)
+    .delegate_to(db_expert)
+    .delegate_to(frontend_expert)
 )
 ```
 

@@ -33,10 +33,6 @@ class Pipeline(BuilderBase):
         self._lists["sub_agents"].append(value)
         return self
 
-    def sub_agent(self, value: BaseAgent) -> Self:
-        """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        return self.step(value)
-
     def build(self) -> SequentialAgent:
         """Run sub-agents sequentially. Resolve into a native ADK SequentialAgent."""
         from google.adk.agents import SequentialAgent

@@ -52,14 +52,14 @@ loop = Loop("loop").describe("...")
 ```
 
 (method-Loop-sub_agent)=
-#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-loop = Loop("loop").sub_agent("...")
+loop = Loop("loop").transfer_to("...")
 ```
 
 ### Configuration
@@ -230,14 +230,14 @@ fanout = FanOut("fanout").describe("...")
 ```
 
 (method-FanOut-sub_agent)=
-#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-fanout = FanOut("fanout").sub_agent("...")
+fanout = FanOut("fanout").transfer_to("...")
 ```
 
 ### Configuration
@@ -418,14 +418,14 @@ pipeline = Pipeline("pipeline").describe("...")
 ```
 
 (method-Pipeline-sub_agent)=
-#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-pipeline = Pipeline("pipeline").sub_agent("...")
+pipeline = Pipeline("pipeline").transfer_to("...")
 ```
 
 ### Configuration

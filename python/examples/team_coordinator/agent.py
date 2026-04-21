@@ -32,17 +32,17 @@ coordinator_fluent = (
         "messaging, engineering for release readiness and deployment, "
         "or legal for compliance and licensing reviews."
     )
-    .sub_agent(
+    .transfer_to(
         Agent("marketing")
         .model("gemini-2.5-flash")
         .instruct("Draft marketing campaigns, press releases, and social media strategies for the product launch.")
     )
-    .sub_agent(
+    .transfer_to(
         Agent("engineering")
         .model("gemini-2.5-flash")
         .instruct("Review technical readiness: CI/CD pipelines, load testing results, and deployment checklists.")
     )
-    .sub_agent(
+    .transfer_to(
         Agent("legal")
         .model("gemini-2.5-flash")
         .instruct(

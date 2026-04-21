@@ -30,7 +30,7 @@ frontend_expert = (
     )
 )
 
-# .agent_tool() wraps each agent as AgentTool — the senior architect's LLM
+# .delegate_to() wraps each agent as AgentTool — the senior architect's LLM
 # decides when to agent_tool (LLM-driven routing, unlike Route which is deterministic)
 senior_architect = (
     Agent("senior_architect")
@@ -40,8 +40,8 @@ senior_architect = (
         "requests and agent_tool to the appropriate specialist based on the "
         "technical domain involved."
     )
-    .agent_tool(db_expert)
-    .agent_tool(frontend_expert)
+    .delegate_to(db_expert)
+    .delegate_to(frontend_expert)
 )
 ```
 :::

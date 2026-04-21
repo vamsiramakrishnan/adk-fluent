@@ -119,7 +119,7 @@ research = Skill("examples/skills/research_pipeline/")
 coordinator = (
     Agent("coordinator", "gemini-2.5-pro")
     .instruct("You have access to a research skill. Use it when needed.")
-    .agent_tool(research.describe("Deep multi-source research with citations"))
+    .delegate_to(research.describe("Deep multi-source research with citations"))
 )
 built = coordinator.build()
 assert len(built.tools) > 0

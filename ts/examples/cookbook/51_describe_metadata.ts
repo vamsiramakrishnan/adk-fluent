@@ -37,9 +37,9 @@ const coordinator = new Agent("research_coordinator", "gemini-2.5-pro")
     "You coordinate research. Pick the best specialist based on the question. " +
       "Web for current events, academic for science, internal for company-specific.",
   )
-  .subAgent(webSearcher)
-  .subAgent(academicSearcher)
-  .subAgent(internalSearcher)
+  .transferTo(webSearcher)
+  .transferTo(academicSearcher)
+  .transferTo(internalSearcher)
   .build() as Record<string, unknown> & {
   description: string;
   sub_agents: Record<string, unknown>[];

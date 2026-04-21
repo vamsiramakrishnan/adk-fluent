@@ -52,14 +52,14 @@ agent = BaseAgent("agent").describe("...")
 ```
 
 (method-BaseAgent-sub_agent)=
-#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-agent = BaseAgent("agent").sub_agent("...")
+agent = BaseAgent("agent").transfer_to("...")
 ```
 
 ### Callbacks
@@ -218,14 +218,14 @@ agent = Agent("agent").static("You are a helpful assistant.")
 ```
 
 (method-Agent-sub_agent)=
-#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-agent = Agent("agent").sub_agent("...")
+agent = Agent("agent").transfer_to("...")
 ```
 
 (method-Agent-tool)=
@@ -248,9 +248,9 @@ agent = Agent("helper").tool(search).build()
 ### Configuration
 
 (method-Agent-agent_tool)=
-#### `.agent_tool(agent: Any) -> Self` {bdg-info}`Configuration`
+#### `.delegate_to(agent: Any) -> Self` {bdg-info}`Configuration`
 
-Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child.
+Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .transfer_to() which fully transfers control to the child.
 
 **See also:** `Agent.tool`, `Agent.isolate`
 
@@ -261,7 +261,7 @@ specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoice
 coordinator = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route tasks to specialists.")
-    .agent_tool(specialist)
+    .delegate_to(specialist)
     .build()
 )
 ```
@@ -879,14 +879,14 @@ remotea2aagent = RemoteA2aAgent("remotea2aagent").describe("...")
 ```
 
 (method-RemoteA2aAgent-sub_agent)=
-#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
+#### `.transfer_to(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
 
 **Example:**
 
 ```python
-remotea2aagent = RemoteA2aAgent("remotea2aagent").sub_agent("...")
+remotea2aagent = RemoteA2aAgent("remotea2aagent").transfer_to("...")
 ```
 
 ### Callbacks

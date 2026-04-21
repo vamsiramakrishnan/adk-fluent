@@ -24,7 +24,7 @@ flowchart LR
 |---|---|---|---|
 | `.writes(key)` | Stores the agent's response in `state[key]` after it runs. | Side effect after response. Response itself unchanged. | Feeding output into downstream `{key}` templates. |
 | `.returns(Schema)` | Constrains the LLM to emit JSON matching a Pydantic model. | Hard constraint on LLM output format. | Machine-readable responses; classifiers, extractors. |
-| `.accepts(Schema)` | Validates the tool-call arguments when this agent is invoked as an `agent_tool`. | Input validation at tool invocation. | Agents consumed by other agents via `.agent_tool()`. |
+| `.accepts(Schema)` | Validates the tool-call arguments when this agent is invoked as an `agent_tool`. | Input validation at tool invocation. | Agents consumed by other agents via `.delegate_to()`. |
 
 :::{tip} Rule of thumb
 If a downstream step reads it, **`.writes()`**. If the shape matters, **`.returns()`**. If a parent agent calls it like a tool, **`.accepts()`**. You can stack all three.

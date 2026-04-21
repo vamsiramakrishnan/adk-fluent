@@ -56,7 +56,7 @@ Format per cookbook:
 ## 07_team_coordinator
 - prompt: Plan the launch of a new AI-powered calendar app
 - prompt: We need to release a privacy-focused email client — coordinate the teams
-- learn: `.sub_agent()` for LLM-driven delegation
+- learn: `.transfer_to()` for LLM-driven delegation
 - tags: multi-agent, delegation, teams
 
 ## 08_one_shot_ask
@@ -128,8 +128,8 @@ Format per cookbook:
 
 ## 27_agent_tool_pattern
 - prompt: Research and summarize recent advances in quantum computing
-- learn: `.agent_tool()` for tool-based invocation
-- tags: agent-tool, delegation
+- learn: `.delegate_to()` for tool-based invocation
+- tags: delegate-to, delegation
 
 ## 29_function_steps
 - prompt: Process this text: Hello World

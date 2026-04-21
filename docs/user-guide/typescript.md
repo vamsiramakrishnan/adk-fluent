@@ -102,7 +102,7 @@ Sub-builders passed into workflow builders are **auto-built** in both languages 
 
 Also:
 
-- TypeScript uses **camelCase** builder methods where Python uses snake_case: `.maxIterations(3)` vs `.max_iterations(3)`, `.beforeModel(fn)` vs `.before_model(fn)`, `.agentTool(agent)` vs `.agent_tool(agent)`.
+- TypeScript uses **camelCase** builder methods where Python uses snake_case: `.maxIterations(3)` vs `.max_iterations(3)`, `.beforeModel(fn)` vs `.before_model(fn)`, `.agentTool(agent)` vs `.delegate_to(agent)`.
 - `new` is required when constructing builders in TS: `new Agent("name", "gemini-2.5-flash")`.
 - Generic type parameters on `.outputAs<Schema>()` replace Python's `@ Schema` decorator-style typing.
 
@@ -224,7 +224,7 @@ Both packages are regenerated from the same manifest, so builder coverage is ide
 **Runtime and code parity is tight.** Documentation tab coverage is still catching up — most conceptual guides were written Python-first and have not yet been backfilled with a synced TS tab. If a page is missing a `:tab-item: TypeScript` block, mentally translate using:
 
 - **Operators → method chains** (`>>` → `.then()`, `|` → `.parallel()`, `*` → `.times()`, `//` → `.fallback()`, `@` → `.outputAs()`).
-- **Builder methods → camelCase** (`.before_model(fn)` → `.beforeModel(fn)`, `.max_iterations(n)` → `.maxIterations(n)`, `.agent_tool(a)` → `.agentTool(a)`).
+- **Builder methods → camelCase** (`.before_model(fn)` → `.beforeModel(fn)`, `.max_iterations(n)` → `.maxIterations(n)`, `.delegate_to(a)` → `.agentTool(a)`).
 - **H namespace methods → camelCase** (`H.plan_mode()` → `H.planMode()`, `H.session_store()` → `H.sessionStore()`, `H.subagent_registry()` → `H.subagentRegistry()`).
 - **Namespace factories → options objects** (`G.length(max=500)` → `G.length({ max: 500 })`, `H.compressor(threshold=100_000)` → `H.compressor({ threshold: 100_000 })`).
 - **Composition operators in namespaces → `.pipe()`** (`G.pii() | G.length()` → `G.pii().pipe(G.length(...))`).

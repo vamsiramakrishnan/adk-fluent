@@ -6,7 +6,7 @@ Each function builds one logical piece of a builder class:
   - aliases: ergonomic name methods (.describe() → .description())
   - callbacks: additive callback methods (.after_agent(), etc.)
   - fields: generic field setter methods
-  - extras: behavior-driven helper methods (.tool(), .sub_agent(), etc.)
+  - extras: behavior-driven helper methods (.tool(), .transfer_to(), etc.)
   - build: terminal .build() method
 
 spec_to_ir() assembles them into a complete ClassNode.
@@ -376,7 +376,7 @@ def _extract_forwarding_args(sig: str) -> str:
 
 
 def ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
-    """Build MethodNodes for extra methods (.tool(), .sub_agent(), .delegate(), etc.)."""
+    """Build MethodNodes for extra methods (.tool(), .transfer_to(), .delegate_to(), etc.)."""
     methods: list[MethodNode] = []
 
     for extra in spec.extras:

@@ -12,7 +12,7 @@ never sees the specialist's scratchpad, only its final output.
 
 ## Why subagents?
 
-Static sub-agents (`.sub_agent()`) commit the parent to a fixed topology at
+Static sub-agents (`.transfer_to()`) commit the parent to a fixed topology at
 build time. Subagents invert that: the parent carries a **registry of roles**
 and decides at runtime which specialist to invoke and with what brief. That
 gives you three properties you cannot get from a static topology:

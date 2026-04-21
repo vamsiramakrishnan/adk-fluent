@@ -209,7 +209,7 @@ from ._guards import PIIFinding as PIIFinding
 from ._guards import ContentJudge as ContentJudge
 from ._guards import JudgmentResult as JudgmentResult
 from ._helpers import deep_clone_builder as deep_clone_builder
-from ._helpers import add_agent_tool as add_agent_tool
+from ._helpers import add_delegate_to as add_delegate_to
 from ._helpers import run_one_shot as run_one_shot
 from ._helpers import run_one_shot_async as run_one_shot_async
 from ._helpers import run_stream as run_stream
@@ -1162,7 +1162,7 @@ __all__ = [
     "ContentJudge",
     "JudgmentResult",
     "deep_clone_builder",
-    "add_agent_tool",
+    "add_delegate_to",
     "run_one_shot",
     "run_one_shot_async",
     "run_stream",

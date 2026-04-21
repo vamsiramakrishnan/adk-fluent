@@ -66,7 +66,7 @@ def test_inferred_seed_has_extras_for_agent():
     extra_names = [e["name"] for e in extras]
     # Should have auto-inferred singular adders
     assert "tool" in extra_names, f"Expected 'tool' in extras, got: {extra_names}"
-    assert "sub_agent" in extra_names, f"Expected 'sub_agent' in extras, got: {extra_names}"
+    assert "transfer_to" in extra_names, f"Expected 'transfer_to' in extras, got: {extra_names}"
 
 
 def test_inferred_seed_has_derived_aliases():

@@ -46,7 +46,7 @@ researcher = Agent("fact_checker", "gemini-2.5-flash").instruct(
 analyst = (
     Agent("analyst", "gemini-2.5-flash")
     .instruct("Analyze the user's question. Use fact_checker for verification.")
-    .agent_tool(researcher)  # Analyst stays in control
+    .delegate_to(researcher)  # Analyst stays in control
 )
 
 built_analyst = analyst.build()

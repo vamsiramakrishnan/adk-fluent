@@ -3,8 +3,8 @@
 Claude Agent SDK and Deep Agents SDK both expose a ``Task`` tool that lets
 a parent agent spin up a fresh subagent with a specific role and prompt,
 run it in a constrained context, and fold its result back into the parent's
-state. adk-fluent already has static delegation (`.sub_agent()`,
-`.agent_tool()`), but none of those let the agent *decide at runtime* which
+state. adk-fluent already has static delegation (`.transfer_to()`,
+`.delegate_to()`), but none of those let the agent *decide at runtime* which
 specialist to invoke.
 
 This package provides that missing affordance:

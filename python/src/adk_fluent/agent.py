@@ -83,7 +83,7 @@ class BaseAgent(BuilderBase):
         self._config["sub_agents"] = value
         return self
 
-    def sub_agent(self, value: BaseAgent) -> Self:
+    def transfer_to(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
@@ -366,7 +366,7 @@ class Agent(BuilderBase):
         self._config["code_executor"] = value
         return self
 
-    def sub_agent(self, value: BaseAgent) -> Self:
+    def transfer_to(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
@@ -439,11 +439,11 @@ class Agent(BuilderBase):
 
         return _add_memory_auto_save(self)
 
-    def agent_tool(self, agent: Any) -> Self:
-        """Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child."""
-        from adk_fluent._helpers import add_agent_tool
+    def delegate_to(self, agent: Any) -> Self:
+        """Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .transfer_to() which fully transfers control to the child."""
+        from adk_fluent._helpers import add_delegate_to
 
-        return add_agent_tool(self, agent)
+        return add_delegate_to(self, agent)
 
     def isolate(self) -> Self:
         """Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."""
@@ -610,7 +610,7 @@ class RemoteA2aAgent(BuilderBase):
         self._config["sub_agents"] = value
         return self
 
-    def sub_agent(self, value: BaseAgent) -> Self:
+    def transfer_to(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)

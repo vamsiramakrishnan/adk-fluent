@@ -79,10 +79,6 @@ class Loop(BuilderBase):
         self._lists["sub_agents"].append(value)
         return self
 
-    def sub_agent(self, value: BaseAgent) -> Self:
-        """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        return self.step(value)
-
     def to_ir(self) -> Any:
         """Convert this Loop builder to a LoopNode IR node."""
         from adk_fluent._helpers import _loop_to_ir
@@ -173,10 +169,6 @@ class FanOut(BuilderBase):
         """Alias for .branch() — consistent API across workflow builders."""
         return self.branch(value)
 
-    def sub_agent(self, value: BaseAgent) -> Self:
-        """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        return self.branch(value)
-
     def to_ir(self) -> Any:
         """Convert this FanOut builder to a ParallelNode IR node."""
         from adk_fluent._helpers import _fanout_to_ir
@@ -262,10 +254,6 @@ class Pipeline(BuilderBase):
         self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
-
-    def sub_agent(self, value: BaseAgent) -> Self:
-        """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        return self.step(value)
 
     def to_ir(self) -> Any:
         """Convert this Pipeline builder to a SequenceNode IR node."""

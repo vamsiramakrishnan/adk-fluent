@@ -865,7 +865,7 @@ Pipeline topology:
     task_agent [tools: search, calc, read_file] [guardrail] [inject: api_key]
         >> verifier [C.from_state("task_result")]
 
-Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
+Uses: .tool(), .guard(), .inject(), .transfer_to(), .context()
 :link: 58_multi_tool_agent
 :link-type: doc
 

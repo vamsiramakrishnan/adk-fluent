@@ -114,7 +114,8 @@ optional_constructor_args = ["model"]
 #   .loop_while(p)  replaces  .retry_if(p)
 #   .prepend(fn)    replaces  .inject_context(fn)
 #   .guard(g)       replaces  .guardrail(g)
-#   .agent_tool(a)  replaces  .delegate(a)
+#   .delegate_to(a) replaces  .agent_tool(a) / .delegate(a)
+#   .transfer_to(a) replaces  .sub_agent(a)
 [builders.Agent.deprecated_aliases]
 
 # ---------------------------------------------------------------------------
@@ -259,17 +260,17 @@ helper_func = "_add_memory_auto_save"
 # ---------------------------------------------------------------------------
 
 [[builders.Agent.extras]]
-name = "agent_tool"
+name = "delegate_to"
 signature = "(self, agent: Any) -> Self"
-doc = "Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child."
+doc = "Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .transfer_to() which fully transfers control to the child."
 behavior = "runtime_helper"
-helper_func = "add_agent_tool"
+helper_func = "add_delegate_to"
 example = '''
 specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
 coordinator = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route tasks to specialists.")
-    .agent_tool(specialist)
+    .delegate_to(specialist)
     .build()
 )
 '''

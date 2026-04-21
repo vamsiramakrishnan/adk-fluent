@@ -148,7 +148,7 @@ The seed generator transforms raw manifest data into builder specifications:
    - Plus semantic overrides: `output_key` → `outputs`, etc.
 
 5. **Extras inference** (`extras.py`): Detects type-driven patterns and
-   generates extra methods (e.g., `.tool()`, `.sub_agent()`, `.delegate()`).
+   generates extra methods (e.g., `.tool()`, `.transfer_to()`, `.delegate()`).
 
 6. **Manual merge**: `seed.manual.toml` overrides are applied last,
    providing human-curated renames (`LlmAgent` → `Agent`),

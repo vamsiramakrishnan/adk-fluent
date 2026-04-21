@@ -4,7 +4,7 @@
  * A coordinator with three specialist sub-agents. The LLM picks which
  * specialist to transfer to via ADK's transfer_to_agent tool.
  *
- * `.subAgent()` registers each specialist; `.isolate()` prevents the
+ * `.transferTo()` registers each specialist; `.isolate()` prevents the
  * specialist from re-transferring (the most predictable default).
  */
 import assert from "node:assert/strict";
@@ -27,9 +27,9 @@ const general = new Agent("general", "gemini-2.5-flash")
 
 const coordinator = new Agent("triage", "gemini-2.5-flash")
   .instruct("Read the incoming message and transfer to the right specialist.")
-  .subAgent(billing)
-  .subAgent(technical)
-  .subAgent(general)
+  .transferTo(billing)
+  .transferTo(technical)
+  .transferTo(general)
   .build() as Record<string, unknown>;
 
 assert.equal(coordinator._type, "LlmAgent");

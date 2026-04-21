@@ -172,12 +172,12 @@ Agents can be connected in several ways depending on the execution pattern you n
 | `Pipeline` | `.step(agent)`       | Add a sequential step                              |
 | `FanOut`   | `.branch(agent)`     | Add a parallel branch                              |
 | `Loop`     | `.step(agent)`       | Add a repeating step                               |
-| `Agent`    | `.sub_agent(agent)`  | Add a child agent (transfer-based, LLM decides)    |
-| `Agent`    | `.agent_tool(agent)` | Add as a tool (wrapped in `AgentTool`, LLM-routed) |
+| `Agent`    | `.transfer_to(agent)`  | Add a child agent (transfer-based, LLM decides)    |
+| `Agent`    | `.delegate_to(agent)` | Add as a tool (wrapped in `AgentTool`, LLM-routed) |
 
-`.sub_agent()` and `.agent_tool()` both let a parent agent invoke a child, but they differ fundamentally in control flow:
+`.transfer_to()` and `.delegate_to()` both let a parent agent invoke a child, but they differ fundamentally in control flow:
 
-| | `.sub_agent(agent)` | `.agent_tool(agent)` |
+| | `.transfer_to(agent)` | `.delegate_to(agent)` |
 |---|---|---|
 | **Mechanism** | Transfer-based. LLM sees a `transfer_to_agent` tool. | Tool-based. Child is wrapped in `AgentTool`. |
 | **Control** | Fully transfers to child. Parent loses control. | Parent stays in control. Child returns a response. |
@@ -190,16 +190,16 @@ Agents can be connected in several ways depending on the execution pattern you n
 coordinator = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route to the right specialist.")
-    .sub_agent(billing_agent)     # LLM transfers control entirely
-    .sub_agent(technical_agent)
+    .transfer_to(billing_agent)     # LLM transfers control entirely
+    .transfer_to(technical_agent)
 )
 
 # Tool-based: Parent orchestrates multiple sub-tasks in one turn
 coordinator = (
     Agent("researcher", "gemini-2.5-flash")
     .instruct("Use your tools to research and summarize.")
-    .agent_tool(web_search_agent)   # Parent calls as tool, stays in control
-    .agent_tool(paper_search_agent)
+    .delegate_to(web_search_agent)   # Parent calls as tool, stays in control
+    .delegate_to(paper_search_agent)
 )
 ```
 
@@ -234,8 +234,8 @@ coordinator = (
         "You are a customer service coordinator. "
         "Route the customer to the appropriate specialist based on their request."
     )
-    .sub_agent(billing)
-    .sub_agent(technical)
+    .transfer_to(billing)
+    .transfer_to(technical)
 )
 ```
 
@@ -268,8 +268,8 @@ planning = (
     Agent("planning", "gemini-2.5-flash")
     .describe("Handles travel planning: flights, hotels, itineraries")
     .instruct("Help the user plan their trip.")
-    .sub_agent(flight_search)
-    .sub_agent(hotel_search)
+    .transfer_to(flight_search)
+    .transfer_to(hotel_search)
 )
 
 support = (
@@ -283,8 +283,8 @@ support = (
 root = (
     Agent("concierge", "gemini-2.5-flash")
     .instruct("You are a travel concierge. Route to planning or support.")
-    .sub_agent(planning)
-    .sub_agent(support)
+    .transfer_to(planning)
+    .transfer_to(support)
 )
 ```
 
@@ -325,9 +325,9 @@ resolution = (
 workflow = (
     Agent("support_workflow", "gemini-2.5-flash")
     .instruct("Route the customer through the support workflow.")
-    .sub_agent(intake)
-    .sub_agent(diagnosis)
-    .sub_agent(resolution)
+    .transfer_to(intake)
+    .transfer_to(diagnosis)
+    .transfer_to(resolution)
 )
 ```
 
@@ -455,9 +455,9 @@ coordinator = (
         "Greet the customer, understand their need, and route them to the "
         "appropriate specialist: billing, technical, or general."
     )
-    .sub_agent(billing)
-    .sub_agent(technical)
-    .sub_agent(general)
+    .transfer_to(billing)
+    .transfer_to(technical)
+    .transfer_to(general)
     .build()
 )
 ```
@@ -478,13 +478,13 @@ from adk_fluent import Agent
 coordinator = (
     Agent("coordinator", "gemini-2.5-flash")
     .instruct("Route to billing or technical support.")
-    .sub_agent(
+    .transfer_to(
         Agent("billing", "gemini-2.5-flash")
         .describe("Billing support")
         .instruct("Handle billing.")
         .isolate()
     )
-    .sub_agent(
+    .transfer_to(
         Agent("technical", "gemini-2.5-flash")
         .describe("Technical support")
         .instruct("Handle technical issues.")

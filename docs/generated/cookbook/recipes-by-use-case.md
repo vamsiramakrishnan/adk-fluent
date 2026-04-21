@@ -28,7 +28,7 @@ Jump to recipes that demonstrate a specific adk-fluent primitive.
 | `map_over`         | Iterate over items           | [#39](39_map_over.md)                                                                                                                                                                                                     |
 | `Preset`           | Reusable config bundle       | [#22](22_presets.md), [#28](28_real_world_pipeline.md)                                                                                                                                                                    |
 | `.guard()`         | Safety guards                | [#12](12_guardrails.md), [#58](58_multi_tool_agent.md)                                                                                                                                                                    |
-| `.agent_tool()`    | LLM-driven routing           | [#27](27_delegate_pattern.md)                                                                                                                                                                                             |
+| `.delegate_to()`    | LLM-driven routing           | [#27](27_delegate_pattern.md)                                                                                                                                                                                             |
 | `.session()`       | Interactive sessions         | [#13](13_interactive_session.md)                                                                                                                                                                                          |
 | `.explain()`       | Builder introspection        | [#25](25_validate_explain.md)                                                                                                                                                                                             |
 | `.to_mermaid()`    | Architecture diagrams        | [#48](48_visualization.md)                                                                                                                                                                                                |
@@ -179,7 +179,7 @@ Most multi-agent systems start the same way: a coordinator decides which
 specialist to call. The critical design choice is whether the coordinator uses
 the LLM to decide (flexible but expensive and unpredictable) or uses
 deterministic rules (fast and testable but rigid). adk-fluent supports both:
-`.agent_tool()` lets the LLM pick the specialist when the decision is complex,
+`.delegate_to()` lets the LLM pick the specialist when the decision is complex,
 while `Route()` provides instant deterministic dispatch when the decision is
 simple. Without this distinction, teams either waste API calls on trivial
 routing or lose flexibility on complex delegation.
@@ -187,7 +187,7 @@ routing or lose flexibility on complex delegation.
 | Recipe                     | Key features                        | Cookbook                      |
 | -------------------------- | ----------------------------------- | ----------------------------- |
 | Product Launch Coordinator | Team coordinator pattern            | [#07](07_team_coordinator.md) |
-| Senior Architect Delegates | LLM-driven routing, `.agent_tool()` | [#27](27_delegate_pattern.md) |
+| Senior Architect Delegates | LLM-driven routing, `.delegate_to()` | [#27](27_delegate_pattern.md) |
 | Multi-Language Routing     | Dict `>>` shorthand                 | [#18](18_dict_routing.md)     |
 | Multi-Tool Task Agent      | `.tool()`, `.guard()`, `.inject()`  | [#58](58_multi_tool_agent.md) |
 

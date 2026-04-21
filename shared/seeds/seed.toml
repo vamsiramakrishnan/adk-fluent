@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-04-20T21:43:09.173940+00:00"
+generated_at = "2026-04-21T05:38:52.396673+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -137,7 +137,7 @@ returns = "BaseAgent"
 doc = "Resolve into a native ADK BaseAgent."
 
 [[builders.BaseAgent.extras]]
-name = "sub_agent"
+name = "transfer_to"
 signature = "(self, value: BaseAgent) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
@@ -160,7 +160,7 @@ returns = "BaseAgentConfig"
 doc = "Resolve into a native ADK BaseAgentConfig."
 
 [[builders.BaseAgentConfig.extras]]
-name = "sub_agent"
+name = "transfer_to"
 signature = "(self, value: AgentRefConfig) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
@@ -271,7 +271,7 @@ returns = "LlmAgent"
 doc = "Resolve into a native ADK LlmAgent."
 
 [[builders.Agent.extras]]
-name = "sub_agent"
+name = "transfer_to"
 signature = "(self, value: BaseAgent) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
@@ -407,17 +407,17 @@ behavior = "runtime_helper_ctx"
 helper_func = "_add_memory_auto_save"
 
 [[builders.Agent.extras]]
-name = "agent_tool"
+name = "delegate_to"
 signature = "(self, agent: Any) -> Self"
-doc = "Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child."
+doc = "Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .transfer_to() which fully transfers control to the child."
 behavior = "runtime_helper"
-helper_func = "add_agent_tool"
+helper_func = "add_delegate_to"
 example = '''
 specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
 coordinator = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route tasks to specialists.")
-    .agent_tool(specialist)
+    .delegate_to(specialist)
     .build()
 )
 '''
@@ -592,7 +592,7 @@ returns = "LlmAgentConfig"
 doc = "Resolve into a native ADK LlmAgentConfig."
 
 [[builders.LlmAgentConfig.extras]]
-name = "sub_agent"
+name = "transfer_to"
 signature = "(self, value: AgentRefConfig) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
@@ -675,13 +675,6 @@ behavior = "list_append"
 target_field = "sub_agents"
 
 [[builders.Loop.extras]]
-name = "sub_agent"
-signature = "(self, value: BaseAgent) -> Self"
-doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
-behavior = "delegates_to"
-target_method = "step"
-
-[[builders.Loop.extras]]
 name = "to_ir"
 signature = "(self) -> Any"
 doc = "Convert this Loop builder to a LoopNode IR node."
@@ -719,7 +712,7 @@ returns = "LoopAgentConfig"
 doc = "Resolve into a native ADK LoopAgentConfig."
 
 [[builders.LoopAgentConfig.extras]]
-name = "sub_agent"
+name = "step"
 signature = "(self, value: AgentRefConfig) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
@@ -774,13 +767,6 @@ behavior = "delegates_to"
 target_method = "branch"
 
 [[builders.FanOut.extras]]
-name = "sub_agent"
-signature = "(self, value: BaseAgent) -> Self"
-doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
-behavior = "delegates_to"
-target_method = "branch"
-
-[[builders.FanOut.extras]]
 name = "to_ir"
 signature = "(self) -> Any"
 doc = "Convert this FanOut builder to a ParallelNode IR node."
@@ -818,11 +804,18 @@ returns = "ParallelAgentConfig"
 doc = "Resolve into a native ADK ParallelAgentConfig."
 
 [[builders.ParallelAgentConfig.extras]]
-name = "sub_agent"
+name = "branch"
 signature = "(self, value: AgentRefConfig) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
+
+[[builders.ParallelAgentConfig.extras]]
+name = "step"
+signature = "(self, value: AgentRefConfig) -> Self"
+doc = "Alias for .branch() — consistent API across workflow builders."
+behavior = "delegates_to"
+target_method = "branch"
 
 [[builders.ParallelAgentConfig.extras]]
 name = "before_agent_callback"
@@ -859,7 +852,7 @@ returns = "RemoteA2aAgent"
 doc = "Resolve into a native ADK RemoteA2aAgent."
 
 [[builders.RemoteA2aAgent.extras]]
-name = "sub_agent"
+name = "transfer_to"
 signature = "(self, value: BaseAgent) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
@@ -923,13 +916,6 @@ behavior = "list_append"
 target_field = "sub_agents"
 
 [[builders.Pipeline.extras]]
-name = "sub_agent"
-signature = "(self, value: BaseAgent) -> Self"
-doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
-behavior = "delegates_to"
-target_method = "step"
-
-[[builders.Pipeline.extras]]
 name = "to_ir"
 signature = "(self) -> Any"
 doc = "Convert this Pipeline builder to a SequenceNode IR node."
@@ -967,7 +953,7 @@ returns = "SequentialAgentConfig"
 doc = "Resolve into a native ADK SequentialAgentConfig."
 
 [[builders.SequentialAgentConfig.extras]]
-name = "sub_agent"
+name = "step"
 signature = "(self, value: AgentRefConfig) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
