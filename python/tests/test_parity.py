@@ -157,6 +157,48 @@ class TestAliasParity:
         )
 
 
+class TestCanonicalVerbParity:
+    """Both languages must resolve ``|`` and ``>>`` to the same verb names.
+
+    The TS namespace transforms (STransform, CTransform, PTransform, …) are
+    the primary surface — Python can still use operators, but the method
+    name in TS must match the canonical verb so docs and user intuition
+    translate.
+    """
+
+    _TS_TRANSFORM_FILES: dict[str, str] = {
+        "S": "ts/src/namespaces/state.ts",
+        "C": "ts/src/namespaces/context.ts",
+        "P": "ts/src/namespaces/prompt.ts",
+        "T": "ts/src/namespaces/tools.ts",
+        "G": "ts/src/namespaces/guards.ts",
+        "M": "ts/src/namespaces/middleware.ts",
+        "A": "ts/src/namespaces/artifacts.ts",
+    }
+
+    def test_ts_transforms_expose_canonical_verbs(self, parity: dict) -> None:
+        missing: list[str] = []
+        for row in parity.get("canonical_verbs", []):
+            ns = row["namespace"]
+            rel = self._TS_TRANSFORM_FILES.get(ns)
+            if not rel:
+                continue
+            path = REPO_ROOT / rel
+            if not path.exists():
+                continue  # transform file optional for some namespaces
+            source = path.read_text()
+            for key in ("union_method", "pipe_method"):
+                verb = row.get(key, "")
+                if not verb:
+                    continue
+                if not _ts_has_method(source, verb):
+                    missing.append(f"{ns}.{verb}() ({key}) in {rel}")
+        assert not missing, (
+            "TS transform classes missing canonical verbs from parity.toml: "
+            + ", ".join(missing)
+        )
+
+
 class TestTableShape:
     """Guard against accidental schema drift in parity.toml itself."""
 
@@ -182,6 +224,14 @@ class TestTableShape:
         for row in parity.get("aliases", []):
             missing = required - set(row.keys())
             assert not missing, f"alias row {row.get('python_name')!r} missing {missing}"
+
+    def test_canonical_verbs_have_required_fields(self, parity: dict) -> None:
+        required = {"namespace", "union_method", "pipe_method"}
+        for row in parity.get("canonical_verbs", []):
+            missing = required - set(row.keys())
+            assert not missing, (
+                f"canonical_verbs row {row.get('namespace')!r} missing {missing}"
+            )
 
 
 if __name__ == "__main__":

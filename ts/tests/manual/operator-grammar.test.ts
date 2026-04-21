@@ -23,7 +23,7 @@ describe("Composite.attachTo(builder) — TS parity with Python ``Composite >> B
   });
 
   it("PTransform.attachTo sets the builder's instruction", () => {
-    const prompt = P.role("analyst").add(P.task("crunch numbers"));
+    const prompt = P.role("analyst").union(P.task("crunch numbers"));
     const agent = prompt.attachTo(new Agent("p1", MODEL));
     expect(agent.inspect()["instruction"]).toBe(prompt);
   });

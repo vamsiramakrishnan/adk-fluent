@@ -9,9 +9,9 @@ import assert from "node:assert/strict";
 import { Agent, P } from "../../src/index.js";
 
 const prompt = P.role("You are a senior data analyst.")
-  .add(P.task("Analyze the {topic} dataset and report key trends."))
-  .add(P.constraint("Use bullet points.", "Limit to 5 findings.", "Cite the data."))
-  .add(P.format("Markdown with H2 headings."));
+  .union(P.task("Analyze the {topic} dataset and report key trends."))
+  .union(P.constraint("Use bullet points.", "Limit to 5 findings.", "Cite the data."))
+  .union(P.format("Markdown with H2 headings."));
 
 const agent = new Agent("analyst", "gemini-2.5-flash").instruct(prompt).build() as Record<
   string,

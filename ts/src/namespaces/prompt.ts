@@ -2,14 +2,14 @@
  * P — Prompt composition namespace.
  *
  * Factory methods returning composable prompt sections.
- * Compose with .add() (union) or .pipe() (chain).
+ * Compose with .union() (union) or .pipe() (chain).
  * Section order: role → context → task → constraint → format → example.
  *
  * Usage:
  *   agent.instruct(
  *     P.role("Senior analyst")
- *       .add(P.task("Analyze the data"))
- *       .add(P.constraint("Be concise", "Use tables"))
+ *       .union(P.task("Analyze the data"))
+ *       .union(P.constraint("Be concise", "Use tables"))
  *   )
  */
 
@@ -35,8 +35,8 @@ export class PTransform {
     public readonly meta: Record<string, unknown> = {},
   ) {}
 
-  /** Compose: add another section. */
-  add(other: PTransform): PTransform {
+  /** Union: add another section. Mirrors Python ``|``. */
+  union(other: PTransform): PTransform {
     return new PTransform(this.section, this.text, [...this.children, other], this.meta);
   }
 

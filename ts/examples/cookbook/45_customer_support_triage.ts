@@ -29,17 +29,17 @@ const classifier = new Agent("intent_classifier", MODEL)
 
 const billingHandler = new Agent("billing_specialist", MODEL)
   .instruct("You are a billing specialist. Help with: {customer_message}")
-  .context(C.none().add(C.fromState("customer_message")))
+  .context(C.none().union(C.fromState("customer_message")))
   .writes("agent_response");
 
 const techHandler = new Agent("tech_support", MODEL)
   .instruct("You are a tech support engineer. Issue: {customer_message}")
-  .context(C.none().add(C.fromState("customer_message")))
+  .context(C.none().union(C.fromState("customer_message")))
   .writes("agent_response");
 
 const accountHandler = new Agent("account_manager", MODEL)
   .instruct("You are an account manager. Request: {customer_message}")
-  .context(C.none().add(C.fromState("customer_message")))
+  .context(C.none().union(C.fromState("customer_message")))
   .writes("agent_response");
 
 const generalHandler = new Agent("general_support", MODEL)

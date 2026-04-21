@@ -122,6 +122,78 @@ ts_form         = "A.publish('out.json').attachTo(agent)"
 target_method   = "artifacts"
 
 # -----------------------------------------------------------------------------
+# CANONICAL COMPOSITION VERBS (per-namespace)
+# -----------------------------------------------------------------------------
+# Python overloads ``|`` and ``>>`` on each namespace composite. TS has no
+# operator overloading, so it uses a named method. Both languages MUST agree
+# on the method name so docs, examples, and user intuition translate. Each
+# row pins the canonical method names for a namespace's two operators:
+#
+#   * ``union_method``  — what ``|`` resolves to (union / combine). Empty
+#                         string if the namespace has no ``|`` semantics
+#                         (e.g. T, G, M, A chain via ``pipe_method`` only).
+#   * ``pipe_method``   — what ``>>`` resolves to (pipe / chain). Every
+#                         composite supports this.
+#
+# CI enforces that the named method exists on both PyTransform and TsTransform
+# with matching semantics. Picking a different verb in one language is a bug.
+#
+#   Python       TS             Namespace
+#   -------      -------        ---------
+#   S: a | b  →  a.combine(b)   state (value merging)
+#   C: a | b  →  a.union(b)     context (set union, suppression wins)
+#   P: a | b  →  a.union(b)     prompt (section set union)
+#   T: a | b  →  a.pipe(b)      tool (chain — no union semantics)
+#   G: a | b  →  a.pipe(b)      guard (chain — no union semantics)
+#   M: a | b  →  a.pipe(b)      middleware (chain — no union semantics)
+#   A: (n/a)                    artifact (chain via >> only)
+#
+# Every namespace resolves ``>>`` to ``.pipe(b)`` in TS regardless of the
+# union verb — pipe is the universal chain verb.
+
+[[canonical_verbs]]
+namespace       = "S"
+union_method    = "combine"
+pipe_method     = "pipe"
+notes           = "Both inputs see the original state; deltas are merged key-wise."
+
+[[canonical_verbs]]
+namespace       = "C"
+union_method    = "union"
+pipe_method     = "pipe"
+notes           = "Set-union of history filters; suppression wins (if either suppresses, composite does)."
+
+[[canonical_verbs]]
+namespace       = "P"
+union_method    = "union"
+pipe_method     = "pipe"
+notes           = "Section set union; section order stays canonical (role → context → task → constraint → format → example)."
+
+[[canonical_verbs]]
+namespace       = "T"
+union_method    = ""
+pipe_method     = "pipe"
+notes           = "Tool composites chain only; no union operator."
+
+[[canonical_verbs]]
+namespace       = "G"
+union_method    = ""
+pipe_method     = "pipe"
+notes           = "Guard composites chain only; no union operator."
+
+[[canonical_verbs]]
+namespace       = "M"
+union_method    = ""
+pipe_method     = "pipe"
+notes           = "Middleware composites chain only; no union operator."
+
+[[canonical_verbs]]
+namespace       = "A"
+union_method    = ""
+pipe_method     = "pipe"
+notes           = "Artifact composites chain via >>/.pipe(); no union operator."
+
+# -----------------------------------------------------------------------------
 # NAMED-WORD ALIASES (top-level package exports)
 # -----------------------------------------------------------------------------
 # Python has every named alias (State, Context, Prompt, Guard, Middleware,

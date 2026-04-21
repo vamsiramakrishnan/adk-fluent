@@ -28,7 +28,7 @@ Start here. Each example introduces one concept with a self-contained agent.
 | 02  | [Agent with Tools](02_agent_with_tools.ts)     | Attach tool functions via `.tool()` and `T.fn()` |
 | 03  | [Callbacks](03_callbacks.ts)                   | `.beforeModel()` / `.afterModel()` hooks         |
 | 11  | [Typed Output](11_typed_output.ts)             | `.outputAs(Schema)` for structured JSON          |
-| 14  | [Prompt Composition](14_prompt_composition.ts) | `P.role().add(P.task()).add(P.constraint())`     |
+| 14  | [Prompt Composition](14_prompt_composition.ts) | `P.role().union(P.task()).union(P.constraint())`     |
 
 ### Walk — Multiple agents, real composition
 

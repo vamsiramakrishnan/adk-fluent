@@ -22,7 +22,7 @@ assert.equal(autoSpec.fromFlag, true);
 
 // --- 2. Equivalent: pass UI.auto() explicitly + flag (auto-wires tools) ---
 const explicit = new Agent("designer", MODEL)
-  .instruct(P.role("UI designer").add(P.uiSchema()).add(P.task("Build a dashboard")))
+  .instruct(P.role("UI designer").union(P.uiSchema()).union(P.task("Build a dashboard")))
   .ui(UI.auto({ catalog: "extended" }), { llmGuided: true });
 const explicitSpec = explicit.inspect()._ui_spec as UIAutoSpec;
 assert.equal(explicitSpec.catalog, "extended");

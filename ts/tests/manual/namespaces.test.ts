@@ -88,7 +88,7 @@ describe("P (Prompt composition)", () => {
   });
 
   it(".add() composes multiple sections", () => {
-    const prompt = P.role("Analyst").add(P.task("Analyze data")).add(P.constraint("Be brief"));
+    const prompt = P.role("Analyst").union(P.task("Analyze data")).union(P.constraint("Be brief"));
 
     const rendered = prompt.render();
     expect(rendered).toContain("## Role");

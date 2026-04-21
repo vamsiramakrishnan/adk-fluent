@@ -6,12 +6,12 @@
  * - History-filtering: suppress/filter conversation history
  * - Data-injection: inject state without touching history
  *
- * Compose with .add() (union). Suppression wins: if ANY child suppresses, composite does.
+ * Compose with .union() (union). Suppression wins: if ANY child suppresses, composite does.
  *
  * Usage:
- *   agent.context(C.none())                           // suppress all history
- *   agent.context(C.window(5))                        // last 5 turn-pairs
- *   agent.context(C.none().add(C.fromState("key")))   // no history + inject state
+ *   agent.context(C.none())                             // suppress all history
+ *   agent.context(C.window(5))                          // last 5 turn-pairs
+ *   agent.context(C.none().union(C.fromState("key")))   // no history + inject state
  */
 
 import type { State } from "../core/types.js";
@@ -26,8 +26,8 @@ export class CTransform {
     public readonly children: CTransform[] = [],
   ) {}
 
-  /** Compose: merge another context transform. Suppression wins. */
-  add(other: CTransform): CTransform {
+  /** Union: merge another context transform. Suppression wins. Mirrors Python ``|``. */
+  union(other: CTransform): CTransform {
     return new CTransform(
       `${this.kind}+${other.kind}`,
       { ...this.config, ...other.config },
@@ -36,9 +36,9 @@ export class CTransform {
     );
   }
 
-  /** Alias for add() — reads better for data-injection transforms. */
+  /** Alias for union() — reads better for data-injection transforms. */
   inject(other: CTransform): CTransform {
-    return this.add(other);
+    return this.union(other);
   }
 
   /** Pipe: apply a transform to the output of this one. */

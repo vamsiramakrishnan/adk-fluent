@@ -1322,7 +1322,7 @@ builder. TypeScript cannot overload ``>>``, so every composite exposes an
 
     let a = new Agent("worker", "gemini-2.5-flash");
     a = C.window(5).attachTo(a);                          // builder.context
-    a = P.role("analyst").add(P.task("crunch")).attachTo(a); // builder.instruct
+    a = P.role("analyst").union(P.task("crunch")).attachTo(a); // builder.instruct
     a = T.fn(search).attachTo(a);                         // builder.tools
     a = G.length({ max: 500 }).attachTo(a);               // builder.guard
     a = M.retry({ maxAttempts: 3 }).pipe(M.log()).attachTo(a); // builder.middleware
@@ -1388,21 +1388,23 @@ _TS_COMMANDS = """\
 
 # TypeScript-flavored namespace reference.  The TS package mirrors the Python
 # API but uses camelCase identifiers (e.g. ``C.fromState`` not
-# ``C.from_state``) and method-chain composition (``.pipe()`` / ``.add()``)
-# instead of the Python ``|`` / ``+`` operators.  JS reserved words like
-# ``default`` require a trailing underscore (``S.default_``, ``C.default_``).
+# ``C.from_state``) and canonical composition verbs (``.pipe()`` for ``>>``,
+# ``.union()`` / ``.combine()`` for ``|``) instead of operator overloads.
+# JS reserved words like ``default`` require a trailing underscore
+# (``S.default_``, ``C.default_``).
 _TS_NAMESPACE_MODULES = """
 ## Namespace modules (S, C, P, A, M, T, E, G)
 
 All namespaces mirror the Python API with TypeScript idioms: camelCase
-method names, method-chained composition via ``.pipe()`` / ``.add()``, and
-options-object arguments instead of keyword arguments.  JavaScript reserved
-words (``default``) use a trailing underscore (``S.default_``, ``C.default_``).
+method names, canonical composition verbs (``.pipe()`` for ``>>``,
+``.union()`` / ``.combine()`` for ``|``), and options-object arguments
+instead of keyword arguments.  JavaScript reserved words (``default``)
+use a trailing underscore (``S.default_``, ``C.default_``).
 
 ### S — State transforms
 
 Used in pipelines via ``.then()``.  Compose with ``.pipe()`` (chain) or
-``.add()`` (combine).
+``.combine()`` (combine).
 
   S.pick(...keys)              — keep only named keys
   S.drop(...keys)              — remove named keys
@@ -1430,7 +1432,7 @@ Used in pipelines via ``.then()``.  Compose with ``.pipe()`` (chain) or
 
 ### C — Context engineering
 
-Used with ``.context()``.  Compose with ``.add()`` (union) or ``.pipe()``.
+Used with ``.context()``.  Compose with ``.union()`` (union) or ``.pipe()``.
 
   C.none()                     — suppress all history
   C.default_()                 — default ADK behavior
@@ -1466,7 +1468,7 @@ Used with ``.context()``.  Compose with ``.add()`` (union) or ``.pipe()``.
 
 ### P — Prompt composition
 
-Used with ``.instruct()``.  Compose with ``.add()`` (union) or ``.pipe()``.
+Used with ``.instruct()``.  Compose with ``.union()`` (union) or ``.pipe()``.
 Section order: role → context → task → constraint → format → example.
 
   P.role(text)                 — agent persona
@@ -1593,7 +1595,7 @@ on failure.
 
 ### UI — Agent-to-UI composition (A2UI)
 
-Declarative UI composition for agents.  Compose with ``.pipe()`` / ``.add()``.
+Declarative UI composition for agents.  Compose with ``.pipe()`` / ``.union()``.
 Import: ``import { UI } from "adk-fluent-ts";``
 
 Component factories:

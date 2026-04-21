@@ -2,7 +2,7 @@
  * S — State transform namespace.
  *
  * Factory methods returning composable state transforms.
- * Compose with .pipe() (chain) or .merge() (combine).
+ * Compose with .pipe() (chain) or .combine() (combine). Mirrors Python ``>>`` / ``|``.
  *
  * Usage:
  *   S.pick("key1", "key2")        // keep only named keys
@@ -28,8 +28,8 @@ export class STransform {
     return new STransform(`${self.name}>>${other.name}`, (state) => other.fn(self.fn(state)));
   }
 
-  /** Combine: both read same input, merge outputs. */
-  merge(other: STransform): STransform {
+  /** Combine: both read same input, merge outputs. Mirrors Python ``|``. */
+  combine(other: STransform): STransform {
     const self = this;
     return new STransform(`${self.name}+${other.name}`, (state) => ({
       ...self.fn(state),

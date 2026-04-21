@@ -49,7 +49,7 @@ assert.equal(builtTask.output_key, "task_result");
 // A verifier reads the task result via injected state context.
 const verifier = new Agent("verifier", MODEL)
   .instruct("Verify the task result for correctness and surface any concerns.")
-  .context(C.none().add(C.fromState("task_result")));
+  .context(C.none().union(C.fromState("task_result")));
 
 const pipeline = new Pipeline("multi_tool_flow").step(taskAgent).step(verifier).build() as {
   _type: string;

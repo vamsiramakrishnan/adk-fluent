@@ -27,7 +27,7 @@ assert.equal(chatty._type, "LlmAgent");
 // pseudo-messages. The `+` operator from Python is `.add()` in TS.
 const focused = new Agent("focused", "gemini-2.5-flash")
   .instruct("Use only the provided briefing.")
-  .context(C.none().add(C.fromState("briefing", "user_profile")))
+  .context(C.none().union(C.fromState("briefing", "user_profile")))
   .build() as Record<string, unknown>;
 assert.equal(focused._type, "LlmAgent");
 

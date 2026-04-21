@@ -34,26 +34,26 @@ const parallelSearch = new FanOut("parallel_search")
   .branch(
     new Agent("web_searcher", MODEL)
       .instruct("Search the web. Summarize key findings.")
-      .context(C.none().add(C.fromState("research_plan")))
+      .context(C.none().union(C.fromState("research_plan")))
       .writes("web_results"),
   )
   .branch(
     new Agent("academic_searcher", MODEL)
       .instruct("Search academic databases. Extract methodology and conclusions.")
-      .context(C.none().add(C.fromState("research_plan")))
+      .context(C.none().union(C.fromState("research_plan")))
       .writes("academic_results"),
   )
   .branch(
     new Agent("news_searcher", MODEL)
       .instruct("Search recent news for current developments.")
-      .context(C.none().add(C.fromState("research_plan")))
+      .context(C.none().union(C.fromState("research_plan")))
       .writes("news_results"),
   );
 
 // Stage 3: Synthesize across sources.
 const synthesizer = new Agent("synthesizer", MODEL)
   .instruct("Synthesize findings. Identify consensus, contradictions, gaps.")
-  .context(C.none().add(C.fromState("web_results", "academic_results", "news_results")))
+  .context(C.none().union(C.fromState("web_results", "academic_results", "news_results")))
   .writes("synthesis");
 
 // Stage 4: Quality review loop. Run reviewer + revisor up to 3 times,
@@ -63,12 +63,12 @@ const qualityLoop = new Agent("quality_reviewer", MODEL)
     "Review the synthesis for accuracy, completeness, and bias. " +
       "Score quality from 0 to 1. If below 0.85, request improvements.",
   )
-  .context(C.none().add(C.fromState("synthesis")))
+  .context(C.none().union(C.fromState("synthesis")))
   .writes("quality_score")
   .then(
     new Agent("revision_agent", MODEL)
       .instruct("Revise the synthesis based on reviewer feedback.")
-      .context(C.none().add(C.fromState("synthesis", "quality_score")))
+      .context(C.none().union(C.fromState("synthesis", "quality_score")))
       .writes("synthesis"),
   )
   .timesUntil((s) => Number(s.quality_score ?? 0) >= 0.85, { max: 3 });
@@ -76,7 +76,7 @@ const qualityLoop = new Agent("quality_reviewer", MODEL)
 // Stage 5: Final structured report.
 const reportWriter = new Agent("report_writer", MODEL)
   .instruct("Write the final research report with summary, findings, and confidence.")
-  .context(C.none().add(C.fromState("synthesis")))
+  .context(C.none().union(C.fromState("synthesis")))
   .outputAs(ResearchReport);
 
 // Compose into the full pipeline.
