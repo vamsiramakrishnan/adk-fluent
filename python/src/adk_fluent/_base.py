@@ -990,8 +990,11 @@ class BuilderBase:
         if callable(other) and not isinstance(other, BuilderBase | Route | type):
             other = _fn_step(other)
 
-        # Reject unsupported operands (e.g. raw types like int)
-        if not isinstance(other, BuilderBase | Route | dict) and not hasattr(other, "build"):
+        # Reject unsupported operands (e.g. raw types like int).
+        # Anything non-BuilderBase/Route/dict at this point is unsupported —
+        # callables were wrapped above, and raw ADK objects should not flow
+        # through operator composition.
+        if not isinstance(other, BuilderBase | Route | dict):
             return NotImplemented
 
         # Dict operand: convert to deterministic Route
@@ -2000,13 +2003,20 @@ class BuilderBase:
             if fns:
                 config[field] = _compose_callbacks(list(fns))
 
-        # Merge accumulated lists (auto-building items, skip internal _ keys)
+        # Merge accumulated lists (auto-building items, skip internal _ keys).
+        # Auto-built: BuilderBase subclasses and the routing helpers
+        # (Route, Fallback) that expose .build() without inheriting.
+        # Plain ADK objects (LlmAgent, BaseAgent, BaseTool, BasePlugin,
+        # BaseModel, callables, …) pass through unchanged and are validated
+        # downstream by ADK.
+        from adk_fluent._routing import Fallback, Route
+
         for field, items in self._lists.items():
             if field.startswith("_"):
                 continue
             resolved = []
             for item in items:
-                if isinstance(item, BuilderBase) or hasattr(item, "build") and callable(item.build):
+                if isinstance(item, BuilderBase | Route | Fallback):
                     resolved.append(item.build())
                 else:
                     resolved.append(item)
