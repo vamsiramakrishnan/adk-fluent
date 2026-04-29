@@ -1,19 +1,16 @@
-name: Publish · Python
+name: Build · Python
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Reusable: builds + publishes the Python package.
+# Reusable: builds the Python package and uploads the artifact.
 #
-# Stages (deliberately symmetric with _publish-npm.yml):
-#   1. build   — run codegen → uv build → upload artifact
-#   2. inspect — list artifact contents, run `twine check` for metadata sanity
-#   3. publish — Trusted Publishing (pypi | testpypi) with attestations
+# Publishing is handled inline in release.yml so that PyPI Trusted Publishing
+# sees `job_workflow_ref: release.yml` (reusable workflows are NOT officially
+# supported by PyPI Trusted Publishing).
 #
 # Inputs:
 #   version       — expected semver string; build fails if python/_version.py differs
-#   target        — "pypi" (prod) | "testpypi" (dry run)
+#   target        — "pypi" (prod) | "testpypi" (dry run) — passed through for naming
 #   run-preflight — gate the job on `python -m shared.scripts.release preflight --strict`
-#
-# Secrets: none. Uses PyPI Trusted Publishing via `id-token: write`.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -79,30 +76,3 @@ jobs:
           path: python/dist/
           retention-days: 30
 
-  publish:
-    name: publish · ${{ inputs.target }}
-    needs: [build]
-    runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.target }}
-      url: >-
-        ${{ inputs.target == 'pypi'
-            && 'https://pypi.org/p/adk-fluent'
-            || 'https://test.pypi.org/p/adk-fluent' }}
-    permissions:
-      id-token: write   # Trusted Publishing
-      attestations: write  # PEP 740 provenance
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: python-dist-${{ inputs.version }}
-          path: dist/
-      - name: Publish to ${{ inputs.target }}
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: >-
-            ${{ inputs.target == 'testpypi'
-                && 'https://test.pypi.org/legacy/'
-                || '' }}
-          skip-existing: true
-          attestations: true

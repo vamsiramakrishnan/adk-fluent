@@ -154,67 +154,150 @@ jobs:
         if: steps.resolve.outputs.skip == 'false'
         run: python3 -m shared.scripts.release preflight --strict
 
-  # ─── stage 2a: python publish path ──────────────────────────────────────
-  # Caller-side permissions cap what the reusable workflow's nested `publish`
-  # job can request. PyPI Trusted Publishing needs id-token: write; PEP 740
-  # attestations need attestations: write. Without these, GitHub rejects the
-  # whole run at startup with "nested job 'publish' is requesting … but is
-  # only allowed …".
-  python-pypi:
+  # ─── stage 2a: python build (reusable) ───────────────────────────────────
+  python-pypi-build:
     needs: [plan]
     if: needs.plan.outputs.publish-pypi == 'true'
     permissions:
       contents: read
-      id-token: write
-      attestations: write
     uses: ./.github/workflows/_publish-python.yml
     with:
       version: ${{ needs.plan.outputs.version }}
       target: pypi
       run-preflight: true
 
-  python-testpypi:
+  python-testpypi-build:
     needs: [plan]
     if: needs.plan.outputs.publish-testpypi == 'true'
     permissions:
       contents: read
-      id-token: write
-      attestations: write
     uses: ./.github/workflows/_publish-python.yml
     with:
       version: ${{ needs.plan.outputs.version }}
       target: testpypi
       run-preflight: true
 
-  # ─── stage 2b: npm publish path ─────────────────────────────────────────
-  ts-npm:
+  # ─── stage 2a′: python publish (inline — Trusted Publishing needs
+  #     job_workflow_ref to point at release.yml, not a reusable workflow) ──
+  python-pypi-publish:
+    name: publish · pypi
+    needs: [plan, python-pypi-build]
+    if: needs.plan.outputs.publish-pypi == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/adk-fluent
+    permissions:
+      id-token: write      # Trusted Publishing
+      attestations: write   # PEP 740 provenance
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist-${{ needs.plan.outputs.version }}
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          attestations: true
+
+  python-testpypi-publish:
+    name: publish · testpypi
+    needs: [plan, python-testpypi-build]
+    if: needs.plan.outputs.publish-testpypi == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/adk-fluent
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist-${{ needs.plan.outputs.version }}
+          path: dist/
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+          attestations: true
+
+  # ─── stage 2b: npm build (reusable) ─────────────────────────────────────
+  ts-npm-build:
     needs: [plan]
     if: needs.plan.outputs.publish-npm == 'true'
     permissions:
       contents: read
-      id-token: write   # npm provenance via sigstore
     uses: ./.github/workflows/_publish-npm.yml
-    secrets: inherit
     with:
       version: ${{ needs.plan.outputs.version }}
       target: npm
       run-preflight: true
 
-  ts-npm-dry:
+  ts-npm-dry-build:
     needs: [plan]
     if: needs.plan.outputs.publish-npm-dry == 'true'
     permissions:
       contents: read
-      id-token: write   # validated at parse time even when if-gated off
     uses: ./.github/workflows/_publish-npm.yml
     with:
       version: ${{ needs.plan.outputs.version }}
       target: npm-dry-run
       run-preflight: true
 
+  # ─── stage 2b′: npm publish (inline) ────────────────────────────────────
+  ts-npm-publish:
+    name: publish · npm
+    needs: [plan, ts-npm-build]
+    if: needs.plan.outputs.publish-npm == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/adk-fluent-ts
+    permissions:
+      id-token: write    # npm provenance via sigstore
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+          cache-dependency-path: ts/package-lock.json
+
+      - name: Restore built artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ts-dist-${{ needs.plan.outputs.version }}
+          path: ts-artifact/
+
+      - name: Merge artifact into ts/
+        run: |
+          cp -a ts-artifact/dist ts/dist
+          cp    ts-artifact/LICENSE ts/LICENSE
+
+      - name: Install production dependencies
+        working-directory: ts
+        run: npm ci
+
+      - name: Publish with provenance
+        working-directory: ts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN not set on the 'npm' environment."
+            echo "Attach the token at: Settings → Environments → npm → Environment secrets."
+            exit 1
+          fi
+          npm publish --access public --provenance
+
   # ─── stage 3: tag + GitHub Release (only on a real publish) ─────────────
   tag-release:
-    needs: [plan, python-pypi, ts-npm]
+    needs: [plan, python-pypi-publish, ts-npm-publish]
     # Run only if we actually published to both prod registries. GitHub
     # evaluates the condition against job results; a skipped dependency
     # still satisfies `needs` so we explicitly require success.
@@ -222,8 +305,8 @@ jobs:
       always() &&
       needs.plan.outputs.tag-on-success == 'true' &&
       needs.plan.outputs.skip == 'false' &&
-      needs.python-pypi.result == 'success' &&
-      needs.ts-npm.result == 'success'
+      needs.python-pypi-publish.result == 'success' &&
+      needs.ts-npm-publish.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
