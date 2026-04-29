@@ -104,19 +104,19 @@ Turn YAML + Markdown into executable agent graphs. One file is simultaneously do
 |---|---|
 | [Skills](skills.md) | `Skill()`, `SkillRegistry`, `T.skill()`, SKILL.md format, composition with operators, tool injection |
 
-## Harness Path -- Autonomous Coding Runtimes
+## Harness Path -- Autonomous & Reactive Runtimes
 
-Build Claude-Code-class autonomous agents. Five composable layers: intelligence, tools, safety, observability, and runtime.
+Build Claude-Code-class autonomous agents and reactive, event-driven systems. The `H` namespace provides safety, observability, and runtime layers. The `R` namespace adds state-driven reactivity where agents activate on signal changes -- conversation phases, quality scores, completion flags -- without polling or manual dispatch.
 
 | Chapter | What you'll learn |
 |---|---|
 | [Harness](harness.md) | The `H` namespace, 5-layer architecture, EventBus, permissions, sandbox, budgets, REPL |
+| [**Reactor**](reactor.md) | **`R` namespace, `Signal`, `SignalPredicate`, `Builder.on()`, `R.compile()`, priority scheduling, preemption, `AgentToken` -- declarative reactive agents** |
 | [Hooks](hooks.md) | `H.hooks()`, `HookDecision`, `HookEvent`, `HookMatcher`, session-scoped intervention at 12 ADK lifecycle points |
 | [Permissions](permissions.md) | `PermissionPolicy`, `PermissionDecision`, five modes (default/accept_edits/plan/bypass/dont_ask), `PermissionPlugin`, approval memory |
 | [Plan Mode](plan-mode.md) | Plan/execute latch, `PlanMode`, `PlanModePolicy`, `enter_plan_mode` / `exit_plan_mode` tools, read-only planning phase |
 | [Session](session.md) | `SessionStore`, `SessionSnapshot`, auto-fork / auto-restore, tape replay, persistence |
 | [Durable Events](durable-events.md) | `SessionTape` seq/cursor/tail, `TapeBackend` (JSONL/InMemory/Null/Chain), `stream_from_cursor`, workflow lifecycle events |
-| [Reactor](reactor.md) | `Signal`, `SignalPredicate`, `Reactor`, priority scheduling, preemption, `AgentToken`, `TokenRegistry` |
 | [Subagents](subagents.md) | `SubagentSpec`, `SubagentRunner`, dynamic spawner, `make_task_tool`, isolated child contexts |
 | [Compression](compression.md) | `ContextCompressor`, `CompressionStrategy`, `pre_compact` hooks, keep-recent / drop-old / summarize |
 | [Budget](budget.md) | `BudgetPolicy`, `BudgetMonitor`, `BudgetPlugin`, threshold callbacks, token / cost limits |

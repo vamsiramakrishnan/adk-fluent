@@ -563,16 +563,17 @@ Deep dive into builders, operators, callbacks, context engineering, and all 9 na
 Complete reference for all 135 builders with type signatures, ADK mappings, and examples.
 ```
 
-```{grid-item-card} Framework Comparison
-:link: user-guide/comparison
+```{grid-item-card} Reactive Agents
+:link: user-guide/reactor
 :link-type: doc
-Side-by-side with LangGraph, CrewAI, and native ADK -- see exactly where adk-fluent wins.
+Build agents that respond to state changes with the `R` namespace -- signals, predicates, priority scheduling, and `Builder.on()`.
 ```
 ````
 
 :::{seealso}
 - [Expression Language](user-guide/expression-language.md) -- all 9 operators with composition rules
 - [Patterns](user-guide/patterns.md) -- higher-order constructors (review_loop, map_reduce, cascade, fan_out_merge)
+- [Reactor](user-guide/reactor.md) -- signals, predicates, `R.compile()` for state-driven agent coordination
 - [Testing](user-guide/testing.md) -- `.mock()`, `.test()`, and `check_contracts()` for testing without API calls
 - [Migration Guide](generated/migration/from-native-adk.md) -- migrate existing native ADK code incrementally
 :::

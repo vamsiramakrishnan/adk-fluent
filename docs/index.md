@@ -226,7 +226,7 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
 adk-fluent ships as two sibling packages from a single monorepo:
 
 - **`adk-fluent`** ([PyPI](https://pypi.org/project/adk-fluent/)) — Python 3.11+, under [`python/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/python). Reference implementation; this site is Python-first.
-- **`adk-fluent-ts`** (npm, coming soon) — TypeScript, under [`ts/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/ts). Mirrors the same builders and namespaces with method-chained operators. See the [TypeScript user guide](user-guide/typescript.md) and the [TS README](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/ts/README.md).
+- **`adk-fluent-ts`** ([npm](https://www.npmjs.com/package/adk-fluent-ts)) — TypeScript, under [`ts/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/ts). Mirrors the same builders and namespaces with method-chained operators. See the [TypeScript user guide](user-guide/typescript.md) and the [TS README](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/ts/README.md).
 
 Both packages are generated from the same `shared/manifest.json`, so parity is enforced at generation time. Throughout this site, conceptual guides apply to both languages; code samples with a `Python` / `TypeScript` tab selector stay in sync once you pick one.
 :::
@@ -235,6 +235,13 @@ Both packages are generated from the same `shared/manifest.json`, so parity is e
 
 ::::{grid} 1 1 2 3
 :gutter: 3
+
+:::{grid-item-card} Reactive Agents (R Namespace)
+:link: user-guide/reactor
+:link-type: doc
+
+State-driven reactivity with `R.signal()`, `SignalPredicate` composition, `Builder.on()` for declarative rules, `R.compile()` for zero-ceremony wiring. Agents activate on conversation phase changes, quality scores, completion flags -- no polling.
+:::
 
 :::{grid-item-card} A2UI (Agent-to-UI)
 :link: user-guide/a2ui

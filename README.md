@@ -19,6 +19,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 - [Install](#install)
 - [Quick Start](#quick-start)
 - [Three Pathways](#three-pathways)
+- [Reactive Agents](#reactive-agents)
 - [Zero to Running](#zero-to-running)
 - [Why adk-fluent](#why-adk-fluent)
 - [Expression Language](#expression-language)
@@ -43,7 +44,7 @@ adk-fluent is released as two sibling packages driven by a single shared manifes
 | Package              | Language   | Source      | Registry                                                      | Entry README                              |
 | -------------------- | ---------- | ----------- | ------------------------------------------------------------- | ----------------------------------------- |
 | `adk-fluent`         | Python 3.11+ | [`python/`](python/) | [PyPI](https://pypi.org/project/adk-fluent/)                  | [`python/README.md`](python/README.md)    |
-| `adk-fluent-ts`      | TypeScript | [`ts/`](ts/) | npm (coming soon)                                             | [`ts/README.md`](ts/README.md)            |
+| `adk-fluent-ts`      | TypeScript | [`ts/`](ts/) | [npm](https://www.npmjs.com/package/adk-fluent-ts)            | [`ts/README.md`](ts/README.md)            |
 
 Shared generator scripts, ADK scan manifests, and seed files live in [`shared/`](shared/). The Python and TypeScript builders are both regenerated from `shared/manifest.json` + `shared/seeds/seed.toml`, so API parity is enforced at generation time.
 
@@ -290,13 +291,13 @@ Once you know the builder basics, adk-fluent offers three distinct development p
               |                   |                    |
     ┌─────────┴─────────┐ ┌──────┴───────┐ ┌──────────┴──────────┐
     | Agent >> Agent     | | SKILL.md     | | H namespace (Python) |
-    | >> | * // @        | | Topology in  | | 5-layer architecture |
-    | S, C, P, M, T, G  | | config, not  | | EventBus, sandbox    |
+    | >> | * // @        | | Topology in  | | R namespace (Reactor)|
+    | S, C, P, M, T, G  | | config, not  | | Signals, EventBus    |
     | Full Python control| | code         | | Permissions, budgets |
     └─────────┬─────────┘ └──────┬───────┘ └──────────┬──────────┘
               |                   |                    |
-     Custom workflows      Reusable agent       Coding agents
-     Complex routing       libraries             DevOps runtimes
+     Custom workflows      Reusable agent       Reactive agents
+     Complex routing       libraries             Coding runtimes
      Dynamic topologies    Cross-team sharing    Research harnesses
 ```
 
@@ -347,34 +348,39 @@ fast = research.model("gemini-2.5-flash").inject(web_search=my_search_fn)
 
 [Skills Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/skills/) · [Example SKILL.md files](examples/skills/)
 
-### Harness Path -- Autonomous Coding Runtimes
+### Harness Path -- Autonomous & Reactive Runtimes
 
-Build Claude-Code-class autonomous agents with the `H` namespace. Five composable layers: intelligence, tools, safety, observability, and runtime.
+Build Claude-Code-class autonomous agents with the `H` namespace and reactive, event-driven agents with the `R` namespace. The harness path adds safety, observability, and state-driven coordination on top of the pipeline path.
 
 ```python
-from adk_fluent import Agent, H, C
+from adk_fluent import Agent, H, R
 
-# Intelligence + Tools
+# Autonomous coding agent with safety layers
 agent = (
     Agent("coder", "gemini-2.5-pro")
     .instruct("You are an expert coding assistant.")
     .tools(H.workspace("/project", diff_mode=True) + H.web() + H.git_tools("/project"))
+    .harness(
+        permissions=H.auto_allow("read_file", "grep_search").merge(H.ask_before("edit_file", "bash")),
+        sandbox=H.workspace_only("/project"),
+    )
 )
 
-# Safety + Observability + Runtime
-agent = agent.harness(
-    permissions=H.auto_allow("read_file", "grep_search").merge(H.ask_before("edit_file", "bash")),
-    sandbox=H.workspace_only("/project"),
+# Reactive coordination: agents activate on conversation state changes
+phase = R.signal("phase", "planning")
+
+implementer = (
+    Agent("implementer", "gemini-2.5-pro")
+    .instruct("Implement the plan.")
+    .on(R.is_("phase", "implementing"), priority=10)
 )
 
-bus = H.event_bus()
-repl = H.repl(agent.build(), hooks=H.hooks("/project").on_edit("ruff check {file_path}"))
-await repl.run()
+reactor = R.compile(implementer, tape=tape, bus=bus)
 ```
 
-**Best for:** Agents that act autonomously -- reading codebases, editing files, running tests, managing processes. When you need permissions, sandboxing, token budgets, and observability.
+**Best for:** Agents that act autonomously or react to state changes. Coding agents, monitoring systems, event-driven coordination. When you need permissions, sandboxing, token budgets, signals, and observability.
 
-[Harness Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/harness/) · [Full harness example](examples/cookbook/79_coding_agent_harness.py)
+[Harness Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/harness/) · [Reactor Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/reactor/) · [Full harness example](examples/cookbook/79_coding_agent_harness.py) · [Reactor example](examples/cookbook/81_reactor_native.py)
 
 ### Which Path?
 
@@ -382,9 +388,10 @@ await repl.run()
 |----------|----------|--------|---------|
 | Who writes the agent logic? | Engineers (Python) | Domain experts (YAML) | Engineers (Python) |
 | Abstraction level | Low -- full control | High -- config-driven | Medium -- composable layers |
-| Topology flexibility | Unlimited | Fixed per skill | Agent + tools |
+| Topology flexibility | Unlimited | Fixed per skill | Agent + tools + reactive signals |
 | Does the agent need file/shell access? | Optional | No | Yes |
 | Does the agent need permissions/sandbox? | No | No | Yes |
+| Should agents react to state changes? | No -- explicit flow | No | Yes -- `R.signal()` + `.on()` |
 | Is reusability across teams important? | Moderate -- share code | High -- share SKILL.md files | Low -- custom per-domain |
 | Is it a multi-turn autonomous runtime? | No -- pipeline execution | No -- pipeline execution | Yes -- REPL with memory |
 
@@ -399,6 +406,59 @@ agent = (
 )
 # Inside a skill, the agents are wired as pipelines with >> | * operators
 ```
+
+## Reactive Agents
+
+Agents that respond to state changes, not just prompts. The `R` namespace turns the durable session tape into typed state cells (signals) and declarative triggers (predicates) -- so agents coordinate around conversation phases without polling loops or manual event wiring.
+
+```python
+from adk_fluent import Agent, R
+
+# Signals track conversation phase and quality -- not temperature sensors,
+# but the state that actually drives multi-agent coordination
+phase    = R.signal("phase", "gathering")     # gathering → drafting → reviewing → done
+quality  = R.signal("quality_score", 0.0)
+turn     = R.signal("turn_count", 0)
+
+# Each agent activates when its phase arrives -- declarative, not hard-wired
+drafter = (
+    Agent("drafter", "gemini-2.5-flash")
+    .instruct("Write a first draft based on the gathered requirements.")
+    .on(R.is_("phase", "drafting"), priority=10)
+)
+
+reviewer = (
+    Agent("reviewer", "gemini-2.5-pro")
+    .instruct("Critique the draft. Set quality_score 0-1.")
+    .on(R.is_("phase", "reviewing"), priority=10)
+)
+
+# Preemptive escalation: if quality drops mid-review, interrupt and restart
+escalator = (
+    Agent("escalator", "gemini-2.5-pro")
+    .instruct("Quality dropped -- rewrite the weak sections.")
+    .on(R.falling("quality_score").where(lambda v, _: v < 0.5),
+        priority=1, preemptive=True)
+)
+
+# R.compile walks every builder, wires signals + rules into a reactor
+reactor = R.compile(drafter, reviewer, escalator, tape=tape, bus=bus)
+await reactor.run()
+
+# Phase transitions fire the right agent -- no routing code needed
+phase.set("drafting")     # → drafter activates
+phase.set("reviewing")   # → reviewer activates
+quality.set(0.3)          # → escalator preempts (quality fell below 0.5)
+```
+
+**Key concepts:**
+- **Signals** (`R.signal`) -- named state cells tracking conversation phase, quality scores, turn counts. Equal-value writes are no-ops.
+- **Predicates** (`R.rising`, `R.falling`, `R.changed`, `R.is_`) -- composable triggers with `&`, `|`, `~`, `.where()`, `.debounce()`, `.throttle()`.
+- **Builder.on()** -- attach rules declaratively to any builder (Agent, Pipeline, FanOut, Loop).
+- **R.compile()** -- walks builder trees, wires rules + signals + bus into a ready-to-run `Reactor`.
+- **Priority scheduling** -- lower number fires first. `preemptive=True` cancels lower-priority in-flight handlers.
+
+[Reactor Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/reactor/) · [Basic example](examples/cookbook/80_reactor_basic.py) · [Builder.on() example](examples/cookbook/81_reactor_native.py)
 
 ## Zero to Running
 
@@ -1533,6 +1593,8 @@ adk web race                  # race() first-to-finish
 | 37  | Mock Testing         | Test without LLM calls using `.mock()`       |
 | 31  | Typed Output         | Pydantic schemas with `@ Schema`             |
 | 11  | Inline Testing       | Smoke tests with `.test()`                   |
+| 80  | Reactor Basic        | Signals, predicates, computed signals        |
+| 81  | Reactor Native       | `R` namespace + `Builder.on()` -- declarative reactive agents |
 
 ### All Examples
 
@@ -1589,6 +1651,9 @@ adk web race                  # race() first-to-finish
 | 72  | A2UI Operators       | `\|` (Row), `>>` (Column) layouts    |
 | 73  | A2UI LLM-Guided      | `UI.auto()`, `P.ui_schema()`        |
 | 74  | A2UI Pipeline        | `S.to_ui()`, `S.from_ui()` bridges  |
+| 79  | Coding Agent Harness | Full H namespace harness             |
+| 80  | Reactor Basic        | Signals, predicates, computed        |
+| 81  | Reactor Native       | `R` + `Builder.on()` declarative     |
 
 </details>
 
@@ -1756,7 +1821,8 @@ Migration guide: [From Native ADK](https://vamsiramakrishnan.github.io/adk-fluen
 - **Callback accumulation**: multiple `.before_model()` calls append, not replace
 - **Typo detection**: misspelled methods raise `AttributeError` with suggestions
 - **A2UI (Agent-to-UI)**: declarative UI composition via `UI` namespace -- `UI.form()`, `UI.dashboard()`, `|` (Row), `>>` (Column) operators, `compile_surface()` to A2UI JSON ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/a2ui/))
-- **Harness runtime**: `H` namespace exposes nine focused sub-packages for building Claude-Code-class coding agents — [hooks](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/hooks/) (12-event registry), [permissions](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/permissions/) (5-mode policy with `PermissionPlugin`), [plan mode](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/plan-mode/) (plan-then-execute latch), [session](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/session/) (tape + forks + snapshots), [subagents](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/subagents/) (dynamic specialist dispatch via `task()` tool), [usage](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/usage/) (token + USD cost tracking), [budget](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/budget/) (threshold-triggered budget plugin), [compression](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/compression/) (pre-compact hook), and a pluggable `FsBackend` for sandboxed file I/O
+- **Reactive agents**: `R` namespace for state-driven reactivity -- `R.signal()` typed state cells, `SignalPredicate` composition (`&`, `|`, `~`, `.where()`, `.debounce()`, `.throttle()`), priority-scheduled rules, preemption with `AgentToken`, and `Builder.on()` for declarative rule attachment. `R.compile()` walks builder trees into a ready-to-run `Reactor` ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/reactor/))
+- **Harness runtime**: `H` namespace exposes ten focused sub-packages for building Claude-Code-class coding agents — [hooks](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/hooks/) (12-event registry), [permissions](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/permissions/) (5-mode policy with `PermissionPlugin`), [plan mode](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/plan-mode/) (plan-then-execute latch), [session](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/session/) (tape + forks + snapshots), [reactor](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/reactor/) (signals + predicates + priority scheduler), [subagents](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/subagents/) (dynamic specialist dispatch via `task()` tool), [usage](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/usage/) (token + USD cost tracking), [budget](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/budget/) (threshold-triggered budget plugin), [compression](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/compression/) (pre-compact hook), and a pluggable `FsBackend` for sandboxed file I/O
 - **Guards**: output validation with `G.pii()`, `G.toxicity()`, `G.length()`, `G.schema()` ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/guards/))
 - **A2A**: remote agent-to-agent communication via A2A protocol ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/a2a/), [topology reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/a2a-topology-reference.html))
 - **Evaluation**: fluent eval suites with `E.case()`, `E.criterion()`, LLM-as-judge ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/evaluation/))

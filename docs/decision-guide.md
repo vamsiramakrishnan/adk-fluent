@@ -14,29 +14,47 @@ flowchart TD
     START["What are you building?"] --> Q1{"Topology stable &<br>owned by non-Python users?"}
     Q1 -->|Yes| SKILLS["<b>Skills Path</b><br>Skill('path/').ask('prompt')<br>YAML + Markdown → agent graph"]
     Q1 -->|No| Q2{"Agent needs autonomous<br>file / shell / web access?"}
-    Q2 -->|Yes| HARNESS["<b>Harness Path</b><br>Agent('x').tools(H.workspace() + H.web())<br>5-layer architecture"]
+    Q2 -->|Yes| Q3{"Agents should react to<br>state changes (phases,<br>scores, events)?"}
+    Q3 -->|Yes| REACTOR["<b>Reactor Path</b><br>R.signal() + Builder.on()<br>State-driven reactive agents"]
+    Q3 -->|No| HARNESS["<b>Harness Path</b><br>Agent('x').tools(H.workspace() + H.web())<br>5-layer architecture"]
     Q2 -->|No| PIPELINE["<b>Pipeline Path</b><br>Agent('a') >> Agent('b') | Agent('c')<br>Full Python control, 9 namespace modules"]
 
-    SKILLS --> COMPOSE["All three compose together"]
+    SKILLS --> COMPOSE["All compose together"]
+    REACTOR --> COMPOSE
     HARNESS --> COMPOSE
     PIPELINE --> COMPOSE
 
     style SKILLS fill:#FFF3E0,stroke:#E65100,color:#1A1A1A
+    style REACTOR fill:#fef3c7,stroke:#f59e0b,color:#1A1A1A
     style HARNESS fill:#e0f2fe,stroke:#0ea5e9,color:#1A1A1A
     style PIPELINE fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
     style COMPOSE fill:#f5f5f5,stroke:#757575,color:#1A1A1A
 ```
 
-| | Pipeline | Skills | Harness |
-|---|---|---|---|
-| **Abstraction** | Low -- full Python control | High -- YAML config | Medium -- composable layers |
-| **Topology** | Any (unlimited) | Fixed per skill file | Agent + toolset |
-| **Who writes it** | Engineers | Domain experts + engineers | Engineers |
-| **File/shell access** | Optional | No | Yes (sandboxed) |
-| **Multi-turn runtime** | No | No | Yes (REPL, memory) |
-| **Reusability** | Code sharing | SKILL.md sharing (30+ platforms) | Per-domain |
+| | Pipeline | Skills | Harness | Reactor |
+|---|---|---|---|---|
+| **Abstraction** | Low -- full Python control | High -- YAML config | Medium -- composable layers | Medium -- declarative rules |
+| **Topology** | Any (unlimited) | Fixed per skill file | Agent + toolset | Signal-driven, priority-scheduled |
+| **Who writes it** | Engineers | Domain experts + engineers | Engineers | Engineers |
+| **Activation** | Explicit (code flow) | Explicit (config) | Explicit (REPL) | Reactive (state changes) |
+| **File/shell access** | Optional | No | Yes (sandboxed) | Optional |
+| **Multi-turn runtime** | No | No | Yes (REPL, memory) | Yes (reactor loop) |
+| **Reusability** | Code sharing | SKILL.md sharing (30+ platforms) | Per-domain | Per-domain |
 
 **All three compose.** A harness loads skills, skills wire agents as pipelines, pipelines use the full expression algebra.
+
+## Choosing a Coordination Strategy
+
+| Situation | Use | Why |
+|---|---|---|
+| Agents run in a fixed order | `a >> b >> c` (Pipeline) | Deterministic sequence, each step feeds the next |
+| Agents activate based on conversation phase | `Builder.on(R.is_("phase", "drafting"))` | Agents self-select based on state; no routing code needed |
+| Agent should react when a quality score changes | `Builder.on(R.falling("score"))` | Reactive: fires only on state transitions, not polling |
+| Multiple agents should coordinate on shared signals | `R.compile(a, b, c, tape=tape, bus=bus)` | Priority scheduling, preemption, cancellation tokens |
+| Agent should interrupt another on urgent state | `.on(pred, preemptive=True)` | Lower-priority in-flight handlers are cancelled |
+| Agents just need sequential/parallel execution | `>>`, `\|`, `*` operators | Pipeline/FanOut/Loop — no reactor overhead needed |
+
+See [Reactor Guide](user-guide/reactor.md) for signal composition (`&`, `|`, `~`, `.where()`, `.debounce()`, `.throttle()`).
 
 ## Choosing a Topology
 
