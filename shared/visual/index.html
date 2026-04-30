@@ -124,6 +124,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
 
 .a2ui-list { display: flex; flex-direction: column; gap: 4px; }
 .a2ui-list.horizontal { flex-direction: row; }
+.a2ui-list-item { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
 
 .a2ui-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: 16px; }
@@ -566,11 +567,47 @@ class A2UIRenderer {
     el.className = 'a2ui-list';
     if (c.direction === 'horizontal') el.classList.add('horizontal');
     const children = Array.isArray(c.children) ? c.children : [];
-    for (const childId of children) {
-      const child = byId[childId];
-      if (child) el.appendChild(this._renderComponent(child, byId, dm, theme));
+
+    if (c.children?.path) {
+      const items = this._getPath(dm, c.children.path);
+      if (Array.isArray(items)) {
+        const templateChild = children[0] ? byId[children[0]] : null;
+        for (let i = 0; i < items.length; i++) {
+          const itemPath = `${c.children.path}/${i}`;
+          if (templateChild) {
+            const clone = JSON.parse(JSON.stringify(templateChild));
+            clone.id = `${clone.id}_${i}`;
+            this._rebindPaths(clone, '/', itemPath);
+            byId[clone.id] = clone;
+            el.appendChild(this._renderComponent(clone, byId, dm, theme));
+          } else {
+            const row = document.createElement('div');
+            row.className = 'a2ui-list-item';
+            row.textContent = typeof items[i] === 'object' ? JSON.stringify(items[i]) : String(items[i]);
+            el.appendChild(row);
+          }
+        }
+      }
+    } else {
+      for (const childId of children) {
+        const child = byId[childId];
+        if (child) el.appendChild(this._renderComponent(child, byId, dm, theme));
+      }
     }
     return el;
+  }
+
+  _rebindPaths(comp, fromPrefix, toPrefix) {
+    for (const key of Object.keys(comp)) {
+      const val = comp[key];
+      if (val && typeof val === 'object' && val.path && typeof val.path === 'string') {
+        if (val.path.startsWith(fromPrefix)) {
+          val.path = toPrefix + val.path.slice(fromPrefix.length);
+        }
+      } else if (val && typeof val === 'object' && !Array.isArray(val)) {
+        this._rebindPaths(val, fromPrefix, toPrefix);
+      }
+    }
   }
 
   _renderCard(c, byId, dm, theme) {
@@ -662,14 +699,30 @@ class A2UIRenderer {
     if (c.action) {
       btn.onclick = () => {
         if (c.action.event) {
-          console.log('[A2UI Action]', c.action.event.name, c.action.event.context);
-          addChatMessage('system', `Action: ${c.action.event.name}`);
+          const eventName = c.action.event.name;
+          const eventContext = c.action.event.context || {};
+          const payload = { action: eventName, context: eventContext, data: { ...dm } };
+          console.log('[A2UI Action]', eventName, payload);
+          this._submitAction(payload);
         } else if (c.action.functionCall?.call === 'openUrl') {
           window.open(c.action.functionCall.args.url, '_blank');
         }
       };
     }
     return btn;
+  }
+
+  _submitAction(payload) {
+    const prompt = `[A2UI] ${payload.action}: ${JSON.stringify(payload.data)}`;
+    if (typeof sendA2UIAction === 'function') {
+      sendA2UIAction(payload);
+    } else if (typeof sendMessage === 'function') {
+      const input = document.getElementById('prompt-input');
+      if (input) {
+        input.value = prompt;
+        sendMessage();
+      }
+    }
   }
 
   _renderTextField(c, dm) {
@@ -1018,6 +1071,43 @@ async function sendMessage() {
   input.disabled = false;
   document.getElementById('send-btn').disabled = false;
   input.focus();
+}
+
+async function sendA2UIAction(payload) {
+  if (!activeCookbook || !serverAvailable) return;
+
+  const actionLabel = payload.action || 'submit';
+  const contextStr = Object.keys(payload.context || {}).length
+    ? ` (${JSON.stringify(payload.context)})`
+    : '';
+  addChatMessage('user', `[Action] ${actionLabel}${contextStr}`);
+
+  const prompt = JSON.stringify({
+    _a2ui_action: payload.action,
+    _a2ui_context: payload.context || {},
+    _a2ui_data: payload.data || {}
+  });
+
+  try {
+    const r = await fetch(`${API}/api/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookbook: activeCookbook.id, prompt })
+    });
+    const data = await r.json();
+    if (data.error) {
+      addChatMessage('system', `Error: ${data.error}`);
+    } else {
+      addChatMessage('agent', data.response || '(no response)');
+      if (data.surface_messages?.length) {
+        renderer.processMessages(data.surface_messages);
+        rerenderSurface();
+        showJsonPreview(data.surface_messages);
+      }
+    }
+  } catch (e) {
+    addChatMessage('system', `Request failed: ${e.message}`);
+  }
 }
 
 function addChatMessage(role, text) {
