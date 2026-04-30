@@ -195,12 +195,13 @@ def generate_agent_py(parsed: dict) -> str | None:
     lines.append("\n".join(fluent_lines))
     lines.append("")
 
-    # Assign root_agent
-    needs_build = _needs_build(fluent_code, var_name)
-    if needs_build:
-        lines.append(f"root_agent = {var_name}.build()")
-    else:
-        lines.append(f"root_agent = {var_name}")
+    # Assign root_agent (skip if already assigned in the fluent code)
+    if "root_agent" not in fluent_code:
+        needs_build = _needs_build(fluent_code, var_name)
+        if needs_build:
+            lines.append(f"root_agent = {var_name}.build()")
+        else:
+            lines.append(f"root_agent = {var_name}")
 
     lines.append("")
     return "\n".join(lines)
