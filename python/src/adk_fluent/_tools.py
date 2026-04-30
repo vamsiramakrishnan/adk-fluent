@@ -124,6 +124,38 @@ def _build_flux_a2ui_toolset(*, schema: Any = None) -> TComposite:
     return TComposite([_FluxA2UIToolset(schema=schema)], kind="a2ui_flux")
 
 
+
+def _make_lenient(catalog: Any) -> Any:
+    """Patch the catalog's validator class to be lenient.
+
+    A2uiCatalog.validator is a property that creates a fresh A2uiValidator
+    each call. We patch the A2uiValidator.validate method at the class level
+    to swallow validation errors from extra layout properties (gap, padding,
+    margin) that LLMs commonly add.
+    """
+    from a2ui.schema.validator import A2uiValidator  # type: ignore[import-not-found]
+
+    if not getattr(A2uiValidator, "_adk_fluent_lenient", False):
+        _orig = A2uiValidator.validate
+
+        def _lenient_validate(
+            self: Any,
+            a2ui_json: Any,
+            root_id: Any = None,
+            strict_integrity: bool = False,
+        ) -> None:
+            try:
+                _orig(self, a2ui_json, root_id=root_id, strict_integrity=False)
+            except ValueError as exc:
+                import logging
+
+                logging.getLogger("adk_fluent.a2ui").debug("A2UI validation relaxed: %s", exc)
+
+        A2uiValidator.validate = _lenient_validate  # type: ignore[assignment]
+        A2uiValidator._adk_fluent_lenient = True  # type: ignore[attr-defined]
+    return catalog
+
+
 class T:
     """Fluent tool composition. Consistent with P, C, S, M modules.
 
@@ -419,21 +451,7 @@ class T:
         mgr = A2uiSchemaManager(VERSION_0_9, [config], [remove_strict_validation])
         a2ui_catalog = mgr.get_selected_catalog()
 
-        # Patch validator to be lenient — LLMs often add layout props like
-        # gap, padding, etc. that are valid CSS but not in the strict schema.
-        _orig_validate = a2ui_catalog.validator.validate
-
-        def _lenient_validate(
-            a2ui_json: Any,
-            root_id: Any = None,
-            strict_integrity: bool = False,
-        ) -> None:
-            try:
-                _orig_validate(a2ui_json, root_id=root_id, strict_integrity=False)
-            except ValueError:
-                pass  # accept LLM output even if it has extra properties
-
-        a2ui_catalog.validator.validate = _lenient_validate
+        a2ui_catalog = _make_lenient(a2ui_catalog)
 
         toolset = SendA2uiToClientToolset(
             a2ui_enabled=True,
