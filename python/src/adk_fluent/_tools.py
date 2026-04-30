@@ -125,35 +125,52 @@ def _build_flux_a2ui_toolset(*, schema: Any = None) -> TComposite:
 
 
 
-def _make_lenient(catalog: Any) -> Any:
-    """Patch the catalog's validator class to be lenient.
+_A2UI_ENABLED_KEY = "system:a2ui_enabled"
+_A2UI_CATALOG_KEY = "system:a2ui_catalog"
+_A2UI_EXAMPLES_KEY = "system:a2ui_examples"
 
-    A2uiCatalog.validator is a property that creates a fresh A2uiValidator
-    each call. We patch the A2uiValidator.validate method at the class level
-    to swallow validation errors from extra layout properties (gap, padding,
-    margin) that LLMs commonly add.
+
+def _build_a2ui_catalog() -> tuple[Any, str]:
+    """Build a BasicCatalog + examples using the same flow as the A2A executor.
+
+    Returns (catalog, examples_str).
     """
-    from a2ui.schema.validator import A2uiValidator  # type: ignore[import-not-found]
+    from a2ui.basic_catalog.provider import BasicCatalog  # type: ignore[import-not-found]
+    from a2ui.schema.constants import VERSION_0_9  # type: ignore[import-not-found]
+    from a2ui.schema.common_modifiers import remove_strict_validation  # type: ignore[import-not-found]
+    from a2ui.schema.manager import A2uiSchemaManager  # type: ignore[import-not-found]
 
-    if not getattr(A2uiValidator, "_adk_fluent_lenient", False):
-        _orig = A2uiValidator.validate
+    config = BasicCatalog().get_config(VERSION_0_9)
+    mgr = A2uiSchemaManager(VERSION_0_9, [config], [remove_strict_validation])
+    catalog = mgr.get_selected_catalog()
+    examples = mgr.load_examples(catalog, validate=True)
+    return catalog, examples
 
-        def _lenient_validate(
-            self: Any,
-            a2ui_json: Any,
-            root_id: Any = None,
-            strict_integrity: bool = False,
-        ) -> None:
-            try:
-                _orig(self, a2ui_json, root_id=root_id, strict_integrity=False)
-            except ValueError as exc:
-                import logging
 
-                logging.getLogger("adk_fluent.a2ui").debug("A2UI validation relaxed: %s", exc)
+def a2ui_session_state() -> dict[str, Any]:
+    """Return the session state dict that enables A2UI for an agent.
 
-        A2uiValidator.validate = _lenient_validate  # type: ignore[assignment]
-        A2uiValidator._adk_fluent_lenient = True  # type: ignore[attr-defined]
-    return catalog
+    Pre-populates the same keys the A2A executor sets in _prepare_session,
+    so SendA2uiToClientToolset provider functions resolve correctly when
+    running agents via InMemoryRunner (without the A2A handshake).
+
+    Usage in a visual server::
+
+        session = await runner.session_service.create_session(...)
+        # Inject A2UI state before running
+        state = a2ui_session_state()
+        for k, v in state.items():
+            session.state[k] = v
+    """
+    try:
+        catalog, examples = _build_a2ui_catalog()
+    except ImportError:
+        return {}
+    return {
+        _A2UI_ENABLED_KEY: True,
+        _A2UI_CATALOG_KEY: catalog,
+        _A2UI_EXAMPLES_KEY: examples,
+    }
 
 
 class T:
@@ -439,24 +456,35 @@ class T:
 
         try:
             from a2ui.adk.send_a2ui_to_client_toolset import SendA2uiToClientToolset  # type: ignore[import-not-found]
-            from a2ui.basic_catalog.provider import BasicCatalog  # type: ignore[import-not-found]
-            from a2ui.schema.constants import VERSION_0_9  # type: ignore[import-not-found]
-            from a2ui.schema.common_modifiers import remove_strict_validation  # type: ignore[import-not-found]
-            from a2ui.schema.manager import A2uiSchemaManager  # type: ignore[import-not-found]
         except ImportError as exc:
             raise A2UINotInstalled(
                 "T.a2ui() requires the 'a2ui-agent-sdk' package. Install with: pip install a2ui-agent-sdk"
             ) from exc
-        config = BasicCatalog().get_config(VERSION_0_9)
-        mgr = A2uiSchemaManager(VERSION_0_9, [config], [remove_strict_validation])
-        a2ui_catalog = mgr.get_selected_catalog()
 
-        a2ui_catalog = _make_lenient(a2ui_catalog)
+        # Use provider functions that read from session state — the same
+        # pattern the A2A executor uses. The visual server (or any runner)
+        # must call a2ui_session_state() to pre-populate these keys.
+        def _get_enabled(ctx: Any) -> bool:
+            return ctx.state.get(_A2UI_ENABLED_KEY, True)
+
+        def _get_catalog(ctx: Any) -> Any:
+            cached = ctx.state.get(_A2UI_CATALOG_KEY)
+            if cached is not None:
+                return cached
+            cat, _ = _build_a2ui_catalog()
+            return cat
+
+        def _get_examples(ctx: Any) -> str:
+            cached = ctx.state.get(_A2UI_EXAMPLES_KEY)
+            if cached is not None:
+                return cached
+            _, ex = _build_a2ui_catalog()
+            return ex
 
         toolset = SendA2uiToClientToolset(
-            a2ui_enabled=True,
-            a2ui_catalog=a2ui_catalog,
-            a2ui_examples="",
+            a2ui_enabled=_get_enabled,
+            a2ui_catalog=_get_catalog,
+            a2ui_examples=_get_examples,
         )
         return TComposite([toolset], kind="a2ui")
 

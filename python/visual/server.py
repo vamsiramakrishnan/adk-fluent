@@ -366,6 +366,15 @@ async def run_agent(body: dict):
 
         session = await runner.session_service.create_session(app_name="visual_runner", user_id="visual_user")
 
+        # Pre-populate A2UI session state (same as the A2A executor flow)
+        try:
+            from adk_fluent._tools import a2ui_session_state
+
+            for k, v in a2ui_session_state().items():
+                session.state[k] = v
+        except ImportError:
+            pass
+
         content = types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
         response_text = ""
         surface_messages = []
