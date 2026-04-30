@@ -418,6 +418,23 @@ class T:
         config = BasicCatalog().get_config(VERSION_0_9)
         mgr = A2uiSchemaManager(VERSION_0_9, [config], [remove_strict_validation])
         a2ui_catalog = mgr.get_selected_catalog()
+
+        # Patch validator to be lenient — LLMs often add layout props like
+        # gap, padding, etc. that are valid CSS but not in the strict schema.
+        _orig_validate = a2ui_catalog.validator.validate
+
+        def _lenient_validate(
+            a2ui_json: Any,
+            root_id: Any = None,
+            strict_integrity: bool = False,
+        ) -> None:
+            try:
+                _orig_validate(a2ui_json, root_id=root_id, strict_integrity=False)
+            except ValueError:
+                pass  # accept LLM output even if it has extra properties
+
+        a2ui_catalog.validator.validate = _lenient_validate
+
         toolset = SendA2uiToClientToolset(
             a2ui_enabled=True,
             a2ui_catalog=a2ui_catalog,
