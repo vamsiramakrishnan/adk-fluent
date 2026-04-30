@@ -240,6 +240,37 @@ def _get_builder(cookbook_id: str):
     return None
 
 
+def _try_load_surfaces(cookbook_id: str) -> list[dict] | None:
+    """Try to extract compiled A2UI surfaces from a cookbook file."""
+    cb = _validate_cookbook_id(cookbook_id)
+    if not cb:
+        return None
+    cookbook_file = COOKBOOK_DIR / f"{cb['id']}.py"
+    if not cookbook_file.exists():
+        return None
+    try:
+        import contextlib
+        import io
+
+        spec = importlib.util.spec_from_file_location(f"cb_surf_{cookbook_id}", cookbook_file)
+        if spec is None or spec.loader is None:
+            return None
+        mod = importlib.util.module_from_spec(spec)
+        with contextlib.redirect_stdout(io.StringIO()):
+            spec.loader.exec_module(mod)
+
+        from adk_fluent._ui import UISurface, compile_surface
+
+        all_msgs: list[dict] = []
+        for attr_name in dir(mod):
+            obj = getattr(mod, attr_name, None)
+            if isinstance(obj, UISurface):
+                all_msgs.extend(compile_surface(obj))
+        return all_msgs if all_msgs else None
+    except Exception:
+        return None
+
+
 # ── Routes ─────────────────────────────────────────────────────
 
 
@@ -302,7 +333,14 @@ async def run_agent(body: dict):
     try:
         agent = _load_agent(cookbook_id)
     except ValueError:
-        return JSONResponse({"error": f"Cookbook '{cookbook_id}' not found"}, status_code=404)
+        # No runnable agent — check if it's a UI-only cookbook with surfaces
+        surface_msgs = _try_load_surfaces(cookbook_id)
+        if surface_msgs:
+            return JSONResponse({
+                "response": "(This cookbook demonstrates UI components — no LLM agent to run.)",
+                "surface_messages": surface_msgs,
+            })
+        return JSONResponse({"error": f"Cookbook '{cookbook_id}' has no runnable agent"}, status_code=404)
     except RuntimeError:
         logger.exception("Failed to load agent for cookbook '%s'", cookbook_id)
         return JSONResponse({"error": "Failed to load agent"}, status_code=500)
