@@ -63,4 +63,17 @@ renderer = (
 # These are composable with >> operator
 # pipeline = calc_agent >> S.to_ui("total", surface="metrics") >> renderer
 
-print("All A2UI pipeline assertions passed!")
+# --- 8. Runnable agent: sales metrics reporter with LLM-driven dashboard ---
+_sales_builder = (
+    Agent("sales_reporter", "gemini-2.5-flash")
+    .instruct(
+        "You are a sales analytics agent. When asked about metrics, "
+        "create an interactive dashboard showing revenue, deal count, "
+        "and pipeline value. Use the A2UI tools to render charts and tables."
+    )
+    .ui(llm_guided=True)
+)
+try:
+    root_agent = _sales_builder.build()
+except Exception:
+    root_agent = None

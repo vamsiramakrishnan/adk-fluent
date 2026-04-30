@@ -106,4 +106,20 @@ assert isinstance(wizard, UISurface)
 usage_chart = UI.component("BarChart", data="/stats/usage_history", x="month", y="api_calls")
 assert usage_chart._kind == "BarChart"
 
-print("All A2UI onboarding assertions passed!")
+# --- 10. Runnable agent: onboarding assistant with LLM-guided UI ---
+from adk_fluent import Agent
+
+_onboarding_builder = (
+    Agent("onboarding_agent", "gemini-2.5-flash")
+    .instruct(
+        "You are a customer onboarding assistant for Acme SaaS. "
+        "Collect the customer's name, email, and company. "
+        "Show a welcome form, then present plan options. "
+        "Use the A2UI tools to create interactive forms and dashboards."
+    )
+    .ui(llm_guided=True)
+)
+try:
+    root_agent = _onboarding_builder.build()
+except Exception:
+    root_agent = None  # a2ui-agent not installed — agent runs without UI tools

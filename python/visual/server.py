@@ -333,11 +333,10 @@ async def run_agent(body: dict):
     try:
         agent = _load_agent(cookbook_id)
     except ValueError:
-        # No runnable agent — check if it's a UI-only cookbook with surfaces
         surface_msgs = _try_load_surfaces(cookbook_id)
         if surface_msgs:
             return JSONResponse({
-                "response": "(This cookbook demonstrates UI components — no LLM agent to run.)",
+                "response": "(A2UI surfaces rendered. Install `pip install a2ui-agent` for full LLM-guided UI.)",
                 "surface_messages": surface_msgs,
             })
         return JSONResponse({"error": f"Cookbook '{cookbook_id}' has no runnable agent"}, status_code=404)

@@ -67,4 +67,18 @@ assert "Text" in text  # Component documented
 #   toolset = SendA2uiToClientToolset(a2ui_enabled=True, a2ui_catalog=catalog, ...)
 #   LlmAgent(model=..., name=..., instruction=..., tools=[toolset, ...])
 
-print("OK — 77_a2ui_dynamic")
+# --- Runnable agent: data explorer with LLM-designed visualizations ---
+_explorer_builder = (
+    Agent("data_explorer", "gemini-2.5-flash")
+    .instruct(
+        "You are a data exploration agent. Users ask questions about their "
+        "data and you create interactive visualizations — dashboards, tables, "
+        "charts, and forms. Use the A2UI tools to design the UI dynamically."
+    )
+    .tool(get_data)
+    .ui(UI.auto())
+)
+try:
+    root_agent = _explorer_builder.build()
+except Exception:
+    root_agent = None

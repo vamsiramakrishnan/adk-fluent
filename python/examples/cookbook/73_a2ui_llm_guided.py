@@ -103,4 +103,21 @@ if not _a2ui_installed():
     else:
         raise AssertionError("expected BuilderError on missing a2ui-agent")
 
-print("All A2UI LLM-guided assertions passed!")
+# ---------------------------------------------------------------------------
+# 7. Runnable agent: creative UI designer (LLM picks the layout).
+# ---------------------------------------------------------------------------
+
+_designer_builder = (
+    Agent("ui_designer", "gemini-2.5-flash")
+    .instruct(
+        "You are a creative UI designer. When the user describes what they "
+        "need, generate an interactive A2UI surface — forms, dashboards, "
+        "tables, or any combination. Use the send_a2ui_json_to_client tool "
+        "to render your designs."
+    )
+    .ui(llm_guided=True)
+)
+try:
+    root_agent = _designer_builder.build()
+except Exception:
+    root_agent = None

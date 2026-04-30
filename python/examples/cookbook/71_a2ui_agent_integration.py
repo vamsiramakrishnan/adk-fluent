@@ -153,4 +153,21 @@ assert clean.validate() is clean  # no-op for clean surfaces
 guard_chain = G.pii() | G.a2ui()  # G.a2ui works without a2ui-agent
 assert guard_chain is not None
 
-print("All A2UI agent integration assertions passed!")
+# ---------------------------------------------------------------------------
+# 9. Runnable agent: ticket collector with schema-driven form.
+# ---------------------------------------------------------------------------
+
+_ticket_builder = (
+    Agent("ticket_agent", "gemini-2.5-flash")
+    .instruct(
+        "You are a support ticket assistant. Collect the issue details "
+        "from the user using a structured form. Ask for title, priority "
+        "(low/med/high), and description. Use the A2UI tools to present "
+        "an interactive ticket form."
+    )
+    .ui(llm_guided=True)
+)
+try:
+    root_agent = _ticket_builder.build()
+except Exception:
+    root_agent = None
