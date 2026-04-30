@@ -41,6 +41,20 @@ if str(ROOT / "src") not in sys.path:
 
 logger = logging.getLogger("visual.server")
 
+# Load .env from visual dir, python dir, or monorepo root
+for _env_path in [VISUAL_DIR / ".env", ROOT / ".env", ROOT.parent / ".env"]:
+    if _env_path.exists():
+        import os
+
+        for _line in _env_path.read_text().splitlines():
+            _line = _line.strip()
+            if not _line or _line.startswith("#"):
+                continue
+            _k, _, _v = _line.partition("=")
+            if _k.strip():
+                os.environ.setdefault(_k.strip(), _v.strip())
+        break
+
 # ── App setup ──────────────────────────────────────────────────
 app = FastAPI(title="adk-fluent Visual Runner", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
