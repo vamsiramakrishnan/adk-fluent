@@ -152,7 +152,53 @@ def _load_agent(cookbook_id: str) -> Any:
             except Exception as e:
                 raise RuntimeError(f"Failed to load {agent_file}: {e}") from e
 
-    raise ValueError(f"No runnable agent found for '{cookbook_id}'. Run 'just agents' first.")
+    # Fall back: load directly from cookbook file and find a buildable agent
+    cookbook_file = COOKBOOK_DIR / f"{cb['id']}.py"
+    if cookbook_file.exists():
+        agent = _load_agent_from_cookbook(cookbook_file)
+        if agent is not None:
+            _agent_cache[cookbook_id] = agent
+            return agent
+
+    raise ValueError(f"No runnable agent found for '{cookbook_id}'. Run 'just agents' to pre-generate.")
+
+
+def _load_agent_from_cookbook(filepath: Path) -> Any:
+    """Load an agent directly from a cookbook .py file (fallback path)."""
+    import contextlib
+    import io
+
+    spec = importlib.util.spec_from_file_location(f"cb_run_{filepath.stem}", filepath)
+    if spec is None or spec.loader is None:
+        return None
+    mod = importlib.util.module_from_spec(spec)
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            spec.loader.exec_module(mod)
+    except Exception:
+        return None
+
+    # Search for buildable agents in the module
+    from adk_fluent._base import BuilderBase
+
+    for name in ("root_agent", "agent", "pipeline", "support_system", "built"):
+        obj = getattr(mod, name, None)
+        if obj is not None:
+            if isinstance(obj, BuilderBase):
+                return obj.build()
+            if hasattr(obj, "name") and hasattr(obj, "sub_agents"):
+                return obj  # already built ADK agent
+    # Search all module attributes for builders
+    for attr_name in dir(mod):
+        if attr_name.startswith("_"):
+            continue
+        obj = getattr(mod, attr_name, None)
+        if isinstance(obj, BuilderBase) and hasattr(obj, "build"):
+            try:
+                return obj.build()
+            except Exception:
+                continue
+    return None
 
 
 def _validate_cookbook_id(cookbook_id: str) -> dict | None:

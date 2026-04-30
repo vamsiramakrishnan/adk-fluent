@@ -507,10 +507,12 @@ play *args:
       echo "  ✓ Dependencies ready"
     fi
 
-    # ── 3. Export A2UI surfaces ──
+    # ── 3. Generate agent folders + export A2UI surfaces ──
+    echo "  Generating agent folders..."
+    uv run --project python python shared/scripts/cookbook_to_agents.py --force 2>/dev/null || true
     echo "  Exporting A2UI surfaces..."
     uv run --project python python -m shared.scripts.export_a2ui_surfaces 2>/dev/null || true
-    echo "  ✓ Surfaces exported"
+    echo "  ✓ Agents + surfaces ready"
     echo ""
 
     # ── 4. Launch both servers ──
