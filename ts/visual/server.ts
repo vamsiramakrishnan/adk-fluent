@@ -151,17 +151,50 @@ app.get("/api/cookbooks", (c) => {
   return c.json(discoverCookbooks());
 });
 
-app.get("/api/inspect/:cookbookId", (c) => {
+app.get("/api/inspect/:cookbookId", async (c) => {
   const cookbookId = c.req.param("cookbookId");
   try {
     const filepath = join(COOKBOOK_DIR, `${cookbookId}.ts`);
     const source = existsSync(filepath) ? readFileSync(filepath, "utf-8") : null;
 
+    // Try to load the agent and extract introspection
+    let explain: string | null = source ? `TypeScript cookbook source:\n\n${source}` : null;
+    let mermaid: string | null = null;
+    let surfaceMessages: unknown[] | null = null;
+
+    try {
+      const mod = await import(pathToFileURL(filepath).href);
+      const builder =
+        mod.root_agent_builder ?? mod.rootAgentBuilder ?? mod.builder ?? mod.agent ?? mod.pipeline;
+
+      if (builder && typeof builder === "object") {
+        // Builder introspection
+        if (typeof builder.inspect === "function") {
+          explain = builder.inspect();
+        } else if (typeof builder.explain === "function") {
+          explain = String(builder.explain());
+        }
+
+        // Mermaid diagram
+        if (typeof builder.toMermaid === "function") {
+          mermaid = builder.toMermaid();
+        }
+
+        // A2UI surface pre-compilation
+        const uiSpec = builder._uiSpec ?? builder._config?._ui_spec;
+        if (uiSpec && typeof uiSpec.compile === "function") {
+          surfaceMessages = uiSpec.compile();
+        }
+      }
+    } catch {
+      // Agent loading failed — fall back to source-only introspection
+    }
+
     return c.json({
       cookbook_id: cookbookId,
-      explain: source ? `TypeScript cookbook source:\n\n${source}` : null,
-      mermaid: null,
-      surface_messages: null,
+      explain,
+      mermaid,
+      surface_messages: surfaceMessages,
     });
   } catch (err) {
     return c.json({ error: String(err) }, 500);
