@@ -139,5 +139,19 @@ async def test_reactor_logs_agreement_to_crm() -> None:
     assert crm_log[0]["customer"] == "CUST-4821"
 
 
+# --- Runnable agent for visual playground ---
+from adk_fluent import Agent
+
+root_agent = (
+    Agent("collection_agent", "gemini-2.5-flash")
+    .instruct(
+        "You are a debt collection agent for Acme Collections. "
+        "Guide the conversation through phases: greeting, identity "
+        "verification, negotiation, and commitment. Track customer "
+        "sentiment and offer flexible payment plans."
+    )
+    .build()
+)
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

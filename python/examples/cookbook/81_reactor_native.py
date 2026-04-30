@@ -190,5 +190,17 @@ def test_debounce_throttle_are_immutable() -> None:
     assert debounced._debounce_ms == 50.0
 
 
+# --- Runnable agent for visual playground ---
+root_agent = (
+    Agent("debt_negotiator", "gemini-2.5-flash")
+    .instruct(
+        "You are a debt collection negotiator for Acme Collections. "
+        "Present the outstanding balance and offer three payment plans: "
+        "full payment (10% discount), 3-month plan, or 6-month plan. "
+        "Be empathetic but firm. Track conversation phase and sentiment."
+    )
+    .build()
+)
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
