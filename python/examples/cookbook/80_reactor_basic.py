@@ -1,16 +1,21 @@
-"""Signals + Reactor — reactive state over the durable tape.
+"""Reactive Conversation Phases — Signal, Predicate, Reactor Fundamentals
 
-Shows the three reactive primitives added in Phase F / Phase G / auto-tracking:
+Real-world scenario: a debt collection system where conversation state
+drives agent behavior. Signals track conversation phase, customer
+sentiment, and payment agreement status. Predicates fire when phases
+transition or sentiment drops. A computed signal derives overall
+conversation health from multiple inputs.
 
-1. :class:`Signal` — typed state cell with version tracking. Mutations
-   emit :class:`SignalChanged` on the ambient :class:`EventBus` (which
-   in turn lands on the :class:`SessionTape`).
-2. :class:`Reactor` — cursor-following scheduler. Registered rules fire
-   when their :class:`SignalPredicate` matches a change on the tape.
-3. ``computed(name, fn)`` — derived signal that auto-tracks reads of
-   other signals and re-runs on any dep change.
+When the customer commits to a payment plan, a reactor handler logs
+the agreement to CRM — no polling, no manual dispatch.
 
-Run: ``uv run pytest examples/cookbook/80_reactor_basic.py -v``
+Concepts:
+  Signal        — typed state cell (phase, sentiment, agreement)
+  Predicate     — edge-triggered filter (.rising, .falling, .where)
+  computed()    — derived signal that auto-tracks reads
+  Reactor       — cursor-following scheduler over the session tape
+
+Run: uv run pytest examples/cookbook/80_reactor_basic.py -v
 """
 
 from __future__ import annotations
@@ -22,77 +27,116 @@ import pytest
 from adk_fluent import H, Reactor, Signal, computed
 
 
-def test_signal_emits_on_change() -> None:
-    """Setting a new value emits; repeating the value is a no-op."""
+# ── Simulated CRM ──
+
+crm_log: list[dict] = []
+
+
+# ======================================================================
+# Test 1: Phase signals emit change events on the tape
+# ======================================================================
+
+
+def test_phase_signal_emits_on_transition() -> None:
+    """Setting a new phase emits a change; repeating is a no-op."""
     bus = H.event_bus()
     tape = bus.tape()
 
-    temp = Signal("temperature", 72.0, bus=bus)
+    phase = Signal("phase", "greeting", bus=bus)
 
-    assert temp.set(85.0) is True
-    assert temp.set(85.0) is False  # equal — skipped
-    assert temp.set(85.0, force=True) is True
+    assert phase.set("verification") is True
+    assert phase.set("verification") is False  # same value — skipped
+    assert phase.set("negotiation") is True
 
-    kinds = [e["kind"] for e in tape.events]
-    assert kinds.count("signal_changed") == 2
+    changes = [e for e in tape.events if e["kind"] == "signal_changed"]
+    assert len(changes) == 2
+    assert changes[0]["value"] == "verification"
+    assert changes[1]["value"] == "negotiation"
 
 
-def test_signal_predicate_filters_by_edge() -> None:
-    """``.rising`` only matches when the value actually rises above 90."""
-    temp = Signal("temperature", 72.0)
-    rising_90 = temp.rising.where(lambda v, prev: v > 90)
+# ======================================================================
+# Test 2: Sentiment predicates filter by edge direction
+# ======================================================================
+
+
+def test_sentiment_predicates_detect_drops() -> None:
+    """`.falling` + `.where()` triggers only when sentiment drops below 0.3."""
+    sentiment = Signal("sentiment", 0.7)
+    upset = sentiment.falling.where(lambda v, prev: v < 0.3)
 
     from adk_fluent._reactor._predicate import _Change
 
-    assert rising_90.matches(_Change("temperature", 95.0, 89.0))  # rising above 90
-    assert not rising_90.matches(_Change("temperature", 80.0, 95.0))  # falling
-    assert not rising_90.matches(_Change("temperature", 85.0, 72.0))  # rising but below 90
+    assert upset.matches(_Change("sentiment", 0.2, 0.7))  # fell below 0.3
+    assert not upset.matches(_Change("sentiment", 0.5, 0.7))  # fell but above 0.3
+    assert not upset.matches(_Change("sentiment", 0.8, 0.5))  # rising, not falling
 
 
-def test_computed_auto_tracks_reads() -> None:
-    """``computed`` re-runs when any signal it read changes."""
-    price = Signal("price", 100.0)
-    tax_rate = Signal("tax", 0.1)
+# ======================================================================
+# Test 3: Computed health score from sentiment + phase progress
+# ======================================================================
 
-    total = computed("total", lambda: price.get() * (1 + tax_rate.get()))
-    assert total.get() == pytest.approx(110.0)
 
-    price.set(200.0)
-    assert total.get() == pytest.approx(220.0)
+def test_computed_conversation_health() -> None:
+    """Derived signal combines sentiment and phase into a health score."""
+    phase = Signal("phase", "greeting")
+    sentiment = Signal("sentiment", 0.8)
 
-    tax_rate.set(0.2)
-    assert total.get() == pytest.approx(240.0)
+    progress = {"greeting": 0.0, "verification": 0.25, "negotiation": 0.5, "commitment": 0.75, "done": 1.0}
+
+    health = computed("health", lambda: sentiment.get() * 0.6 + progress.get(phase.get(), 0) * 0.4)
+
+    assert health.get() == pytest.approx(0.48)  # 0.8*0.6 + 0.0*0.4
+
+    phase.set("negotiation")
+    assert health.get() == pytest.approx(0.68)  # 0.8*0.6 + 0.5*0.4
+
+    sentiment.set(0.3)  # customer getting upset
+    assert health.get() == pytest.approx(0.38)  # drops with sentiment
+
+
+# ======================================================================
+# Test 4: Reactor fires CRM handler on payment agreement
+# ======================================================================
 
 
 @pytest.mark.asyncio
-async def test_reactor_fires_rule_on_signal() -> None:
-    """End-to-end: signal change → predicate match → handler fires."""
+async def test_reactor_logs_agreement_to_crm() -> None:
+    """When agreement signal changes from None to a plan, CRM handler fires."""
     bus = H.event_bus()
     tape = bus.tape()
+    crm_log.clear()
 
-    temp = Signal("temp", 72.0, bus=bus)
-    alerts: list[float] = []
+    agreement = Signal("agreement", None, bus=bus)
     done = asyncio.Event()
 
-    async def alert_handler(change) -> None:  # noqa: ANN001
-        alerts.append(change.value)
-        done.set()
+    async def crm_handler(change) -> None:  # noqa: ANN001
+        if change.value is not None:
+            crm_log.append({
+                "customer": "CUST-4821",
+                "plan": change.value,
+                "agent": "closer",
+            })
+            done.set()
 
     reactor = Reactor(tape, bus=bus)
-    reactor.when(temp.rising.where(lambda v, prev: v > 90), alert_handler, name="hot_alert", priority=10)
+    reactor.when(
+        agreement.changed.where(lambda v, prev: v is not None),
+        crm_handler,
+        name="crm_log",
+        priority=10,
+    )
 
-    # Run the reactor in the background with a small budget so the test ends.
     run_task = asyncio.create_task(reactor.run(budget=1))
-    await asyncio.sleep(0)  # hand control to the reactor
+    await asyncio.sleep(0)
 
-    temp.set(95.0)  # should trip the predicate
+    agreement.set({"type": "3-month", "monthly": 250.00, "start": "2026-06-01"})
 
-    fires = await asyncio.wait_for(run_task, timeout=1.0)
-    assert fires == 1
-
-    # Wait for the spawned handler task to complete.
+    await asyncio.wait_for(run_task, timeout=2.0)
     await asyncio.wait_for(done.wait(), timeout=1.0)
-    assert alerts == [95.0]
+
+    assert len(crm_log) == 1
+    assert crm_log[0]["plan"]["type"] == "3-month"
+    assert crm_log[0]["customer"] == "CUST-4821"
 
 
 if __name__ == "__main__":
