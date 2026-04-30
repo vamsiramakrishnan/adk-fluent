@@ -47,7 +47,7 @@ search = [
 a2a = [
     "google-adk[a2a]>=1.20.0",
 ]
-# a2ui = ["a2ui-agent>=0.1.0"]  # Not yet published; uncomment when available
+a2ui = ["a2ui-agent-sdk>=0.2.0"]
 examples = [
     "python-dotenv>=1.0",
 ]

@@ -98,7 +98,7 @@ assert creative._config["_a2ui_auto_tool"] is True
 assert creative._config["_a2ui_auto_guard"] is True
 
 try:
-    import a2ui.agent  # type: ignore[import-not-found]  # noqa: F401
+    import a2ui.adk  # type: ignore[import-not-found]  # noqa: F401
 
     creative.build()  # succeeds when the optional dep is present
 except ImportError:

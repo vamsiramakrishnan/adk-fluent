@@ -21,7 +21,7 @@ from adk_fluent._ui import _UIAutoSpec  # internal marker, used only for isinsta
 
 def _a2ui_installed() -> bool:
     try:
-        import a2ui.agent  # type: ignore[import-not-found]  # noqa: F401
+        import a2ui.adk  # type: ignore[import-not-found]  # noqa: F401
 
         return True
     except ImportError:

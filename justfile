@@ -502,7 +502,7 @@ play *args:
     # ── 2. Install deps (skip with --skip-setup) ──
     if [ "$SKIP_SETUP" = "false" ]; then
       echo "  Installing dependencies..."
-      cd python && uv sync --all-extras --quiet 2>/dev/null && cd ..
+      cd python && uv sync --all-extras --quiet 2>/dev/null && uv pip install a2ui-agent-sdk --quiet 2>/dev/null && cd ..
       cd ts && npm install --silent 2>/dev/null && cd ..
       echo "  ✓ Dependencies ready"
     fi

@@ -406,12 +406,24 @@ class T:
             return _build_flux_a2ui_toolset(schema=schema)
 
         try:
-            from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
+            from a2ui.adk.send_a2ui_to_client_toolset import SendA2uiToClientToolset  # type: ignore[import-not-found]
+            from a2ui.basic_catalog.provider import BasicCatalog  # type: ignore[import-not-found]
+            from a2ui.schema.constants import VERSION_0_9  # type: ignore[import-not-found]
+            from a2ui.schema.common_modifiers import remove_strict_validation  # type: ignore[import-not-found]
+            from a2ui.schema.manager import A2uiSchemaManager  # type: ignore[import-not-found]
         except ImportError as exc:
             raise A2UINotInstalled(
-                "T.a2ui() requires the 'a2ui-agent' package. Install with: pip install a2ui-agent"
+                "T.a2ui() requires the 'a2ui-agent-sdk' package. Install with: pip install a2ui-agent-sdk"
             ) from exc
-        return TComposite([SendA2uiToClientToolset()], kind="a2ui")
+        config = BasicCatalog().get_config(VERSION_0_9)
+        mgr = A2uiSchemaManager(VERSION_0_9, [config], [remove_strict_validation])
+        a2ui_catalog = mgr.get_selected_catalog()
+        toolset = SendA2uiToClientToolset(
+            a2ui_enabled=True,
+            a2ui_catalog=a2ui_catalog,
+            a2ui_examples="",
+        )
+        return TComposite([toolset], kind="a2ui")
 
     # --- Effectful (idempotent) ---
 

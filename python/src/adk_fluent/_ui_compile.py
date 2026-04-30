@@ -137,7 +137,7 @@ def _has_a2ui_toolset(items: list[Any]) -> bool:
     sentinel produced by the previous (no-op) ``T.a2ui()`` shim.
     """
     try:
-        from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
+        from a2ui.adk.send_a2ui_to_client_toolset import SendA2uiToClientToolset  # type: ignore[import-not-found]
     except ImportError:
         SendA2uiToClientToolset = None  # type: ignore[assignment]
 
