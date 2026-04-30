@@ -181,11 +181,12 @@ def get_session_index(session: Any) -> SessionEventIndex:
     Creates and caches the index on first use. Weakly referenced so the
     cache never pins a session beyond ADK's own lifetime.
     """
-    idx = _INDEX_CACHE.get(session)
+    try:
+        idx = _INDEX_CACHE.get(session)
+    except TypeError:
+        idx = None
     if idx is None:
         idx = SessionEventIndex()
-        # Session not weakref-able (e.g. a test stub) — fall back to
-        # a throwaway index. Still saves the work within this call.
         with contextlib.suppress(TypeError):
             _INDEX_CACHE[session] = idx
     idx._sync(session)

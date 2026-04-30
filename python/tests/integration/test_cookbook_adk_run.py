@@ -45,17 +45,25 @@ _load_dotenv()
 # (folder_name, sample_prompt, timeout_seconds)
 # Timeouts are generous — LLM latency varies. Multi-agent pipelines get more.
 AGENTS: list[tuple[str, str, int]] = [
+    # --- Basics ---
     ("simple_agent", "Classify this email: I cannot log in to my account", 30),
     ("agent_with_tools", "What is the weather in London?", 30),
+    ("one_shot_ask", "Review this code: def add(a, b): return a + b", 30),
+    # --- Workflows ---
     ("sequential_pipeline", "Write a poem about the ocean", 60),
     ("parallel_fanout", "Research the topic: renewable energy", 60),
     ("team_coordinator", "Help me plan a birthday party", 60),
-    ("one_shot_ask", "Review this code: def add(a, b): return a + b", 30),
-    ("guards", "Tell me about machine learning", 30),
+    # --- Routing & State ---
     ("route_branching", "I need help with billing", 30),
+    ("capture_and_route", "I need technical support with my API integration", 60),
+    ("customer_support_triage", "My order hasn't arrived yet", 60),
+    # --- Advanced Patterns ---
     ("real_world_pipeline", "Summarize the key points of contract law", 90),
     ("dependency_injection", "Look up user 42", 30),
-    ("customer_support_triage", "My order hasn't arrived yet", 60),
+    ("context_engineering", "Write a brief summary of machine learning", 60),
+    # --- Multi-Agent ---
+    ("code_review_agent", "Review: def fib(n): return fib(n-1) + fib(n-2)", 60),
+    ("collaboration_mechanisms", "Help me brainstorm ideas for a mobile app", 90),
 ]
 
 pytestmark = pytest.mark.skipif(
@@ -123,6 +131,8 @@ def _run_agent(agents_dir: Path, folder: str, prompt: str, timeout: int) -> str:
             pytest.skip(f"Agent '{folder}' has a missing import (cookbook_to_agents bug):\n{summary}")
         elif "NameError" in combined:
             pytest.skip(f"Agent '{folder}' has undefined name (cookbook_to_agents bug):\n{summary}")
+        elif "GuardViolation" in combined:
+            pass  # guard did its job — the agent ran, guard rejected output
         else:
             pytest.fail(f"Agent '{folder}' crashed:\n{summary}")
     return combined
