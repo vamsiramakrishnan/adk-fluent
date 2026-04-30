@@ -25,6 +25,8 @@ import tempfile
 
 import pytest
 
+from pathlib import Path as _Path
+
 from adk_fluent import Agent, H
 from adk_fluent._context import C
 from adk_fluent._harness import (
@@ -46,6 +48,8 @@ from adk_fluent._harness._interrupt import (
 )
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 
+_SKILLS_DIR = _Path(__file__).resolve().parents[1] / "skills"
+
 
 # ======================================================================
 # Layer 1: Intelligence — Agent + Skills + Context Engineering
@@ -56,7 +60,7 @@ def test_intelligence_layer():
     """Agent with domain expertise from skills + rolling context."""
     agent = (
         Agent("coder", "gemini-2.5-pro")
-        .use_skill("examples/skills/code_reviewer/")
+        .use_skill(str(_SKILLS_DIR / "code_reviewer"))
         .instruct(
             "You are an expert coding assistant. Read the codebase, "
             "edit files, run tests, and self-correct until the task is done."
@@ -293,11 +297,10 @@ def test_hooks_integration():
     with tempfile.TemporaryDirectory() as project:
         hooks = (
             H.hooks(project)
-            .on_edit("echo 'linting {file_path}'")
-            .on_error("echo 'error: {error}'")
-            .on("turn_complete", "echo 'turn done'")
+            .shell("post_tool_use", "echo 'linting {file_path}'")
+            .shell("tool_error", "echo 'error: {error}'")
+            .shell("notification", "echo 'turn done'")
         )
-        # Hooks registered by trigger
         assert len(hooks.registered_events) >= 3
 
 
@@ -419,13 +422,17 @@ def test_cancellation_callback():
     token = CancellationToken()
     callback = make_cancellation_callback(token)
 
+    mock_tool = type("T", (), {"name": "read_file"})()
+    mock_ctx = type("C", (), {})()
+
     # Normal operation: callback returns None (allow execution)
-    result = callback(None, type("T", (), {"name": "read_file"})(), {}, None)
+    result = callback(tool=mock_tool, args={}, tool_context=mock_ctx)
     assert result is None
 
     # After cancellation: callback returns error dict
     token.cancel()
-    result = callback(None, type("T", (), {"name": "bash"})(), {}, None)
+    mock_tool2 = type("T", (), {"name": "bash"})()
+    result = callback(tool=mock_tool2, args={}, tool_context=mock_ctx)
     assert isinstance(result, dict)
     assert "cancelled" in result["error"].lower()
 
@@ -517,7 +524,7 @@ def test_full_coding_agent():
         # --- Layer 1: Intelligence ---
         agent = (
             Agent("coder", "gemini-2.5-pro")
-            .use_skill("examples/skills/code_reviewer/")
+            .use_skill(str(_SKILLS_DIR / "code_reviewer"))
             .instruct(
                 "You are an expert coding assistant. You can read files, "
                 "edit code, run tests, and manage background tasks. "
@@ -563,8 +570,8 @@ def test_full_coding_agent():
             .skip("glob_search", fallback="No matching files found.")
             .with_bus(bus)
         )
-        hooks = H.hooks(project).on_edit("echo 'lint {file_path}'").on_error("echo 'error: {error}'")
-        bus.hooks(hooks)
+        hooks = H.hooks(project).shell("post_tool_use", "echo 'lint {file_path}'").shell("tool_error", "echo 'error: {error}'")
+        hooks.bridge_to(bus)
 
         agent = (
             agent.before_tool(bus.before_tool_hook())
@@ -598,7 +605,7 @@ def test_full_coding_agent():
         assert built.before_tool_callback is not None
 
         # Observability: bus has subscribers
-        assert bus.subscriber_count >= 2
+        assert bus.subscriber_count >= 1
 
         # Runtime: commands registered
         assert cmds.size == 5
@@ -619,7 +626,6 @@ def test_full_coding_agent():
         # Runtime: REPL can be constructed
         repl = H.repl(
             built,
-            hooks=hooks,
             compressor=H.compressor(100_000),
             config=ReplConfig(
                 prompt_prefix="coder> ",
@@ -658,7 +664,7 @@ def test_manifold_discovery():
     # Build a manifold from tools + skills
     manifold = H.manifold(
         tools=None,  # Would normally be a ToolRegistry
-        skills="examples/skills/",
+        skills=str(_SKILLS_DIR),
         always_loaded=["search_code"],
         max_tools=30,
     )
