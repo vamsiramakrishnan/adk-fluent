@@ -1,13 +1,14 @@
-"""A2UI Pipeline: UI in Multi-Agent Pipelines
+"""A2UI Pipeline — Sales Dashboard with Live Metrics
 
-Demonstrates using S.to_ui() and S.from_ui() to bridge state data
-between agents and A2UI surfaces.
+Real-world scenario: a multi-agent sales pipeline where one agent
+calculates deal metrics, a state transform bridges the results to
+a dashboard UI, and a renderer agent presents the formatted surface.
 
-Key concepts:
-  - S.to_ui(): bridge agent state → A2UI data model
-  - S.from_ui(): bridge A2UI data model → agent state
-  - M.a2ui_log(): log A2UI surface operations
-  - C.with_ui(): include UI surface state in context
+Key patterns:
+  S.to_ui("revenue", "deals", surface="dashboard")  — agent state → UI data
+  S.from_ui("selected_deal", surface="deals")        — UI data → agent state
+  M.a2ui_log()  — log A2UI operations (renders, updates, interactions)
+  C.with_ui()   — include UI surface state in agent context
 """
 
 from adk_fluent import Agent, S

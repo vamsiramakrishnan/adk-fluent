@@ -1,16 +1,15 @@
-"""A2UI Dynamic: LLM-Driven UI Generation
+"""A2UI Dynamic — Data Explorer with LLM-Designed Visualizations
 
-Demonstrates the core A2UI value proposition: the LLM itself designs
-interactive UI surfaces based on user intent. .ui(UI.auto()) handles
-everything — it attaches the SendA2uiToClientToolset which injects
-the full A2UI JSON Schema at LLM request time and gives the LLM a
-send_a2ui_json_to_client tool.
+Real-world scenario: a data analyst agent that designs interactive
+dashboards and forms on the fly. The user asks "show me Q4 revenue
+by region" and the LLM generates a chart+table UI without any
+pre-built Python surface — it uses the A2UI JSON schema directly.
 
-Key concepts:
-  - .ui(UI.auto()): one-line A2UI setup (schema + toolset)
-  - SendA2uiToClientToolset injects schema via process_llm_request
-  - The LLM generates valid A2UI JSON — no Python UI construction
-  - Domain tools provide data, the LLM designs the presentation
+``.ui(UI.auto())`` handles everything in one line:
+  1. Injects the A2UI component catalog into the LLM's system prompt
+  2. Gives the LLM a ``send_a2ui_json_to_client`` tool
+  3. The LLM designs valid A2UI JSON surfaces based on user intent
+  4. Domain tools (query_db, fetch_metrics) provide the data
 """
 
 from adk_fluent import Agent

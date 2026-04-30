@@ -1,14 +1,17 @@
-"""A2UI Basics: Declarative Agent-to-UI Composition
+"""A2UI Basics — Customer Onboarding UI for a SaaS Platform
 
-Demonstrates the UI namespace for building rich agent UIs declaratively.
+Real-world scenario: building the UI surfaces for a customer onboarding
+agent. The agent collects customer info via a form, shows account metrics
+on a dashboard, confirms plan selection, and displays a user table.
 
-Key concepts:
-  - UIComponent: frozen dataclass with composition operators
-  - UI.text(), UI.button(), UI.text_field(): component factories
-  - UI.bind(), UI.required(): data binding and validation
-  - UI.surface(): named UI surface (compilation root)
-  - compile_surface(): nested Python tree → flat A2UI JSON
-  - Operators: | (Row), >> (Column), + (sibling group)
+Concepts:
+  UI.text / .button / .text_field — component factories
+  UI.bind()          — two-way data binding to JSON Pointer paths
+  UI.required()      — validation checks
+  | (Row), >> (Col)  — layout composition operators
+  UI.surface()       — named compilation root
+  compile_surface()  — Python tree → flat A2UI JSON messages
+  Presets: UI.form(), UI.dashboard(), UI.confirm(), UI.table(), UI.wizard()
 """
 
 from adk_fluent._ui import (
@@ -20,89 +23,87 @@ from adk_fluent._ui import (
     compile_surface,
 )
 
-# --- 1. Component creation ---
-text = UI.text("Hello, World!")
-assert text._kind == "Text"
+# --- 1. Onboarding form — component creation + composition ---
 
-button = UI.button("Click Me")
-assert button._kind == "Button"
+header = UI.text("Welcome to Acme", variant="h2")
+name_field = UI.text_field("Full Name", bind=UI.bind("/customer/name"), checks=[UI.required()])
+email_field = UI.text_field("Email", bind=UI.bind("/customer/email"), checks=[UI.required(), UI.email()])
+company_field = UI.text_field("Company", bind=UI.bind("/customer/company"))
 
-field = UI.text_field("Name")
-assert field._kind == "TextField"
+assert header._kind == "Text"
+assert name_field._kind == "TextField"
+assert isinstance(UI.bind("/customer/name"), UIBinding)
+assert isinstance(UI.required(), UICheck)
 
-# --- 2. Composition operators ---
+# Compose layout: header on top, fields stacked vertically
+onboarding_layout = header >> name_field >> email_field >> company_field
+assert onboarding_layout._kind == "Column"
+assert len(onboarding_layout._children) >= 2  # binary >> nests; flatten is internal
 
-# | creates a Row (horizontal layout)
-row = UI.text("Left") | UI.text("Right")
-assert row._kind == "Row"
-assert len(row._children) == 2
+# Side-by-side buttons
+cancel_btn = UI.button(child=UI.text("Cancel"))
+submit_btn = UI.button("primary", child=UI.text("Continue"))
+actions = cancel_btn | submit_btn
+assert actions._kind == "Row"
 
-# >> creates a Column (vertical layout)
-col = UI.text("Top") >> UI.text("Bottom")
-assert col._kind == "Column"
-assert len(col._children) == 2
+# Full form
+form_layout = onboarding_layout >> actions
+assert form_layout._kind == "Column"
 
-# Nest them
-layout = (UI.text("A") | UI.text("B")) >> UI.text("Footer")
-assert layout._kind == "Column"
+# --- 2. Surface creation + theme + data ---
+onboarding_surface = UI.surface("onboarding", form_layout)
+assert isinstance(onboarding_surface, UISurface)
+assert onboarding_surface.name == "onboarding"
 
-# --- 3. Data binding ---
-binding = UI.bind("/user/name")
-assert isinstance(binding, UIBinding)
-assert binding.path == "/user/name"
+themed = onboarding_surface.with_theme(primaryColor="#2563eb", agentDisplayName="Acme Onboarding")
+assert len(themed.theme) == 2
 
-# --- 4. Validation ---
-check = UI.required("Name is required")
-assert isinstance(check, UICheck)
-assert check.fn == "required"
+with_defaults = onboarding_surface.with_data(customer={"name": "", "email": "", "company": ""})
+assert len(with_defaults.data) == 1
 
-email_check = UI.email("Invalid email")
-assert email_check.fn == "email"
-
-# --- 5. Surfaces ---
-surface = UI.surface("contact_form", UI.text("Contact Us") >> UI.text_field("Name"))
-assert isinstance(surface, UISurface)
-assert surface.name == "contact_form"
-
-# Surface with theme
-themed = surface.with_theme(primaryColor="#3b82f6")
-assert len(themed.theme) == 1
-
-# Surface with initial data
-with_data = surface.with_data(name="")
-assert len(with_data.data) == 1
-
-# --- 6. Compilation ---
-msgs = compile_surface(surface)
+# --- 3. Compilation to A2UI protocol ---
+msgs = compile_surface(onboarding_surface)
 assert len(msgs) == 2  # createSurface + updateComponents
 
 create_msg = msgs[0]
-assert "createSurface" in create_msg
-assert create_msg["createSurface"]["surfaceId"] == "contact_form"
+assert create_msg["createSurface"]["surfaceId"] == "onboarding"
 
 update_msg = msgs[1]
-assert "updateComponents" in update_msg
 components = update_msg["updateComponents"]["components"]
-assert len(components) >= 2  # Column + TextField (+ Text)
+assert len(components) >= 5  # Column + 4 fields + buttons
 
-# --- 7. Generic component (escape hatch) ---
-custom = UI.component("BarChart", data="test", x="date", y="value")
-assert custom._kind == "BarChart"
-
-# --- 8. Presets ---
-form = UI.form("Feedback", fields={"name": "text", "email": "email", "message": "longText"})
+# --- 4. Preset: schema-driven feedback form ---
+form = UI.form("Customer Feedback", fields={"name": "text", "email": "email", "message": "longText"})
 assert isinstance(form, UISurface)
 
-dashboard = UI.dashboard("Metrics", cards=[{"title": "Users", "bind": "/users"}])
+# --- 5. Preset: account metrics dashboard ---
+dashboard = UI.dashboard("Account Overview", cards=[
+    {"title": "Active Users", "bind": "/stats/active_users"},
+    {"title": "MRR", "bind": "/stats/mrr"},
+    {"title": "Churn Rate", "bind": "/stats/churn"},
+])
 assert isinstance(dashboard, UISurface)
+dash_msgs = compile_surface(dashboard)
+assert any("createSurface" in m for m in dash_msgs)
 
-confirm = UI.confirm("Delete this item?")
+# --- 6. Preset: plan upgrade confirmation ---
+confirm = UI.confirm("Upgrade to Enterprise plan? ($499/mo, billed annually)")
 assert isinstance(confirm, UISurface)
 
-table = UI.table(["Name", "Email"], data_bind="/users")
+# --- 7. Preset: team member table ---
+table = UI.table(["Name", "Email", "Role"], data_bind="/team/members")
 assert isinstance(table, UISurface)
 
-wizard = UI.wizard("Setup", steps=[("Welcome", UI.text("Hi")), ("Done", UI.text("Bye"))])
+# --- 8. Preset: onboarding wizard ---
+wizard = UI.wizard("Account Setup", steps=[
+    ("Company Info", UI.text_field("Company Name", bind=UI.bind("/company/name"))),
+    ("Plan Selection", UI.text("Choose your plan") >> (UI.button("Starter") | UI.button("Pro") | UI.button("Enterprise"))),
+    ("Confirmation", UI.text("Review your selections and confirm.")),
+])
 assert isinstance(wizard, UISurface)
 
-print("All A2UI basics assertions passed!")
+# --- 9. Generic component (escape hatch for custom visualizations) ---
+usage_chart = UI.component("BarChart", data="/stats/usage_history", x="month", y="api_calls")
+assert usage_chart._kind == "BarChart"
+
+print("All A2UI onboarding assertions passed!")

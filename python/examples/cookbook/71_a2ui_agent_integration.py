@@ -1,17 +1,16 @@
-"""A2UI Agent Integration: Wiring UI to Agents (the wedge devex)
+"""A2UI Agent Integration — Support Ticket Agent with Schema-Driven Forms
 
-Demonstrates the ergonomic ``Agent.ui()`` overload introduced in the A2UI
-devex wedge:
+Real-world scenario: a customer support agent that collects structured
+ticket data via a Pydantic-driven form. Field types are reflected
+automatically — str→TextField, bool→CheckBox, Literal→ChoicePicker,
+EmailStr→validated email field. The agent can also operate in LLM-guided
+mode where it designs the UI dynamically based on conversation context.
 
-- ``.ui(spec)``                — declarative surface (prompt-only, no tool wiring)
-- ``.ui(llm_guided=True)``     — auto-wires ``T.a2ui()`` + ``G.a2ui()`` for you
-- ``.ui(spec, log=True)``      — also auto-wires ``M.a2ui_log()``
-- ``.ui(spec, validate=False)``— skip ``surface.validate()`` at build time
-
-Plus the schema-driven helpers:
-
-- ``UI.form(MyPydanticModel)`` — generate a typed form from a BaseModel
-- ``UI.paths(MyPydanticModel)``— typed two-way binding proxy
+Patterns:
+  .ui(spec)             — attach a declarative surface to an agent
+  .ui(llm_guided=True)  — auto-wire T.a2ui() + G.a2ui() for dynamic UI
+  UI.form(PydanticModel) — reflect a Pydantic class into a typed form
+  UI.paths(Model)        — typo-proof binding paths with compile-time validation
 """
 
 from __future__ import annotations
