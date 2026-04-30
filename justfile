@@ -443,22 +443,29 @@ visual-flux *args:
 visual: visual-flux visual-py
 
 # Launch both visual runners with zero config (interactive .env setup, deps, surfaces).
-# Usage: just play [--skip-setup]
+# Usage: just play [py_port] [ts_port] [--skip-setup]
 play *args:
     #!/usr/bin/env bash
     set -euo pipefail
 
     SKIP_SETUP=false
+    PY_PORT=8098
+    TS_PORT=8099
     for arg in {{args}}; do
       case "$arg" in
         --skip-setup) SKIP_SETUP=true ;;
+        *) if [ "$PY_PORT" = "8098" ] && [[ "$arg" =~ ^[0-9]+$ ]]; then
+             PY_PORT=$arg; TS_PORT=$((arg + 1))
+           elif [[ "$arg" =~ ^[0-9]+$ ]]; then
+             TS_PORT=$arg
+           fi ;;
       esac
     done
 
     echo ""
     echo "  ╔══════════════════════════════════════════════╗"
     echo "  ║      adk-fluent visual playground           ║"
-    echo "  ║  Python (8098)  ·  TypeScript (8099)        ║"
+    echo "  ║  Python ($PY_PORT)  ·  TypeScript ($TS_PORT)        ║"
     echo "  ╚══════════════════════════════════════════════╝"
     echo ""
 
@@ -508,18 +515,18 @@ play *args:
 
     # ── 4. Launch both servers ──
     echo "  Starting servers..."
-    echo "    Python:     http://localhost:8098"
-    echo "    TypeScript:  http://localhost:8099"
+    echo "    Python:      http://localhost:$PY_PORT"
+    echo "    TypeScript:  http://localhost:$TS_PORT"
     echo ""
     echo "  Press Ctrl+C to stop both."
     echo ""
 
     # Launch TS in background, Python in foreground
-    (cd ts && PORT=8099 npx tsx visual/server.ts 2>&1 | sed 's/^/  [ts] /') &
+    (cd ts && PORT=$TS_PORT npx tsx visual/server.ts 2>&1 | sed 's/^/  [ts] /') &
     TS_PID=$!
     trap "kill $TS_PID 2>/dev/null; wait $TS_PID 2>/dev/null; echo '  Servers stopped.'" EXIT
 
-    cd python && uv run uvicorn visual.server:app --host 0.0.0.0 --port 8098 --reload 2>&1 | sed 's/^/  [py] /'
+    cd python && uv run uvicorn visual.server:app --host 0.0.0.0 --port $PY_PORT --reload 2>&1 | sed 's/^/  [py] /'
 
 # --- Diff against previous ---
 diff:
@@ -604,7 +611,7 @@ help:
     @echo "  just check-skills   Check if skills are up to date (fails if stale)"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
-    @echo "  just play           Launch both visual runners (zero-config, interactive .env setup)"
+    @echo "  just play [P1] [P2] Launch both visual runners (default: py=8098 ts=8099)"
     @echo "  just agents         Convert cookbook -> adk web folders"
     @echo "  just a2ui-preview   Static A2UI gallery (no server, no LLM)"
     @echo "  just visual-py [P]  Python visual runner (default port 8098)"
