@@ -442,6 +442,85 @@ visual-flux *args:
 # --- Visual: legacy alias (now also runs the flux regression suite) ---
 visual: visual-flux visual-py
 
+# Launch both visual runners with zero config (interactive .env setup, deps, surfaces).
+# Usage: just play [--skip-setup]
+play *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    SKIP_SETUP=false
+    for arg in {{args}}; do
+      case "$arg" in
+        --skip-setup) SKIP_SETUP=true ;;
+      esac
+    done
+
+    echo ""
+    echo "  ╔══════════════════════════════════════════════╗"
+    echo "  ║      adk-fluent visual playground           ║"
+    echo "  ║  Python (8098)  ·  TypeScript (8099)        ║"
+    echo "  ╚══════════════════════════════════════════════╝"
+    echo ""
+
+    # ── 1. Check / create .env ──
+    if [ ! -f .env ]; then
+      if [ -f python/visual/.env.example ]; then
+        echo "  No .env found. Creating from template..."
+        echo ""
+        echo "  Two options:"
+        echo "    A) Gemini API Key  — free at https://aistudio.google.com/apikey"
+        echo "    B) Vertex AI       — requires GCP project"
+        echo ""
+        read -rp "  Paste your GOOGLE_API_KEY (or press Enter to use Vertex AI): " api_key
+        if [ -n "$api_key" ]; then
+          echo "GOOGLE_API_KEY=$api_key" > .env
+          echo "  ✓ Saved API key to .env"
+        else
+          read -rp "  GOOGLE_CLOUD_PROJECT: " project
+          read -rp "  GOOGLE_CLOUD_LOCATION [us-central1]: " location
+          location=${location:-us-central1}
+          printf "GOOGLE_CLOUD_PROJECT=%s\nGOOGLE_CLOUD_LOCATION=%s\nGOOGLE_GENAI_USE_VERTEXAI=TRUE\n" "$project" "$location" > .env
+          echo "  ✓ Saved Vertex AI config to .env"
+        fi
+        echo ""
+      fi
+    else
+      echo "  ✓ .env found"
+    fi
+
+    # Propagate .env to subdirectories
+    cp .env python/visual/.env 2>/dev/null || true
+    cp .env ts/visual/.env 2>/dev/null || true
+
+    # ── 2. Install deps (skip with --skip-setup) ──
+    if [ "$SKIP_SETUP" = "false" ]; then
+      echo "  Installing dependencies..."
+      cd python && uv sync --all-extras --quiet 2>/dev/null && cd ..
+      cd ts && npm install --silent 2>/dev/null && cd ..
+      echo "  ✓ Dependencies ready"
+    fi
+
+    # ── 3. Export A2UI surfaces ──
+    echo "  Exporting A2UI surfaces..."
+    uv run --project python python -m shared.scripts.export_a2ui_surfaces 2>/dev/null || true
+    echo "  ✓ Surfaces exported"
+    echo ""
+
+    # ── 4. Launch both servers ──
+    echo "  Starting servers..."
+    echo "    Python:     http://localhost:8098"
+    echo "    TypeScript:  http://localhost:8099"
+    echo ""
+    echo "  Press Ctrl+C to stop both."
+    echo ""
+
+    # Launch TS in background, Python in foreground
+    (cd ts && PORT=8099 npx tsx visual/server.ts 2>&1 | sed 's/^/  [ts] /') &
+    TS_PID=$!
+    trap "kill $TS_PID 2>/dev/null; wait $TS_PID 2>/dev/null; echo '  Servers stopped.'" EXIT
+
+    cd python && uv run uvicorn visual.server:app --host 0.0.0.0 --port 8098 --reload 2>&1 | sed 's/^/  [py] /'
+
 # --- Diff against previous ---
 diff:
     #!/usr/bin/env bash
@@ -525,6 +604,7 @@ help:
     @echo "  just check-skills   Check if skills are up to date (fails if stale)"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
+    @echo "  just play           Launch both visual runners (zero-config, interactive .env setup)"
     @echo "  just agents         Convert cookbook -> adk web folders"
     @echo "  just a2ui-preview   Static A2UI gallery (no server, no LLM)"
     @echo "  just visual-py [P]  Python visual runner (default port 8098)"
