@@ -1,28 +1,21 @@
-"""Skill-Powered Harness — Building a CodAct Coding Agent
+"""Skill-Powered Coding Agent — Frontend Design + Code Review
 
-Demonstrates how to build a Claude-Code-like coding agent harness using
-adk-fluent's three-layer skill architecture:
+Real-world scenario: building a coding agent that dynamically loads
+skills for different tasks. A frontend designer loads React best practices
+and UI component skills. A code reviewer loads security audit skills.
+Both use sandboxed workspace tools with permission layers.
 
-  L1: .use_skill()  — expertise loading (SKILL.md body → static_instruction)
-  L2: T.skill()     — progressive disclosure (SkillToolset, LLM loads on demand)
-  L3: Skill()       — recipe (pre-composed agent workflow from SKILL.md)
+Three-layer skill architecture:
+  L1: .use_skill()  — load expertise into static_instruction (cached, not re-sent)
+  L2: T.skill()     — progressive disclosure (LLM discovers and loads on demand)
+  L3: Skill()       — pre-composed agent workflow from SKILL.md
 
-Plus the H namespace for harness runtime primitives:
-
-  H.workspace()     — sandboxed file/shell tools (read, edit, write, glob, grep, bash)
-  H.ask_before()    — permission policies (which tools need approval)
-  H.auto_allow()    — auto-approved tools
-  H.workspace_only()— sandbox policies (restrict fs to workspace)
-
-Architecture:
-    ┌──────────────────────────────────────┐
-    │          Agent + Skills              │
-    │  .use_skill("code-review/")         │  ← L1: expertise (static, cached)
-    │  .use_skill("python-best-practices/")│
-    │  .instruct("Review the code.")       │  ← per-task instruction
-    │  .tools(H.workspace("/project"))     │  ← sandboxed tools
-    │  .harness(permissions=..., sandbox=.)│  ← permission + sandbox
-    └──────────────────────────────────────┘
+Harness primitives:
+  H.workspace()      — sandboxed read/edit/write/glob/grep/bash
+  H.workspace(read_only=True)  — browse-only (no edit/write, bash allowed)
+  H.auto_allow()     — tools that need no approval (read, glob, grep)
+  H.ask_before()     — tools that need user confirmation (edit, bash)
+  H.workspace_only() — restrict all file I/O to the project directory
 """
 
 import os

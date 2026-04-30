@@ -1,20 +1,22 @@
-"""Skill-Based Agents -- Composable Skills from SKILL.md Files
+"""Skill-Based Agents — Dynamic Skill Loading + Composition
 
-Skills are the 100x multiplier for agent development. Instead of writing
-Python agent code, you declare agent topologies in YAML inside SKILL.md
-files and compose them with the same operators you already know.
+Real-world scenario: a development agency where agents load specialized
+skills dynamically — research for market analysis, code review for PRs,
+frontend design for UI work. Instead of hard-coding each capability,
+skills are YAML-declared topologies in SKILL.md files that can be:
 
-A single SKILL.md file serves four purposes:
-  1. Documentation for coding agents (Claude Code, Gemini CLI)
-  2. Progressive disclosure for ADK SkillToolset (L1/L2/L3)
-  3. Executable agent graph for adk-fluent runtime
-  4. Publishable artifact via npx skills
+  - Loaded at runtime: ``Skill("skills/research_pipeline/")``
+  - Composed with operators: ``research >> review | design``
+  - Used as tools: ``.agent_tool(skill)`` — coordinator decides when
+  - Discovered by tag: ``registry.find(tags=["frontend"])``
+  - Overridden per-deployment: ``.model("gemini-2.5-pro").inject(search=my_fn)``
 
-Skill topology (research_pipeline):
-    researcher >> fact_checker >> synthesizer
+A single SKILL.md serves as documentation (for coding agents), executable
+topology (for adk-fluent), and publishable artifact (via npx skills).
 
-Skill topology (code_reviewer):
-    (analyzer | style_checker | security_auditor) >> summarizer
+Skill topologies tested here:
+    research_pipeline: researcher >> fact_checker >> synthesizer
+    code_reviewer:     (analyzer | style_checker | security_auditor) >> summarizer
 """
 
 import pytest
