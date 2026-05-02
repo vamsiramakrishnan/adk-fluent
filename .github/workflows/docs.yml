@@ -49,7 +49,7 @@ jobs:
           uv-version: "0.8.17"
 
       - name: Set up Node.js (for TypeScript typedoc)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: "npm"
