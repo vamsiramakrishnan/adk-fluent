@@ -136,8 +136,8 @@ def _build_a2ui_catalog() -> tuple[Any, str]:
     Returns (catalog, examples_str).
     """
     from a2ui.basic_catalog.provider import BasicCatalog  # type: ignore[import-not-found]
-    from a2ui.schema.constants import VERSION_0_9  # type: ignore[import-not-found]
     from a2ui.schema.common_modifiers import remove_strict_validation  # type: ignore[import-not-found]
+    from a2ui.schema.constants import VERSION_0_9  # type: ignore[import-not-found]
     from a2ui.schema.manager import A2uiSchemaManager  # type: ignore[import-not-found]
 
     config = BasicCatalog().get_config(VERSION_0_9)
@@ -420,6 +420,175 @@ class T:
         if auth is not None:
             builder = builder.auth_credential(auth)
         return TComposite([builder.build()], kind="openapi")
+
+    # --- Google Cloud data toolsets ---
+
+    @staticmethod
+    def bigquery(
+        *,
+        credentials_config: Any = None,
+        bigquery_tool_config: Any = None,
+        tool_filter: Any = None,
+    ) -> TComposite:
+        """Wrap ADK ``BigQueryToolset`` (BigQuery data + metadata tools).
+
+        Requires the BigQuery client extras (``google-cloud-bigquery``). The
+        toolset is imported lazily, so this factory only fails when those
+        extras are missing at call time.
+
+        Args:
+            credentials_config: ``BigQueryCredentialsConfig`` for auth.
+            bigquery_tool_config: ``BigQueryToolConfig`` (write modes, etc.).
+            tool_filter: ``ToolPredicate`` or list of tool names to expose.
+        """
+        from google.adk.integrations.bigquery import BigQueryToolset
+
+        toolset = BigQueryToolset(
+            credentials_config=credentials_config,
+            bigquery_tool_config=bigquery_tool_config,
+            tool_filter=tool_filter,
+        )
+        return TComposite([toolset], kind="bigquery")
+
+    @staticmethod
+    def spanner(
+        *,
+        credentials_config: Any = None,
+        spanner_tool_settings: Any = None,
+        tool_filter: Any = None,
+    ) -> TComposite:
+        """Wrap ADK ``SpannerToolset`` (Spanner data + schema tools).
+
+        Requires the Spanner client extras (``google-cloud-spanner``). Imported
+        lazily; this factory only fails when those extras are missing.
+
+        Args:
+            credentials_config: ``SpannerCredentialsConfig`` for auth.
+            spanner_tool_settings: ``SpannerToolSettings`` (capabilities).
+            tool_filter: ``ToolPredicate`` or list of tool names to expose.
+        """
+        from google.adk.tools.spanner.spanner_toolset import SpannerToolset
+
+        toolset = SpannerToolset(
+            credentials_config=credentials_config,
+            spanner_tool_settings=spanner_tool_settings,
+            tool_filter=tool_filter,
+        )
+        return TComposite([toolset], kind="spanner")
+
+    @staticmethod
+    def bigtable(
+        *,
+        credentials_config: Any = None,
+        bigtable_tool_settings: Any = None,
+        tool_filter: Any = None,
+    ) -> TComposite:
+        """Wrap ADK ``BigtableToolset`` (Bigtable data + metadata tools).
+
+        Requires the Bigtable client extras (``google-cloud-bigtable``).
+        Imported lazily; this factory only fails when those extras are missing.
+
+        Args:
+            credentials_config: ``BigtableCredentialsConfig`` for auth.
+            bigtable_tool_settings: ``BigtableToolSettings`` (capabilities).
+            tool_filter: ``ToolPredicate`` or list of tool names to expose.
+        """
+        from google.adk.tools.bigtable.bigtable_toolset import BigtableToolset
+
+        toolset = BigtableToolset(
+            credentials_config=credentials_config,
+            bigtable_tool_settings=bigtable_tool_settings,
+            tool_filter=tool_filter,
+        )
+        return TComposite([toolset], kind="bigtable")
+
+    # --- Search / grounding tools ---
+
+    @staticmethod
+    def vertex_ai_search(
+        *,
+        data_store_id: str | None = None,
+        data_store_specs: Any = None,
+        search_engine_id: str | None = None,
+        filter: str | None = None,  # noqa: A002 - mirrors ADK arg name
+        max_results: int | None = None,
+        bypass_multi_tools_limit: bool = False,
+    ) -> TComposite:
+        """Wrap ADK ``VertexAiSearchTool`` (built-in Vertex AI Search grounding).
+
+        Provide exactly one of ``data_store_id`` or ``search_engine_id`` (or
+        ``data_store_specs``), matching the ADK tool's own validation.
+
+        Args:
+            data_store_id: Fully-qualified Vertex AI Search data store resource.
+            data_store_specs: List of ``VertexAISearchDataStoreSpec``.
+            search_engine_id: Fully-qualified search engine resource.
+            filter: Optional Vertex AI Search filter expression.
+            max_results: Maximum number of results to return.
+            bypass_multi_tools_limit: Allow alongside other built-in tools.
+        """
+        from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool
+
+        tool = VertexAiSearchTool(
+            data_store_id=data_store_id,
+            data_store_specs=data_store_specs,
+            search_engine_id=search_engine_id,
+            filter=filter,
+            max_results=max_results,
+            bypass_multi_tools_limit=bypass_multi_tools_limit,
+        )
+        return TComposite([tool], kind="vertex_ai_search")
+
+    # Alias matching the name used in the prompt/feature spec.
+    vertex_search = vertex_ai_search
+
+    @staticmethod
+    def enterprise_search() -> TComposite:
+        """Wrap ADK ``EnterpriseWebSearchTool`` (Gemini 2+ enterprise web grounding).
+
+        A built-in tool with no constructor arguments — Gemini invokes it
+        automatically for grounded, Enterprise-compliant web search.
+        """
+        from google.adk.tools.enterprise_search_tool import EnterpriseWebSearchTool
+
+        return TComposite([EnterpriseWebSearchTool()], kind="enterprise_search")
+
+    @staticmethod
+    def url_context() -> TComposite:
+        """Wrap ADK ``UrlContextTool`` (Gemini 2 automatic URL content retrieval).
+
+        A built-in tool with no constructor arguments — Gemini automatically
+        fetches content from URLs in the prompt to inform its response.
+        """
+        from google.adk.tools.url_context_tool import UrlContextTool
+
+        return TComposite([UrlContextTool()], kind="url_context")
+
+    # --- Computer use ---
+
+    @staticmethod
+    def computer_use(
+        computer: Any,
+        *,
+        excluded_predefined_functions: list[str] | None = None,
+    ) -> TComposite:
+        """Wrap ADK ``ComputerUseToolset`` (screen-control function tools).
+
+        Args:
+            computer: A ``BaseComputer`` implementation that performs the
+                actual screen/keyboard/mouse actions.
+            excluded_predefined_functions: Names of predefined computer-use
+                functions to omit from the toolset.
+        """
+        from google.adk.tools.computer_use.computer_use_toolset import (
+            ComputerUseToolset,
+        )
+
+        toolset = ComputerUseToolset(
+            computer=computer,
+            excluded_predefined_functions=excluded_predefined_functions,
+        )
+        return TComposite([toolset], kind="computer_use")
 
     # --- A2UI ---
 

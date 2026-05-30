@@ -32,6 +32,58 @@ from adk_fluent._ir_generated import (
 )
 
 
+def _adk_event_to_agent_event(adk_event: Any) -> AgentEvent:
+    """Translate a native ADK ``Event`` into a backend-agnostic ``AgentEvent``.
+
+    Extracts the concatenated text of the event's content parts, the
+    ``is_final_response()`` flag, and common ``actions`` (transfer, escalate,
+    state/artifact deltas) so the unified backend interface can be consumed
+    without depending on ADK event internals.
+    """
+    # Concatenate text parts.
+    content_text: str | None = None
+    content = getattr(adk_event, "content", None)
+    if content is not None:
+        parts = getattr(content, "parts", None) or []
+        texts = [p.text for p in parts if getattr(p, "text", None)]
+        if texts:
+            content_text = "".join(texts)
+
+    # is_final_response() is a method on ADK events.
+    is_final = False
+    final_attr = getattr(adk_event, "is_final_response", None)
+    if callable(final_attr):
+        try:
+            is_final = bool(final_attr())
+        except (TypeError, ValueError):
+            is_final = False
+    elif final_attr is not None:
+        is_final = bool(final_attr)
+
+    # Actions: transfer / escalate / deltas.
+    transfer_to: str | None = None
+    escalate = False
+    state_delta: dict[str, Any] = {}
+    artifact_delta: dict[str, int] = {}
+    actions = getattr(adk_event, "actions", None)
+    if actions is not None:
+        transfer_to = getattr(actions, "transfer_to_agent", None)
+        escalate = bool(getattr(actions, "escalate", False))
+        state_delta = dict(getattr(actions, "state_delta", None) or {})
+        artifact_delta = dict(getattr(actions, "artifact_delta", None) or {})
+
+    return AgentEvent(
+        author=getattr(adk_event, "author", "") or "",
+        content=content_text,
+        state_delta=state_delta,
+        artifact_delta=artifact_delta,
+        transfer_to=transfer_to,
+        escalate=escalate,
+        is_final=is_final,
+        is_partial=bool(getattr(adk_event, "partial", False)),
+    )
+
+
 class ADKBackend:
     """Compiles IR node trees into native Google ADK objects wrapped in an App.
 
@@ -118,24 +170,91 @@ class ADKBackend:
     async def run(self, compiled: Any, prompt: str, **kwargs) -> list[AgentEvent]:
         """Execute the compiled App and return all events.
 
-        Requires a running session service. Not tested in unit tests
-        (needs API keys).
+        Drives the compiled ADK ``App`` through an ``InMemoryRunner`` with a
+        default in-memory session service, so the common case requires no
+        externally supplied session service. Each call runs in a fresh
+        session.
+
+        Args:
+            compiled: The ADK ``App`` produced by :meth:`compile` (or a bare
+                ADK agent).
+            prompt: The user prompt to send.
+            user_id: Optional user id (default ``"adk_user"``).
+            session_service: Optional ``BaseSessionService``; if provided it
+                overrides the default in-memory one.
+
+        Returns:
+            A list of backend-agnostic :class:`AgentEvent` objects. The final
+            response event has ``is_final=True``.
         """
-        raise NotImplementedError(
-            "ADKBackend.run() requires a session service and API key. Use compile() for unit-testable compilation."
-        )
+        events: list[AgentEvent] = []
+        async for event in self.stream(compiled, prompt, **kwargs):
+            events.append(event)
+        return events
 
     async def stream(self, compiled: Any, prompt: str, **kwargs) -> AsyncIterator[AgentEvent]:
-        """Stream events from the compiled App.
+        """Stream events from the compiled App as they are produced.
 
-        Requires a running session service. Not tested in unit tests
-        (needs API keys).
+        Builds an ``InMemoryRunner`` over the compiled ``App`` (preserving its
+        plugins, compaction, and resumability config), creates a fresh
+        session, and yields each ADK event translated into a backend-agnostic
+        :class:`AgentEvent`.
+
+        Args:
+            compiled: The ADK ``App`` produced by :meth:`compile` (or a bare
+                ADK agent).
+            prompt: The user prompt to send.
+            user_id: Optional user id (default ``"adk_user"``).
+            session_service: Optional ``BaseSessionService``; if provided it
+                overrides the default in-memory one.
         """
-        raise NotImplementedError(
-            "ADKBackend.stream() requires a session service and API key. Use compile() for unit-testable compilation."
-        )
-        # Make this an async generator to satisfy the protocol
-        yield  # type: ignore[misc]  # pragma: no cover
+        from google.genai import types
+
+        user_id = kwargs.get("user_id", "adk_user")
+        session_service = kwargs.get("session_service")
+
+        runner, app_name = self._make_runner(compiled, session_service)
+
+        session = await runner.session_service.create_session(app_name=app_name, user_id=user_id)
+        content = types.Content(role="user", parts=[types.Part(text=prompt)])
+
+        async for adk_event in runner.run_async(
+            user_id=user_id,
+            session_id=session.id,
+            new_message=content,
+        ):
+            yield _adk_event_to_agent_event(adk_event)
+
+    # ------------------------------------------------------------------
+    # Execution helpers
+    # ------------------------------------------------------------------
+
+    def _make_runner(self, compiled: Any, session_service: Any) -> tuple[Any, str]:
+        """Build an InMemoryRunner for the compiled artifact.
+
+        ``compiled`` is normally the ADK ``App`` returned by :meth:`compile`,
+        but a bare ADK agent is also accepted as a convenience.
+        """
+        from google.adk.apps.app import App
+        from google.adk.runners import InMemoryRunner, Runner
+
+        # An ADK App carries name + root_agent + plugins/config. Match on the
+        # concrete App type — agents also expose a ``root_agent`` property.
+        if isinstance(compiled, App):
+            app_name = getattr(compiled, "name", None) or f"ask_{compiled.root_agent.name}"
+            if session_service is not None:
+                runner = Runner(app=compiled, session_service=session_service)
+            else:
+                runner = InMemoryRunner(app=compiled)
+            return runner, app_name
+
+        # Fallback: a bare ADK agent.
+        app_name = f"ask_{compiled.name}"
+        if session_service is not None:
+            runner = Runner(agent=compiled, app_name=app_name, session_service=session_service)
+        else:
+            runner = InMemoryRunner(agent=compiled, app_name=app_name)
+        return runner, app_name
 
     # ------------------------------------------------------------------
     # Internal dispatch
