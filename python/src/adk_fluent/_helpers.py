@@ -96,6 +96,25 @@ def _context_with_guard(builder, spec):
     return builder
 
 
+def _infer_guard_phase(fn) -> str:
+    """Infer the single callback phase a raw guard callable belongs to.
+
+    Returns ``"before_model_callback"`` only when the signature clearly
+    wants the request (a ``llm_request`` parameter and no ``llm_response``).
+    Guards are documented as ``after_model`` output validators, so that is
+    the default whenever the phase is ambiguous.
+    """
+    import inspect
+
+    try:
+        params = set(inspect.signature(fn).parameters)
+    except (ValueError, TypeError):
+        params = set()
+    if "llm_request" in params and "llm_response" not in params:
+        return "before_model_callback"
+    return "after_model_callback"
+
+
 def _guard_dispatch(builder, value):
     """Route .guard() calls — supports G composites and legacy callables."""
     from adk_fluent._guards import GComposite, GGuard
@@ -105,9 +124,13 @@ def _guard_dispatch(builder, value):
     elif isinstance(value, GGuard):
         GComposite([value])._compile_into(builder)
     elif callable(value):
-        # Backwards compatible — existing dual-callback behavior
-        builder._callbacks.setdefault("before_model_callback", []).append(value)
-        builder._callbacks.setdefault("after_model_callback", []).append(value)
+        # A raw callable runs in exactly ONE phase, inferred from its
+        # signature. The old behavior registered it as BOTH before_model and
+        # after_model, double-firing it with two incompatible argument shapes
+        # (llm_request vs llm_response) — crashing single-phase guards or
+        # duplicating side effects. Single-phase dispatch fixes that.
+        phase = _infer_guard_phase(value)
+        builder._callbacks.setdefault(phase, []).append(value)
     else:
         raise TypeError(
             f"guard() expects a callable or G composite, got {type(value).__name__}. "

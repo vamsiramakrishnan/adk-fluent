@@ -637,5 +637,7 @@ class TestInjectContext:
             pass
 
         builder = Agent("test").model("gemini-2.5-flash").guard(my_guardrail).prepend(lambda ctx: "extra")
-        assert len(builder._callbacks["before_model_callback"]) == 2
+        # Single-phase dispatch: the guard lands in after_model (default),
+        # prepend lands in before_model — they compose without double-firing.
+        assert len(builder._callbacks["before_model_callback"]) == 1
         assert len(builder._callbacks["after_model_callback"]) == 1

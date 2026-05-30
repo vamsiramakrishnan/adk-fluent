@@ -49,16 +49,21 @@ class TestLLMJudgeParseResponse:
         assert result.passed is True
         assert result.score == 0.0
 
-    def test_malformed_json_fails_open(self):
+    def test_malformed_json_fails_closed(self):
         resp = "this is not json at all"
         result = self._judge()._parse_response(resp, "toxic")
-        assert result.passed is True  # fail-open
-        assert "Could not parse" in result.reason
+        assert result.passed is False  # safety control fails closed
+        assert "could not parse" in result.reason.lower()
 
-    def test_empty_response_fails_open(self):
+    def test_malformed_json_fail_open_opt_out(self):
+        resp = "this is not json at all"
+        result = _LLMJudge(fail_closed=False)._parse_response(resp, "toxic")
+        assert result.passed is True  # explicit opt-out restores pass-through
+
+    def test_empty_response_fails_closed(self):
         resp = ""
         result = self._judge()._parse_response(resp, "toxic")
-        assert result.passed is True
+        assert result.passed is False
 
     def test_missing_fail_key_defaults_safe(self):
         resp = '{"score": 0.3, "reason": "ambiguous"}'

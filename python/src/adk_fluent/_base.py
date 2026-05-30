@@ -395,19 +395,37 @@ def _extract_response_text(llm_response) -> str | None:
 
 
 def _replace_response_text(llm_response, new_text: str):
-    """Return a modified LlmResponse with replaced text."""
+    """Edit ``llm_response`` in place to carry ``new_text`` and return it.
+
+    Editing the response object in place — rather than building a fresh
+    ``GenerateContentResponse`` — keeps it the correct ``LlmResponse`` shape
+    (a ``.content`` with ``.parts``). That matters for guard *chains*: a
+    downstream guard in the same ``after_model`` chain reads the response via
+    ``.content`` (see ``_extract_response_text``), so a redacting guard must
+    hand the next guard a same-shaped, already-redacted response. Returning
+    the same object (non-None) also preserves the "a transformation occurred"
+    signal that ADK and existing callers rely on.
+    """
     from google.genai import types
 
-    return types.GenerateContentResponse(
-        candidates=[
-            types.Candidate(
-                content=types.Content(
-                    role="model",
-                    parts=[types.Part(text=new_text)],
-                ),
-            )
-        ]
-    )
+    import contextlib
+
+    new_part = types.Part(text=new_text)
+    content = getattr(llm_response, "content", None)
+    if content is not None and hasattr(content, "parts"):
+        content.parts = [new_part]
+        with contextlib.suppress(Exception):  # role is best-effort
+            content.role = "model"
+        return llm_response
+    # Fallback: object has no usable content slot — try to attach one,
+    # else fall back to a fresh response so redaction is never silently lost.
+    try:
+        llm_response.content = types.Content(role="model", parts=[new_part])
+        return llm_response
+    except Exception:  # noqa: BLE001
+        return types.GenerateContentResponse(
+            candidates=[types.Candidate(content=types.Content(role="model", parts=[new_part]))]
+        )
 
 
 def _propagate_middlewares(left: Any, right: Any, result: Any) -> None:
@@ -450,43 +468,59 @@ def _compose_callbacks(fns: list) -> Callable:
     if not fns:
         raise ValueError("_compose_callbacks requires at least one callback")
 
-    # Resolve guard tuples into callables
+    # Resolve guard tuples into callables, tracking which entries are guards.
+    # Guards compose differently from generic callbacks (see _composed below).
     resolved = []
+    guard_flags: list[bool] = []
     for fn in fns:
         if isinstance(fn, tuple) and len(fn) == 2 and isinstance(fn[0], str) and fn[0].startswith("guard:"):
             resolved.append(_resolve_guard_tuple(fn))
+            guard_flags.append(True)
         else:
             resolved.append(fn)
+            guard_flags.append(False)
 
     if len(resolved) == 1:
         return resolved[0]
 
     import inspect
 
-    # Classify each callable as sync/async ONCE at compose time. The
-    # runtime loop uses this to skip the generic iscoroutine probe that
-    # used to run on every turn for every callback.
-    classified: tuple[tuple[Callable, bool], ...] = tuple((fn, inspect.iscoroutinefunction(fn)) for fn in resolved)
+    # Classify each callable as sync/async and guard/non-guard ONCE at compose
+    # time. The runtime loop uses this to skip the generic iscoroutine probe
+    # that used to run on every turn for every callback.
+    classified: tuple[tuple[Callable, bool, bool], ...] = tuple(
+        (fn, inspect.iscoroutinefunction(fn), is_guard) for fn, is_guard in zip(resolved, guard_flags)
+    )
 
     async def _composed(*args, **kwargs):
-        for fn, is_async in classified:
+        # Guards use *edit-and-continue* semantics: a guard that rewrites the
+        # response (e.g. PII redaction) threads the new response forward to
+        # every subsequent guard instead of short-circuiting the chain — so
+        # ``G.pii("redact") | G.length()`` actually runs the length check on
+        # the redacted text. Generic (non-guard) callbacks keep ADK's
+        # "first non-None replaces and stops" semantics.
+        threaded = kwargs.get("llm_response")
+        transformed = False
+        for fn, is_async, is_guard in classified:
+            if is_guard and transformed:
+                kwargs = {**kwargs, "llm_response": threaded}
             if is_async:
                 result = await fn(*args, **kwargs)
-                if result is not None:
-                    return result
             else:
                 result = fn(*args, **kwargs)
-                if result is not None:
-                    # Sync callback returned something; it may still be
-                    # a coroutine (users occasionally write
-                    # ``def cb(...): return some_async()``).
-                    if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
-                        result = await result
-                        if result is not None:
-                            return result
-                    else:
-                        return result
-        return None
+                # Sync callback may still return a coroutine
+                # (``def cb(...): return some_async()``).
+                if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
+                    result = await result
+            if result is None:
+                continue
+            if is_guard:
+                threaded = result
+                transformed = True
+                continue
+            # Generic callback: replace-and-stop.
+            return result
+        return threaded if transformed else None
 
     _composed.__name__ = f"composed_{'_'.join(getattr(f, '__name__', '?') for f in resolved)}"
     return _composed
