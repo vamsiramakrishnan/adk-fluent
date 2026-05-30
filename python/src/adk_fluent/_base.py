@@ -439,6 +439,33 @@ def _propagate_middlewares(left: Any, right: Any, result: Any) -> None:
         result._middlewares = merged
 
 
+def _resolve_builder_class(type_name: str) -> type:
+    """Map a serialized ``_type`` name back to its builder class.
+
+    Used by :meth:`BuilderBase.from_dict` to reconstruct the right builder.
+    Imports are local to avoid an import cycle (agent/workflow import _base).
+    """
+    from adk_fluent.agent import Agent, BaseAgent
+    from adk_fluent.workflow import FanOut, Loop, Pipeline
+
+    mapping: dict[str, type] = {
+        "Agent": Agent,
+        "BaseAgent": BaseAgent,
+        "Pipeline": Pipeline,
+        "FanOut": FanOut,
+        "Loop": Loop,
+    }
+    for opt_mod, opt_name in (("adk_fluent.agent", "RemoteA2aAgent"), ("adk_fluent.agent", "RemoteAgent")):
+        try:
+            mod = __import__(opt_mod, fromlist=[opt_name])
+            mapping.setdefault(opt_name, getattr(mod, opt_name))
+        except (ImportError, AttributeError):
+            pass
+    if type_name not in mapping:
+        raise ValueError(f"from_dict: unknown builder type {type_name!r}. Known types: {sorted(mapping)}")
+    return mapping[type_name]
+
+
 def _count_components(component: Any) -> int:
     """Count total components in a UIComponent tree."""
     count = 1
@@ -1833,6 +1860,10 @@ class BuilderBase:
     @staticmethod
     def _serialize_value(v: Any) -> Any:
         """Serialize a single value for dict/yaml output."""
+        if isinstance(v, BuilderBase):
+            # Nested builder (e.g. a Pipeline's sub-agents) — recurse so the
+            # topology round-trips structurally via from_dict().
+            return v.to_dict()
         if callable(v):
             return getattr(v, "__qualname__", repr(v))
         if hasattr(v, "name") and hasattr(v, "model_fields"):
@@ -1872,6 +1903,65 @@ class BuilderBase:
         except ImportError as e:
             raise ImportError("to_yaml() requires the 'pyyaml' package. Install it with: pip install pyyaml") from e
         return yaml.dump(self.to_dict(), default_flow_style=False)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> BuilderBase:
+        """Reconstruct a builder from a :meth:`to_dict` payload.
+
+        This is a **structural** round-trip: it restores the builder *type*,
+        its config scalars (name, model, instruction, description, …), and
+        nested builder topology (e.g. a Pipeline's sub-agents, recursively).
+
+        It does **NOT** restore callables — callbacks, guards, and tool
+        functions are serialized by :meth:`to_dict` as name strings only and
+        cannot be turned back into live functions. The reconstructed builder
+        is therefore a faithful structural skeleton suitable for inspection,
+        diagramming, topology diffing, and config-as-code workflows — not a
+        behavior-complete clone. Re-attach callables explicitly after loading.
+
+        Example::
+
+            data = (Agent("a") >> Agent("b")).to_dict()
+            skeleton = Pipeline.from_dict(data)   # type + names + topology
+        """
+        builder_cls = _resolve_builder_class(data.get("_type", "Agent"))
+        config = dict(data.get("config", {}))
+        name = config.get("name", "")
+        obj = builder_cls(name)
+        for key, value in config.items():
+            if key == "name":
+                continue
+            obj._config[key] = value
+        # Restore nested builder children (topology). Non-builder list items
+        # (tools/functions serialized as name strings) are intentionally not
+        # restored — they are not runnable callables. See the docstring.
+        for field, items in data.get("lists", {}).items():
+            for item in items:
+                if isinstance(item, dict) and "_type" in item:
+                    obj._lists[field].append(BuilderBase.from_dict(item))
+        return obj
+
+    @classmethod
+    def from_yaml(cls, source: str) -> BuilderBase:
+        """Reconstruct a builder from YAML produced by :meth:`to_yaml`.
+
+        ``source`` may be a YAML string or a path to a ``.yaml`` file. Shares
+        the structural-round-trip semantics (and limitations) of
+        :meth:`from_dict` — callables are not restored.
+        """
+        import os
+
+        try:
+            import yaml
+        except ImportError as e:
+            raise ImportError("from_yaml() requires the 'pyyaml' package. Install it with: pip install pyyaml") from e
+
+        if "\n" not in source and source.endswith((".yaml", ".yml")) and os.path.exists(source):
+            with open(source) as f:
+                data = yaml.safe_load(f)
+        else:
+            data = yaml.safe_load(source)
+        return cls.from_dict(data)
 
     # ------------------------------------------------------------------
     # Task 6: with_() — Immutable Variants

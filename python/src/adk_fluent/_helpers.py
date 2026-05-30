@@ -588,7 +588,7 @@ async def run_one_shot_async(builder, prompt: str) -> str:
         from google.adk.runners import InMemoryRunner
 
         agent = builder.build()
-        app_name = f"_ask_{agent.name}"
+        app_name = f"ask_{agent.name}"
         runner = InMemoryRunner(agent=agent, app_name=app_name)
         last_text = await _adk_run_once(runner, app_name, prompt)
 
@@ -668,7 +668,7 @@ async def run_map_async(builder, prompts, *, concurrency=5):
     from google.adk.runners import InMemoryRunner
 
     agent = builder.build()
-    app_name = f"_ask_{agent.name}"
+    app_name = f"ask_{agent.name}"
     runner = InMemoryRunner(agent=agent, app_name=app_name)
 
     async def _one(prompt):

@@ -35,6 +35,13 @@ from adk_fluent.compute._protocol import (
     ToolRuntime,
 )
 from adk_fluent.compute.memory import InMemoryArtifactStore, InMemoryStateStore
+from adk_fluent.compute.providers import (
+    AnthropicProvider,
+    GeminiProvider,
+    OllamaProvider,
+    OpenAIProvider,
+    provider_from_model,
+)
 
 __all__ = [
     # Protocols
@@ -53,6 +60,12 @@ __all__ = [
     # Default implementations
     "InMemoryStateStore",
     "InMemoryArtifactStore",
+    # Model providers
+    "GeminiProvider",
+    "OpenAIProvider",
+    "AnthropicProvider",
+    "OllamaProvider",
+    "provider_from_model",
 ]
 
 

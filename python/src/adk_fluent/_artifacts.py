@@ -493,6 +493,164 @@ class A:
         )
 
     @staticmethod
+    def watch(
+        filename: str,
+        *,
+        into: str,
+        version: int | None = None,
+        decode: bool = False,
+        scope: Literal["session", "user"] = "session",
+    ) -> ATransform:
+        """Watch an artifact: load its content into state[into] for observation.
+
+        SUBSCRIBE / OBSERVATION DUAL of A.publish. Where publish copies
+        state -> artifact, watch copies artifact -> state so downstream
+        steps and R reactor rules can observe artifact changes by reading
+        state[into].
+
+        Semantics are intentionally identical to A.snapshot at runtime
+        (artifact -> state, latest version unless ``version`` is pinned) so
+        it reuses the existing, battle-tested artifact bridge with no new
+        runtime op. The distinction is one of *intent*:
+
+        - ``A.snapshot`` is a one-shot point-in-time copy into a result key.
+        - ``A.watch`` is meant to be re-run (inside a Loop, or each turn of a
+          change-detection pipeline) to keep state[into] tracking the latest
+          artifact content. Pair with ``A.watch_version`` or ``A.on_change``
+          to make a change *detectable* by an R signal.
+
+        Example (change-detection loop)::
+
+            (
+                A.watch("inbox.json", into="inbox")
+                >> A.watch_version("inbox.json", into="inbox_version")
+                >> processor
+            ) * until(lambda s: s.get("done"))
+
+        Args:
+            filename: Artifact to load (latest version by default).
+            into: State key to write the artifact content into.
+            version: Pin a specific version; ``None`` means latest.
+            decode: Decode binary inline_data as UTF-8 text (mirrors snapshot).
+            scope: ``"session"`` (default) or ``"user"``.
+        """
+        return ATransform(
+            _fn=lambda state: None,
+            _op="snapshot",
+            _bridges_state=True,
+            _filename=filename,
+            _from_key=None,
+            _into_key=into,
+            _mime=None,
+            _scope=scope,
+            _version=version,
+            _metadata=None,
+            _content=None,
+            _decode=decode,
+            _produces_artifact=frozenset(),
+            _consumes_artifact=frozenset({filename}),
+            _produces_state=frozenset({into}),
+            _consumes_state=frozenset(),
+            _name=f"watch_{filename.replace('.', '_')}",
+        )
+
+    @staticmethod
+    def watch_version(
+        filename: str,
+        *,
+        into: str,
+        scope: Literal["session", "user"] = "session",
+    ) -> ATransform:
+        """Record an artifact's version metadata into state for change detection.
+
+        Loads the latest version metadata of ``filename`` into ``state[into]``
+        as a dict ``{"version", "mime_type", "create_time", "canonical_uri"}``.
+        Because the artifact service bumps ``version`` on every write, this is
+        the cheap, content-free signal an R rule can fire on::
+
+            ver = R.signal("inbox_version")
+            handler = agent.on(R.changed("inbox_version"))
+
+            pipeline = A.watch_version("inbox.json", into="inbox_version") >> ...
+
+        SUBSCRIBE DUAL: pairs with ``A.watch`` (content) — watch_version is the
+        lightweight change-trigger, watch is the content load. Reuses the
+        existing ``version`` artifact op, so there is no new runtime path.
+
+        Args:
+            filename: Artifact whose version to record.
+            into: State key to write the version metadata dict into.
+            scope: ``"session"`` (default) or ``"user"``.
+        """
+        return ATransform(
+            _fn=lambda state: None,
+            _op="version",
+            _bridges_state=False,
+            _filename=filename,
+            _from_key=None,
+            _into_key=into,
+            _mime=None,
+            _scope=scope,
+            _version=None,
+            _metadata=None,
+            _content=None,
+            _decode=False,
+            _produces_artifact=frozenset(),
+            _consumes_artifact=frozenset({filename}),
+            _produces_state=frozenset({into}),
+            _consumes_state=frozenset(),
+            _name=f"watch_version_{filename.replace('.', '_')}",
+        )
+
+    @staticmethod
+    def on_change(
+        filename: str,
+        handler: Any,
+        *,
+        into: str | None = None,
+        version_key: str | None = None,
+        scope: Literal["session", "user"] = "session",
+    ) -> tuple[ATransform, ...]:
+        """Bridge an artifact write into a state signal, then run ``handler``.
+
+        Returns a tuple of pipeline steps that, when run, (1) record the
+        artifact's version into ``state[version_key]`` so a change is
+        detectable, (2) load its content into ``state[into]`` for the handler
+        to consume, and (3) run ``handler`` (any builder / agent / function).
+        Unpack into a pipeline like ``A.publish_many`` (the tuple is not
+        ``>>``-chainable directly — feed the steps to ``Pipeline.step``)::
+
+            steps = A.on_change("inbox.json", processor, into="inbox")
+            pipeline = Pipeline("react").step(ingest)
+            for step in steps:
+                pipeline = pipeline.step(step)
+
+        This is the artifact analogue of ``builder.on(R.changed(...))``: it
+        gives you a guaranteed, reactor-free "fire on artifact write" step.
+        For true asynchronous reactor firing, register an R rule on
+        ``version_key`` and feed it ``A.watch_version`` (see that method);
+        ``on_change`` is the synchronous, in-pipeline form.
+
+        Args:
+            filename: Artifact to watch.
+            handler: Builder/agent/callable to run after loading the artifact.
+            into: State key for the loaded content. Defaults to a derived key.
+            version_key: State key for the version signal. Defaults to
+                ``"<into>_version"``.
+            scope: ``"session"`` (default) or ``"user"``.
+
+        Returns:
+            ``(watch_version_step, watch_step, handler)`` — chain with ``>>``.
+        """
+        content_key = into or f"_watch_{filename.replace('.', '_')}"
+        ver_key = version_key or f"{content_key}_version"
+        return (
+            A.watch_version(filename, into=ver_key, scope=scope),
+            A.watch(filename, into=content_key, scope=scope),
+            handler,
+        )
+
+    @staticmethod
     def save(
         filename: str,
         *,

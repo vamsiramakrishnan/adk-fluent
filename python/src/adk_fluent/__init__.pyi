@@ -191,6 +191,9 @@ from ._eval import ECriterion as ECriterion
 from ._eval import ECase as ECase
 from ._eval import EvalSuite as EvalSuite
 from ._eval import EvalReport as EvalReport
+from ._eval import RegressionResult as RegressionResult
+from ._eval import MetricDelta as MetricDelta
+from ._eval import RegressionError as RegressionError
 from ._eval import ComparisonReport as ComparisonReport
 from ._eval import EPersona as EPersona
 from ._exceptions import ADKFluentError as ADKFluentError
@@ -843,6 +846,7 @@ from ._session._tape_backend import JsonlBackend as JsonlBackend
 from ._session._tape_backend import NullBackend as NullBackend
 from ._session._tape_backend import TapeBackend as TapeBackend
 from ._subagents import FakeSubagentRunner as FakeSubagentRunner
+from ._subagents import AdkSubagentRunner as AdkSubagentRunner
 from ._subagents import SubagentRegistry as SubagentRegistry
 from ._subagents import SubagentResult as SubagentResult
 from ._subagents import SubagentRunner as SubagentRunner
@@ -1137,6 +1141,9 @@ __all__ = [
     "EvalSuite",
     "EvalReport",
     "ComparisonReport",
+    "RegressionResult",
+    "MetricDelta",
+    "RegressionError",
     "EPersona",
     "ADKFluentError",
     "BuilderError",
@@ -1505,6 +1512,7 @@ __all__ = [
     "active_cache",
     "use_cache",
     "FakeSubagentRunner",
+    "AdkSubagentRunner",
     "SubagentRegistry",
     "SubagentResult",
     "SubagentRunner",

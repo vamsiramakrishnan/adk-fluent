@@ -79,6 +79,9 @@ __all__ = [
     "EvalReport",
     "ComparisonReport",
     "EPersona",
+    "RegressionResult",
+    "MetricDelta",
+    "RegressionError",
 ]
 
 
@@ -241,6 +244,152 @@ class ECase:
 
 
 # ======================================================================
+# Regression gating — baseline comparison primitives
+# ======================================================================
+
+
+class RegressionError(AssertionError):
+    """Raised by :meth:`EvalReport.assert_no_regression` on a detected regression.
+
+    Subclasses ``AssertionError`` so it integrates naturally with pytest and
+    CI assertion semantics. Carries the structured :class:`RegressionResult`
+    on ``.result`` for programmatic inspection.
+    """
+
+    def __init__(self, message: str, result: RegressionResult) -> None:
+        super().__init__(message)
+        self.result = result
+
+
+@dataclass(frozen=True, slots=True)
+class MetricDelta:
+    """Per-metric comparison between a baseline and a candidate report.
+
+    Attributes:
+        metric: The metric name.
+        baseline: Score recorded in the baseline (``None`` if the metric is
+            new and absent from the baseline).
+        current: Score in the candidate report (``None`` if the metric was
+            dropped and is absent from the candidate).
+        tolerance: Allowed drop before the delta counts as a regression.
+    """
+
+    metric: str
+    baseline: float | None
+    current: float | None
+    tolerance: float = 0.0
+
+    @property
+    def delta(self) -> float | None:
+        """``current - baseline``. ``None`` if either side is missing."""
+        if self.baseline is None or self.current is None:
+            return None
+        return self.current - self.baseline
+
+    @property
+    def is_missing(self) -> bool:
+        """True if a metric present in the baseline is absent in the candidate.
+
+        A dropped/missing metric is treated as a regression — you can no longer
+        prove the behaviour still holds.
+        """
+        return self.baseline is not None and self.current is None
+
+    @property
+    def is_new(self) -> bool:
+        """True if the metric is new (present in candidate, absent in baseline)."""
+        return self.baseline is None and self.current is not None
+
+    @property
+    def regressed(self) -> bool:
+        """True if this metric dropped beyond ``tolerance`` (or was dropped)."""
+        if self.is_missing:
+            return True
+        if self.delta is None:
+            # New metric — nothing to regress against.
+            return False
+        # delta < -tolerance means current is more than `tolerance` below
+        # baseline. A small epsilon absorbs floating-point representation
+        # error so a drop of *exactly* the tolerance is not spuriously flagged.
+        return self.delta < -self.tolerance - 1e-9
+
+    @property
+    def improved(self) -> bool:
+        """True if the metric strictly increased versus the baseline."""
+        d = self.delta
+        return d is not None and d > 0
+
+    def describe(self) -> str:
+        if self.is_missing:
+            return f"{self.metric}: MISSING (baseline={self.baseline:.3f}, dropped from report)"
+        if self.is_new:
+            return f"{self.metric}: NEW (current={self.current:.3f})"
+        assert self.baseline is not None and self.current is not None and self.delta is not None
+        arrow = "regressed" if self.regressed else ("improved" if self.improved else "stable")
+        return (
+            f"{self.metric}: {self.baseline:.3f} -> {self.current:.3f} "
+            f"(delta={self.delta:+.3f}, tol={self.tolerance}) [{arrow}]"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class RegressionResult:
+    """Structured result of comparing a report against a baseline.
+
+    Returned by :meth:`EvalReport.compare_to_baseline`. ``ok`` is ``True`` when
+    no tracked metric regressed beyond the tolerance. Suitable for CI gating::
+
+        result = report.compare_to_baseline(baseline, tolerance=0.02)
+        assert result.ok, result.summary()
+    """
+
+    deltas: tuple[MetricDelta, ...] = ()
+    tolerance: float = 0.0
+
+    @property
+    def ok(self) -> bool:
+        """True if no tracked metric regressed beyond tolerance."""
+        return not self.regressions
+
+    @property
+    def regressions(self) -> tuple[MetricDelta, ...]:
+        """Metrics that regressed (dropped beyond tolerance or were removed)."""
+        return tuple(d for d in self.deltas if d.regressed)
+
+    @property
+    def improvements(self) -> tuple[MetricDelta, ...]:
+        """Metrics that strictly improved versus the baseline."""
+        return tuple(d for d in self.deltas if d.improved)
+
+    def delta_for(self, metric: str) -> MetricDelta | None:
+        """Return the :class:`MetricDelta` for ``metric`` if present."""
+        for d in self.deltas:
+            if d.metric == metric:
+                return d
+        return None
+
+    def summary(self) -> str:
+        """Formatted text summary suitable for CI logs."""
+        lines = ["Regression Report", "=" * 50]
+        for d in self.deltas:
+            lines.append(f"  {d.describe()}")
+        lines.append("=" * 50)
+        if self.ok:
+            lines.append("Overall: NO REGRESSION")
+        else:
+            names = ", ".join(d.metric for d in self.regressions)
+            lines.append(f"Overall: REGRESSION DETECTED ({names})")
+        return "\n".join(lines)
+
+    def __bool__(self) -> bool:
+        return self.ok
+
+    def __repr__(self) -> str:
+        status = "ok" if self.ok else f"regressions={[d.metric for d in self.regressions]}"
+        return f"RegressionResult({status}, tolerance={self.tolerance})"
+
+
+# ======================================================================
 # EvalReport — ergonomic wrapper around ADK's EvaluationResult
 # ======================================================================
 
@@ -280,6 +429,145 @@ class EvalReport:
     def __repr__(self) -> str:
         status = "PASSED" if self.ok else "FAILED"
         return f"EvalReport({status}, scores={self.scores})"
+
+    # ------------------------------------------------------------------
+    # Serialization — baselines round-trip through this format
+    # ------------------------------------------------------------------
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the report to a JSON-compatible dict.
+
+        ``details`` and ``raw_results`` are coerced to strings (best-effort)
+        so reports built from arbitrary ADK objects still round-trip cleanly.
+        The metric-bearing fields (``scores`` / ``thresholds`` / ``passed``)
+        are preserved exactly — these drive baseline comparison.
+        """
+        return {
+            "scores": dict(self.scores),
+            "thresholds": dict(self.thresholds),
+            "passed": dict(self.passed),
+            "details": [str(d) for d in self.details],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EvalReport:
+        """Reconstruct an :class:`EvalReport` from :meth:`to_dict` output."""
+        return cls(
+            scores={k: float(v) for k, v in (data.get("scores") or {}).items()},
+            thresholds={k: float(v) for k, v in (data.get("thresholds") or {}).items()},
+            passed={k: bool(v) for k, v in (data.get("passed") or {}).items()},
+            details=list(data.get("details") or []),
+        )
+
+    def save_baseline(self, path: str) -> EvalReport:
+        """Persist this report as a golden baseline JSON file.
+
+        Reuses :meth:`to_dict` so a saved report loads back via
+        :meth:`load_baseline` with identical metric data. Returns ``self``
+        for chaining.
+
+        Args:
+            path: Destination file path.
+        """
+        with open(path, "w") as f:
+            json.dump(self.to_dict(), f, indent=2, default=str)
+        return self
+
+    # Alias for symmetry with EvalSuite.to_file().
+    def to_file(self, path: str) -> EvalReport:
+        """Alias for :meth:`save_baseline`."""
+        return self.save_baseline(path)
+
+    @classmethod
+    def load_baseline(cls, path: str) -> EvalReport:
+        """Load a baseline report previously written by :meth:`save_baseline`."""
+        with open(path) as f:
+            data = json.load(f)
+        return cls.from_dict(data)
+
+    # ------------------------------------------------------------------
+    # Regression gating
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _coerce_baseline(baseline: EvalReport | dict[str, Any] | str) -> EvalReport:
+        """Normalize a baseline argument into an :class:`EvalReport`.
+
+        Accepts an EvalReport, a ``to_dict()`` payload, or a path to a saved
+        baseline JSON file.
+        """
+        if isinstance(baseline, EvalReport):
+            return baseline
+        if isinstance(baseline, dict):
+            return EvalReport.from_dict(baseline)
+        if isinstance(baseline, str):
+            return EvalReport.load_baseline(baseline)
+        raise TypeError(
+            f"baseline must be an EvalReport, dict, or path str — got {type(baseline).__name__}"
+        )
+
+    def compare_to_baseline(
+        self,
+        baseline: EvalReport | dict[str, Any] | str,
+        *,
+        tolerance: float = 0.0,
+    ) -> RegressionResult:
+        """Compare this report's metric scores against a baseline.
+
+        A metric *regresses* when its score drops by more than ``tolerance``
+        relative to the baseline, or when a metric present in the baseline is
+        missing from this report. New metrics (absent from the baseline) and
+        improved or stable metrics never count as regressions.
+
+        Args:
+            baseline: An :class:`EvalReport`, a :meth:`to_dict` payload, or a
+                path to a saved baseline JSON file.
+            tolerance: Maximum allowed drop per metric before it counts as a
+                regression. ``0.0`` (default) fails on any drop. Must be >= 0.
+
+        Returns:
+            A :class:`RegressionResult` with ``.ok`` and per-metric deltas.
+        """
+        if tolerance < 0:
+            raise ValueError(f"tolerance must be >= 0, got {tolerance}")
+
+        base = self._coerce_baseline(baseline)
+        metrics = list(dict.fromkeys([*base.scores, *self.scores]))
+        deltas = tuple(
+            MetricDelta(
+                metric=m,
+                baseline=base.scores.get(m),
+                current=self.scores.get(m),
+                tolerance=tolerance,
+            )
+            for m in metrics
+        )
+        return RegressionResult(deltas=deltas, tolerance=tolerance)
+
+    def assert_no_regression(
+        self,
+        baseline: EvalReport | dict[str, Any] | str,
+        *,
+        tolerance: float = 0.0,
+    ) -> RegressionResult:
+        """CI gate: raise :class:`RegressionError` if any metric regressed.
+
+        Thin wrapper over :meth:`compare_to_baseline` that raises when the
+        result is not ``ok``. Returns the :class:`RegressionResult` on success
+        so callers can inspect improvements.
+
+        Args:
+            baseline: Baseline report, dict, or path (see
+                :meth:`compare_to_baseline`).
+            tolerance: Allowed per-metric drop before failing.
+
+        Raises:
+            RegressionError: If one or more metrics regressed beyond tolerance.
+        """
+        result = self.compare_to_baseline(baseline, tolerance=tolerance)
+        if not result.ok:
+            raise RegressionError(result.summary(), result)
+        return result
 
 
 # ======================================================================
