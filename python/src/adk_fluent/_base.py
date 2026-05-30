@@ -926,6 +926,46 @@ class BuilderBase:
             new._middlewares = list(mw)
         return new
 
+    def _apply_context_transform(self, ctransform) -> BuilderBase:
+        """Bind a C (context) transform to an Agent in a ``>>`` chain.
+
+        A context transform has no standalone state effect; it shapes what an
+        agent sees. In a mixed pipeline it therefore attaches to an adjacent
+        Agent's ``.context()`` instead of becoming a pipeline step:
+
+        - ``Agent >> C``      → that agent, configured with the context.
+        - ``Pipeline >> C``   → the pipeline with its **last Agent step**
+                                 reconfigured. Non-Agent trailing steps (S/A)
+                                 are skipped to find the agent the context
+                                 applies to.
+
+        Raises ``TypeError`` when no Agent is available to receive the context
+        (e.g. ``FanOut >> C`` or a pipeline ending in only S/A steps), pointing
+        the user at the explicit ``.context()`` form.
+        """
+        from adk_fluent.workflow import Pipeline
+
+        # Direct case: self is an Agent (exposes .context()).
+        if hasattr(self, "context"):
+            return self.context(ctransform)  # type: ignore[attr-defined]
+
+        # Pipeline case: rebind the last Agent step's context.
+        if isinstance(self, Pipeline):
+            clone = self._fork_for_operator()
+            steps = clone._lists.get("sub_agents", [])
+            for i in range(len(steps) - 1, -1, -1):
+                step = steps[i]
+                if hasattr(step, "context"):
+                    steps[i] = step.context(ctransform)  # type: ignore[attr-defined]
+                    return clone
+
+        raise TypeError(
+            f"Cannot bind a context transform ({type(ctransform).__name__}) via >> here: "
+            f"the left operand ({type(self).__name__}) has no Agent to receive it. "
+            "A C transform configures an agent's context — place it adjacent to an "
+            "Agent (e.g. C.window(n=5) >> Agent(...)), or use Agent(...).context(C...)."
+        )
+
     def __rshift__(self, other) -> BuilderBase:
         """Create or extend a Pipeline: a >> b >> c.
 
@@ -936,9 +976,18 @@ class BuilderBase:
         - Route (deterministic branching)
         """
         self._freeze()
+        from adk_fluent._context import CTransform
         from adk_fluent._primitive_builders import _fn_step
         from adk_fluent._routing import Route
         from adk_fluent.workflow import Pipeline
+
+        # Cross-namespace: a C (context) transform binds to an Agent's context
+        # rather than becoming a state step. ``Agent >> C`` configures that
+        # agent; ``Pipeline >> C`` configures the pipeline's last Agent step.
+        # (S and A transforms already flow through the callable / _artifact_op
+        # paths below, producing FnStep / ArtifactAgent nodes.)
+        if isinstance(other, CTransform):
+            return self._apply_context_transform(other)
 
         # Callable operand: wrap as zero-cost FnStep
         if callable(other) and not isinstance(other, BuilderBase | Route | type):

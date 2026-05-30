@@ -138,9 +138,39 @@ class CTransform:
         """Pipe: source | transform."""
         return CPipe(source=self, transform=other)
 
-    def __rshift__(self, other: CTransform) -> CPipe:
-        """Chain: alias for ``|`` (pipe). Provided for namespace consistency."""
+    def __rshift__(self, other: Any) -> Any:
+        """Chain a context transform.
+
+        - ``CTransform >> CTransform`` → ``CPipe`` (alias for ``|``; unchanged).
+        - ``CTransform >> Agent`` → the agent configured with this context,
+          i.e. ``agent.context(self)``. A context transform attaches to the
+          agent that immediately follows it in a ``>>`` chain, since a C
+          transform shapes what *that* agent sees (it has no standalone state
+          effect).
+        """
+        # Cross-namespace: C transform binds to the following Agent's context.
+        from adk_fluent._base import BuilderBase
+
+        if isinstance(other, BuilderBase) and hasattr(other, "context"):
+            return other.context(self)
+        if isinstance(other, BuilderBase):
+            # Workflow builders (Pipeline/Loop/FanOut) have no .context(); a C
+            # transform cannot bind to them directly. Surface a clear error.
+            return NotImplemented
         return self.__or__(other)
+
+    def __rrshift__(self, other: Any) -> Any:
+        """Support ``Agent >> CTransform`` and ``Pipeline >> CTransform``.
+
+        Lets the left builder's ``__rshift__`` delegate here when it returns
+        ``NotImplemented``. The context binds to the agent on the left (the
+        agent it configures). For a Pipeline, it binds to the last Agent step.
+        """
+        from adk_fluent._base import BuilderBase
+
+        if isinstance(other, BuilderBase):
+            return other >> self
+        return NotImplemented
 
     def _as_list(self) -> tuple[CTransform, ...]:
         """Flatten for composite building. Overridden by CComposite."""
