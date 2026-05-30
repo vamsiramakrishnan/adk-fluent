@@ -1963,6 +1963,71 @@ class BuilderBase:
             data = yaml.safe_load(source)
         return cls.from_dict(data)
 
+    @classmethod
+    def from_native(cls, native: Any) -> BuilderBase:
+        """Adopt a native ADK agent object as a fluent builder — the inverse of ``build()``.
+
+        Recovers the common, round-trippable surface (name, model, instruction,
+        description, tools, and sub-agent topology) for the core agent types:
+
+        * ``LlmAgent``       → :class:`Agent`
+        * ``SequentialAgent`` → :class:`Pipeline`
+        * ``ParallelAgent``   → :class:`FanOut`
+        * ``LoopAgent``       → :class:`Loop`
+
+        This is the missing import path: it lets an existing ADK app be wrapped
+        in the fluent API for inspection (``.to_mermaid()``, ``.diagnose()``) or
+        incremental adoption. Exotic ADK fields and callbacks are not
+        reconstructed — layer fluent calls on top of the returned builder.
+        Raises ``TypeError`` for unsupported native types.
+        """
+        from adk_fluent.agent import Agent
+        from adk_fluent.workflow import FanOut, Loop, Pipeline
+
+        tname = type(native).__name__
+        name = getattr(native, "name", "") or ""
+
+        def _carry_description(builder: BuilderBase) -> None:
+            desc = getattr(native, "description", None)
+            if desc:
+                builder._config["description"] = desc
+
+        if tname in ("SequentialAgent", "ParallelAgent", "LoopAgent"):
+            children = [cls.from_native(c) for c in (getattr(native, "sub_agents", None) or [])]
+            if tname == "SequentialAgent":
+                builder: BuilderBase = Pipeline(name)
+            elif tname == "ParallelAgent":
+                builder = FanOut(name)
+            else:
+                builder = Loop(name)
+                max_iter = getattr(native, "max_iterations", None)
+                if max_iter:
+                    builder._config["max_iterations"] = max_iter
+            builder._lists["sub_agents"].extend(children)
+            _carry_description(builder)
+            return builder
+
+        # LlmAgent (and subclasses with an instruction) → Agent
+        if tname == "LlmAgent" or hasattr(native, "instruction"):
+            model = getattr(native, "model", None)
+            model_str = model if isinstance(model, str) else getattr(model, "model", None)
+            builder = Agent(name, model_str) if model_str else Agent(name)
+            instr = getattr(native, "instruction", None)
+            if instr:
+                builder._config["instruction"] = instr
+            _carry_description(builder)
+            tools = list(getattr(native, "tools", None) or [])
+            if tools:
+                builder._lists["tools"] = tools
+            for sub in getattr(native, "sub_agents", None) or []:
+                builder._lists["sub_agents"].append(cls.from_native(sub))
+            return builder
+
+        raise TypeError(
+            f"from_native: unsupported native agent type {tname!r}. "
+            "Supported: LlmAgent, SequentialAgent, ParallelAgent, LoopAgent."
+        )
+
     # ------------------------------------------------------------------
     # Task 6: with_() — Immutable Variants
     # ------------------------------------------------------------------
@@ -2741,6 +2806,64 @@ class BuilderBase:
         if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
             raise TypeError(f"consumes() requires a Pydantic BaseModel subclass, got {schema!r}")
         self._config["_consumes"] = schema
+        return self
+
+    @fluent
+    def enforce_contracts(self, *, consumes: bool = True, produces: bool = True) -> Self:
+        """Promote ``.consumes()`` / ``.produces()`` annotations to RUNTIME checks.
+
+        By default those two methods are static annotations with no runtime
+        effect (they only feed the build-time contract checker). After calling
+        ``.enforce_contracts()`` this agent validates them at execution time:
+
+        * **consumes** — before the agent runs, assert every state key named by
+          the ``.consumes()`` schema is present. Fails fast on missing upstream
+          data instead of letting the agent run on an incomplete state.
+        * **produces** — after the agent runs, assert every state key named by
+          the ``.produces()`` schema was actually written.
+
+        Violations raise :class:`ValueError`. This is the runtime dual of the
+        build-time ``.strict()`` / ``.checked()`` contract checking. The schema
+        is read live at execution time, so call order relative to
+        ``.consumes()`` / ``.produces()`` does not matter.
+        """
+        builder = self
+        name = builder._config.get("name", "?")
+
+        if consumes:
+
+            def _check_consumes(callback_context):
+                schema = builder._config.get("_consumes")
+                if schema is None:
+                    return None
+                state = callback_context.state
+                missing = [k for k in schema.model_fields if k not in state]
+                if missing:
+                    raise ValueError(
+                        f"contract violation: agent '{name}' .consumes() requires state "
+                        f"key(s) {missing}, which are absent before execution."
+                    )
+                return None
+
+            self._callbacks["before_agent_callback"].append(_check_consumes)
+
+        if produces:
+
+            def _check_produces(callback_context):
+                schema = builder._config.get("_produces")
+                if schema is None:
+                    return None
+                state = callback_context.state
+                missing = [k for k in schema.model_fields if k not in state]
+                if missing:
+                    raise ValueError(
+                        f"contract violation: agent '{name}' .produces() promised state "
+                        f"key(s) {missing}, which were not written."
+                    )
+                return None
+
+            self._callbacks["after_agent_callback"].append(_check_produces)
+
         return self
 
     # ------------------------------------------------------------------

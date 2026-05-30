@@ -86,6 +86,39 @@ class TestFromDictStructural:
         assert rebuilt._config["instruction"] == "Do math."
 
 
+class TestFromNative:
+    """from_native() adopts a native ADK object as a fluent builder (inverse of build())."""
+
+    def test_llm_agent_round_trip(self):
+        built = Agent("math", "gemini-2.5-flash").instruct("Do math.").describe("calc").build()
+        rebuilt = Agent.from_native(built)
+        assert type(rebuilt).__name__ == "Agent"
+        assert rebuilt._config["name"] == "math"
+        assert rebuilt._config["model"] == "gemini-2.5-flash"
+        assert rebuilt._config["instruction"] == "Do math."
+        assert rebuilt._config["description"] == "calc"
+
+    def test_pipeline_topology_recovered(self):
+        from adk_fluent import Pipeline
+
+        built = (
+            Pipeline("flow")
+            .step(Agent("a", "gemini-2.5-flash").instruct("A"))
+            .step(Agent("b", "gemini-2.5-flash").instruct("B"))
+            .build()
+        )
+        rebuilt = Pipeline.from_native(built)
+        assert type(rebuilt).__name__ == "Pipeline"
+        names = [s._config.get("name") for s in rebuilt._lists.get("sub_agents", [])]
+        assert names == ["a", "b"]
+
+    def test_unsupported_type_raises(self):
+        import pytest
+
+        with pytest.raises(TypeError):
+            Agent.from_native(object())
+
+
 class TestYaml:
     def test_to_yaml_returns_string(self):
         agent = Agent("math").model("gemini-2.5-flash")
