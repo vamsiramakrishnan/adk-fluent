@@ -107,8 +107,15 @@ class TemporalBackend:
         - ``deterministic``: whether it can be replayed from history
         - ``temporal_type``: "activity", "workflow", or "inline"
         - ``checkpoint``: whether Temporal should checkpoint after this node
+
+        The ``annotate_checkpoints`` pass is run over the IR and its
+        checkpoint map is reconciled into the plan: any node the pass marks
+        as an I/O boundary is forced to an ``activity`` (cached on replay),
+        which is the single source of truth for activity boundaries.
         """
         plan = self._walk_node(node)
+        annotation = _annotate(node)
+        _apply_checkpoint_annotation(plan, annotation)
         return TemporalRunnable(ir=node, node_plan=plan, config=config)
 
     async def run(self, compiled: TemporalRunnable, prompt: str, **kwargs) -> list[AgentEvent]:
@@ -274,12 +281,25 @@ class TemporalBackend:
         ]
 
     def _classify_route(self, node: Any) -> list[dict[str, Any]]:
-        """RouteNode → Inline workflow code (deterministic routing)."""
-        children_plans = []
+        """RouteNode → Inline workflow code (deterministic routing).
+
+        Preserves the per-branch structure so codegen can emit a correct
+        ``if`` / ``elif`` / ``else`` cascade keyed on the route state key.
+        ``branches`` is a list of sub-plans (one per rule, in order) and
+        ``default`` is the fallback sub-plan (or ``None``). ``children`` is
+        kept as a flattened view for activity collection.
+        """
+        branches: list[list[dict[str, Any]]] = []
+        children_plans: list[dict[str, Any]] = []
         for _pred, child in getattr(node, "rules", ()):
-            children_plans.extend(self._walk_node(child))
+            branch_plan = self._walk_node(child)
+            branches.append(branch_plan)
+            children_plans.extend(branch_plan)
+
+        default_plan: list[dict[str, Any]] | None = None
         if getattr(node, "default", None) is not None:
-            children_plans.extend(self._walk_node(node.default))
+            default_plan = self._walk_node(node.default)
+            children_plans.extend(default_plan)
 
         return [
             {
@@ -288,6 +308,9 @@ class TemporalBackend:
                 "temporal_type": "inline",
                 "deterministic": True,
                 "checkpoint": False,
+                "route_key": getattr(node, "key", None),
+                "branches": branches,
+                "default": default_plan,
                 "children": children_plans,
             }
         ]
@@ -388,6 +411,63 @@ class TemporalBackend:
                 "children": children_plans,
             }
         ]
+
+
+def _annotate(node: Any) -> Any:
+    """Run the checkpoint-annotation pass over an IR tree.
+
+    Imported lazily to avoid a hard dependency on the compile layer at
+    module import time.
+    """
+    from adk_fluent.compile.passes import annotate_checkpoints
+
+    return annotate_checkpoints(node)
+
+
+def _apply_checkpoint_annotation(plan: list[dict[str, Any]], annotation: Any) -> None:
+    """Reconcile a ``CheckpointAnnotation`` into a Temporal plan in place.
+
+    For every plan node whose name the annotation marks as a checkpoint
+    boundary, set ``checkpoint=True`` and ensure ``temporal_type`` is
+    ``"activity"`` (so codegen emits a cached activity for it). Nodes the
+    annotation marks deterministic keep their classifier-assigned type but
+    record ``checkpoint=False``. The annotation is the authoritative source
+    for activity boundaries.
+    """
+    boundary_names = getattr(annotation, "boundary_names", frozenset())
+
+    def _walk(nodes: list[dict[str, Any]]) -> None:
+        for nd in nodes:
+            name = nd.get("name")
+            if name in boundary_names:
+                # Additive only: mark I/O boundaries as checkpoints and
+                # promote promotable leaves to activities. Orchestration
+                # nodes keep their classifier-assigned checkpoint semantics
+                # (e.g. LoopNode checkpoints after each iteration).
+                nd["checkpoint"] = True
+                if nd.get("node_type") in _IO_PROMOTABLE and nd.get("temporal_type") in (
+                    None,
+                    "",
+                    "activity",
+                    "inline",
+                ):
+                    nd["temporal_type"] = "activity"
+            children = nd.get("children", [])
+            if isinstance(children, list):
+                _walk([c for c in children if isinstance(c, dict)])
+            for branch in nd.get("branches", []) or []:
+                if isinstance(branch, list):
+                    _walk([c for c in branch if isinstance(c, dict)])
+            default = nd.get("default")
+            if isinstance(default, list):
+                _walk([c for c in default if isinstance(c, dict)])
+
+    _walk(plan)
+
+
+# Node types that may be promoted to a Temporal activity when the
+# checkpoint pass marks them as I/O boundaries.
+_IO_PROMOTABLE = frozenset({"AgentNode", "RemoteA2aNode", "MapOverNode"})
 
 
 def _classify_unknown(backend: TemporalBackend, node: Any) -> list[dict[str, Any]]:

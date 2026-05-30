@@ -16,7 +16,7 @@ is advisory and should be invoked explicitly via ``validate_contracts()``.
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from adk_fluent._ir import TransformNode
@@ -26,6 +26,7 @@ __all__ = [
     "fuse_transforms",
     "validate_contracts",
     "annotate_checkpoints",
+    "CheckpointAnnotation",
 ]
 
 
@@ -146,18 +147,137 @@ def validate_contracts(ir: Any) -> list:
 # ======================================================================
 
 
-def annotate_checkpoints(ir: Any) -> Any:
-    """Mark nodes that need checkpointing for durable backends.
+# Node types whose execution performs I/O (LLM calls, tool calls, remote
+# agents, child-workflow dispatch). These are the natural activity /
+# checkpoint boundaries for durable backends: their results must be
+# recorded so a crashed workflow can replay deterministically without
+# re-issuing the (expensive, non-deterministic) call.
+_IO_NODE_TYPES = frozenset(
+    {
+        "AgentNode",  # LLM call
+        "RemoteA2aNode",  # remote agent call
+        "MapOverNode",  # iterates an LLM body over a list
+        "DispatchNode",  # launches a durable child workflow
+        "GateNode",  # waits for an external signal (human-in-the-loop)
+    }
+)
 
-    This is a placeholder pass. Durable backends (Temporal, DBOS) will
-    use node metadata to decide which nodes become activities vs. inline
-    workflow code. Currently returns the IR unchanged.
+# Everything else (SequenceNode, ParallelNode, LoopNode, FallbackNode,
+# RaceNode, RouteNode, TransformNode, TapNode, JoinNode, TimeoutNode, ...) is
+# deterministic orchestration / pure compute: it needs no checkpoint of its
+# own — its I/O-bearing descendants are tagged individually.
 
-    Future: will add ``checkpoint: bool`` to node metadata based on
-    whether the node performs I/O (AgentNode, tool calls) or is
-    deterministic (TransformNode, TapNode, RouteNode).
+
+@dataclass(frozen=True)
+class CheckpointAnnotation:
+    """Result of :func:`annotate_checkpoints`.
+
+    Carries the (unchanged) IR tree plus a checkpoint map that durable
+    backends consume to decide activity / step boundaries. ``checkpoints``
+    maps a stable node *path* (a tuple of child indices from the root) to a
+    descriptor with the node name, type, and whether it is a checkpoint
+    (I/O) boundary. ``boundary_names`` is the convenience set of node names
+    that are checkpoint boundaries.
     """
-    return ir
+
+    ir: Any
+    checkpoints: dict[tuple[int, ...], dict[str, Any]] = field(default_factory=dict)
+    boundary_names: frozenset[str] = frozenset()
+
+    def is_boundary(self, name: str) -> bool:
+        """Return True if a node with ``name`` is a checkpoint boundary."""
+        return name in self.boundary_names
+
+    def __iter__(self):
+        """Allow ``ir_tree, _ = annotate_checkpoints(...)``-style use is not
+        intended; iterate descriptor entries instead."""
+        return iter(self.checkpoints.values())
+
+
+def _child_nodes(node: Any) -> list[Any]:
+    """Return the ordered child IR nodes of any node type.
+
+    Handles the three shapes used across the IR: ``children`` tuples,
+    a single ``body`` node, and ``RouteNode.rules`` (predicate, child) pairs
+    plus an optional ``default``.
+    """
+    children: list[Any] = list(getattr(node, "children", ()) or ())
+    body = getattr(node, "body", None)
+    if body is not None:
+        children.append(body)
+    for entry in getattr(node, "rules", ()) or ():
+        # RouteNode rules are (predicate, child) tuples.
+        if isinstance(entry, tuple) and len(entry) == 2:
+            children.append(entry[1])
+    default = getattr(node, "default", None)
+    if default is not None and hasattr(default, "name"):
+        children.append(default)
+    return children
+
+
+def _is_io_node(node: Any) -> bool:
+    """Decide whether a node performs I/O (and so is a checkpoint boundary).
+
+    An ``AgentNode`` is always I/O (it issues an LLM call). Any node that
+    carries a non-empty ``tools`` attribute also performs I/O. Otherwise we
+    consult the static node-type sets.
+    """
+    node_type = type(node).__name__
+    if node_type in _IO_NODE_TYPES:
+        return True
+    # Tool-bearing nodes call out to tools (I/O).
+    return bool(getattr(node, "tools", ()))
+
+
+def annotate_checkpoints(ir: Any) -> CheckpointAnnotation:
+    """Tag I/O-bearing nodes as checkpoint / activity boundaries.
+
+    Walks the IR tree and classifies every node as either a checkpoint
+    boundary (LLM calls, tool calls, remote/child-workflow dispatch,
+    signal gates) or deterministic orchestration that needs no checkpoint
+    of its own. Durable backends (Temporal, DBOS, Prefect) consume the
+    resulting :class:`CheckpointAnnotation` to decide which nodes become
+    activities / steps / tasks (cached on replay) versus inline workflow
+    code (replayed deterministically from history).
+
+    The IR itself is **not** mutated — the nodes are frozen dataclasses —
+    so the original tree is returned inside the annotation unchanged.
+
+    Args:
+        ir: The root IR node (or a previously produced annotation, in which
+            case its IR is re-annotated).
+
+    Returns:
+        A :class:`CheckpointAnnotation` whose ``checkpoints`` maps each
+        node's path (tuple of child indices) to a descriptor and whose
+        ``boundary_names`` lists every checkpoint-boundary node name.
+    """
+    root = ir.ir if isinstance(ir, CheckpointAnnotation) else ir
+
+    checkpoints: dict[tuple[int, ...], dict[str, Any]] = {}
+    boundary_names: set[str] = set()
+
+    def _walk(node: Any, path: tuple[int, ...]) -> None:
+        node_type = type(node).__name__
+        is_boundary = _is_io_node(node)
+        checkpoints[path] = {
+            "name": getattr(node, "name", "unknown"),
+            "node_type": node_type,
+            "checkpoint": is_boundary,
+            "deterministic": not is_boundary,
+        }
+        if is_boundary:
+            boundary_names.add(getattr(node, "name", "unknown"))
+        for i, child in enumerate(_child_nodes(node)):
+            _walk(child, path + (i,))
+
+    _walk(root, ())
+
+    return CheckpointAnnotation(
+        ir=root,
+        checkpoints=checkpoints,
+        boundary_names=frozenset(boundary_names),
+    )
 
 
 # ======================================================================
@@ -175,6 +295,7 @@ def run_passes(ir: Any) -> Any:
     invoked explicitly via ``validate_contracts(ir)`` when needed.
     """
     ir = fuse_transforms(ir)
-    # annotate_checkpoints is a placeholder — will be added when durable
-    # backends need checkpoint metadata
+    # annotate_checkpoints is NOT run here: it returns a CheckpointAnnotation
+    # (IR + sidecar checkpoint map), not an IR tree, and is invoked explicitly
+    # by durable backends that need checkpoint / activity-boundary metadata.
     return ir
