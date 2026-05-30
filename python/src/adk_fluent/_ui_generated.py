@@ -12,6 +12,7 @@ from adk_fluent._ui import (
     UIBinding,
     UICheck,
     UIComponent,
+    _as_binding,
     _component,
 )
 
@@ -185,7 +186,7 @@ class _GeneratedFactories:
         *,
         value: str | UIBinding | None = None,
         variant: str = "shortText",
-        bind: str | None = None,
+        bind: str | UIBinding | None = None,
         checks: list[UICheck] | None = None,
         id: str | None = None,
     ) -> UIComponent:
@@ -194,10 +195,10 @@ class _GeneratedFactories:
         Args:
             label: Required.
             variant: One of ['longText', 'number', 'shortText', 'obscured']. Default: 'shortText'.
-            bind: JSON Pointer path for two-way data binding.
+            bind: JSON Pointer path (or UIBinding) for two-way data binding.
             checks: Validation rules.
         """
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component(
             "TextField", id=id, label=label, value=value, variant=variant, _bindings=_bindings, _checks=_checks
@@ -208,7 +209,7 @@ class _GeneratedFactories:
         label: str | UIBinding,
         value: bool | UIBinding,
         *,
-        bind: str | None = None,
+        bind: str | UIBinding | None = None,
         checks: list[UICheck] | None = None,
         id: str | None = None,
     ) -> UIComponent:
@@ -217,10 +218,10 @@ class _GeneratedFactories:
         Args:
             label: Required.
             value: Required.
-            bind: JSON Pointer path for two-way data binding.
+            bind: JSON Pointer path (or UIBinding) for two-way data binding.
             checks: Validation rules.
         """
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component("CheckBox", id=id, label=label, value=value, _bindings=_bindings, _checks=_checks)
 
@@ -233,7 +234,7 @@ class _GeneratedFactories:
         variant: str = "mutuallyExclusive",
         displayStyle: str = "checkbox",
         filterable: bool = False,
-        bind: str | None = None,
+        bind: str | UIBinding | None = None,
         checks: list[UICheck] | None = None,
         id: str | None = None,
     ) -> UIComponent:
@@ -244,10 +245,10 @@ class _GeneratedFactories:
             value: Required.
             variant: One of ['multipleSelection', 'mutuallyExclusive']. Default: 'mutuallyExclusive'.
             displayStyle: One of ['checkbox', 'chips']. Default: 'checkbox'.
-            bind: JSON Pointer path for two-way data binding.
+            bind: JSON Pointer path (or UIBinding) for two-way data binding.
             checks: Validation rules.
         """
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component(
             "ChoicePicker",
@@ -269,7 +270,7 @@ class _GeneratedFactories:
         *,
         label: str | UIBinding | None = None,
         min: int | float = 0,
-        bind: str | None = None,
+        bind: str | UIBinding | None = None,
         checks: list[UICheck] | None = None,
         id: str | None = None,
     ) -> UIComponent:
@@ -278,10 +279,10 @@ class _GeneratedFactories:
         Args:
             max: Required.
             value: Required.
-            bind: JSON Pointer path for two-way data binding.
+            bind: JSON Pointer path (or UIBinding) for two-way data binding.
             checks: Validation rules.
         """
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component(
             "Slider", id=id, max=max, value=value, label=label, min=min, _bindings=_bindings, _checks=_checks
@@ -296,7 +297,7 @@ class _GeneratedFactories:
         min: str | UIBinding | None = None,
         max: str | UIBinding | None = None,
         label: str | UIBinding | None = None,
-        bind: str | None = None,
+        bind: str | UIBinding | None = None,
         checks: list[UICheck] | None = None,
         id: str | None = None,
     ) -> UIComponent:
@@ -304,10 +305,10 @@ class _GeneratedFactories:
 
         Args:
             value: Required.
-            bind: JSON Pointer path for two-way data binding.
+            bind: JSON Pointer path (or UIBinding) for two-way data binding.
             checks: Validation rules.
         """
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component(
             "DateTimeInput",
@@ -499,27 +500,27 @@ class _GeneratedFactories:
 
     @staticmethod
     def long_text(
-        label: str, *, bind: str | None = None, checks: list[UICheck] | None = None, id: str | None = None
+        label: str, *, bind: str | UIBinding | None = None, checks: list[UICheck] | None = None, id: str | None = None
     ) -> UIComponent:
         """Multi-line text input"""
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component("TextField", id=id, label=label, variant="longText", _bindings=_bindings, _checks=_checks)
 
     @staticmethod
     def password(
-        label: str, *, bind: str | None = None, checks: list[UICheck] | None = None, id: str | None = None
+        label: str, *, bind: str | UIBinding | None = None, checks: list[UICheck] | None = None, id: str | None = None
     ) -> UIComponent:
         """Password input"""
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component("TextField", id=id, label=label, variant="obscured", _bindings=_bindings, _checks=_checks)
 
     @staticmethod
     def number_input(
-        label: str, *, bind: str | None = None, checks: list[UICheck] | None = None, id: str | None = None
+        label: str, *, bind: str | UIBinding | None = None, checks: list[UICheck] | None = None, id: str | None = None
     ) -> UIComponent:
         """Numeric text input"""
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component("TextField", id=id, label=label, variant="number", _bindings=_bindings, _checks=_checks)

@@ -1,0 +1,52 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "email_field"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/root/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            },
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/root/value"
+                  }
+                },
+                "call": "email",
+                "returnType": "boolean"
+              },
+              "message": "Email check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "root",
+          "label": "Email",
+          "value": {
+            "path": "/customer/email"
+          },
+          "variant": "shortText"
+        }
+      ],
+      "surfaceId": "email_field"
+    },
+    "version": "v0.10"
+  }
+]

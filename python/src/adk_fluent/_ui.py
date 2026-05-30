@@ -112,6 +112,19 @@ class UIBinding:
     direction: Literal["read", "write", "two_way"] = "two_way"
 
 
+def _as_binding(bind: str | UIBinding) -> UIBinding:
+    """Normalize a ``bind=`` argument into a ``UIBinding``.
+
+    Factories accept either a JSON Pointer string (``bind="/user/name"``)
+    or an already-constructed ``UIBinding`` (``bind=UI.bind("/user/name")``).
+    Passing a ``UIBinding`` straight through prevents the double-wrapped
+    ``UIBinding(path=UIBinding(...))`` that breaks JSON serialization.
+    """
+    if isinstance(bind, UIBinding):
+        return bind
+    return UIBinding(path=bind)
+
+
 @dataclass(frozen=True, slots=True)
 class UICheck:
     """A validation rule attached to an input component.

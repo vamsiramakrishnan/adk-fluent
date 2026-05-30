@@ -22,16 +22,23 @@
           "variant": "caption"
         },
         {
+          "component": "Text",
+          "id": "text_3",
+          "text": "Role",
+          "variant": "caption"
+        },
+        {
           "children": [
             "text",
-            "text_2"
+            "text_2",
+            "text_3"
           ],
           "component": "Row",
           "id": "header"
         },
         {
           "children": {
-            "path": "/users"
+            "path": "/team/members"
           },
           "component": "List",
           "id": "data_list"

@@ -2,11 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "onboarding",
-      "theme": {
-        "agentDisplayName": "Acme Onboarding",
-        "primaryColor": "#2563eb"
-      }
+      "surfaceId": "onboarding"
     },
     "version": "v0.10"
   },

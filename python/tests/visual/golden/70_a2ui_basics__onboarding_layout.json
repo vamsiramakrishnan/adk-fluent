@@ -2,11 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "onboarding",
-      "theme": {
-        "agentDisplayName": "Acme Onboarding",
-        "primaryColor": "#2563eb"
-      }
+      "surfaceId": "onboarding_layout"
     },
     "version": "v0.10"
   },
@@ -48,7 +44,7 @@
             "textfield"
           ],
           "component": "Column",
-          "id": "column_3"
+          "id": "column_2"
         },
         {
           "checks": [
@@ -87,11 +83,11 @@
         },
         {
           "children": [
-            "column_3",
+            "column_2",
             "textfield_2"
           ],
           "component": "Column",
-          "id": "column_2"
+          "id": "column"
         },
         {
           "component": "TextField",
@@ -104,54 +100,14 @@
         },
         {
           "children": [
-            "column_2",
-            "textfield_3"
-          ],
-          "component": "Column",
-          "id": "column"
-        },
-        {
-          "component": "Text",
-          "id": "text_2",
-          "text": "Cancel",
-          "variant": "body"
-        },
-        {
-          "child": "text_2",
-          "component": "Button",
-          "id": "button",
-          "variant": "default"
-        },
-        {
-          "component": "Text",
-          "id": "text_3",
-          "text": "Continue",
-          "variant": "body"
-        },
-        {
-          "child": "text_3",
-          "component": "Button",
-          "id": "button_2",
-          "variant": "primary"
-        },
-        {
-          "children": [
-            "button",
-            "button_2"
-          ],
-          "component": "Row",
-          "id": "row"
-        },
-        {
-          "children": [
             "column",
-            "row"
+            "textfield_3"
           ],
           "component": "Column",
           "id": "root"
         }
       ],
-      "surfaceId": "onboarding"
+      "surfaceId": "onboarding_layout"
     },
     "version": "v0.10"
   }
