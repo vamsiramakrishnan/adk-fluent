@@ -661,6 +661,13 @@ class BuilderBase:
         mw = getattr(self, "_middlewares", None)
         if mw is not None:
             new._middlewares = list(mw)
+        # Reactor rules (attached via ``.on()``) live as a plain instance
+        # attribute, not in _config/_callbacks/_lists, so the generic walk
+        # above misses them. Carry them across the fork — otherwise mutating
+        # a frozen builder that has reactor rules silently drops every rule.
+        rules = getattr(self, "_reactor_rules", None)
+        if rules is not None:
+            new._reactor_rules = list(rules)
         # Clones always start unfrozen — subsequent mutation paths expect
         # the same invariant the old deep_clone_builder produced.
         new._frozen = False
@@ -2050,6 +2057,7 @@ class BuilderBase:
     # Task 11: Debug Trace Mode (.debug())
     # ------------------------------------------------------------------
 
+    @fluent
     def debug(self, enabled: bool = True) -> Self:
         """Enable or disable debug tracing to stderr."""
         self._config["_debug"] = enabled
@@ -2059,6 +2067,7 @@ class BuilderBase:
     # Control Flow: proceed_if, loop_until, until
     # ------------------------------------------------------------------
 
+    @fluent
     def prepend(self, fn: Callable) -> Self:
         """Prepend dynamic text to the LLM's input each turn via before_model_callback.
 
@@ -2083,11 +2092,19 @@ class BuilderBase:
         self._callbacks["before_model_callback"].append(_inject_cb)
         return self
 
+    @fluent
     def proceed_if(self, predicate: Callable) -> Self:
         """Only run this agent if predicate(state) is truthy.
 
         Uses ADK's before_agent_callback mechanism. If the predicate returns
-        False, the agent is skipped and the pipeline continues to the next step.
+        a falsy value, the agent is skipped and the pipeline continues to the
+        next step.
+
+        .. note:: Errors raised *inside* the predicate propagate — they are
+           **not** silently treated as "skip". A ``KeyError`` from a typo'd
+           state key is a bug, not a skip signal, and surfacing it loudly is
+           the only way to tell the two apart. Guard against missing keys
+           explicitly (e.g. ``lambda s: s.get("valid") == "yes"``).
 
         Usage:
             enricher.proceed_if(lambda s: s.get("valid") == "yes")
@@ -2095,12 +2112,7 @@ class BuilderBase:
 
         def _gate_cb(callback_context):
             state = callback_context.state
-            try:
-                if not predicate(state):
-                    from google.genai import types
-
-                    return types.Content(role="model", parts=[])
-            except (KeyError, TypeError, ValueError):
+            if not predicate(state):
                 from google.genai import types
 
                 return types.Content(role="model", parts=[])
@@ -2153,6 +2165,7 @@ class BuilderBase:
 
         return self >> tap(fn)
 
+    @fluent
     def mock(self, responses) -> Self:
         """Replace LLM calls with canned responses for testing.
 
@@ -2217,19 +2230,27 @@ class BuilderBase:
         matched = set()
 
         def _apply(builder):
+            # Own a private, unfrozen copy before mutating. Frozen sub-agents
+            # (operands of >> / | / *) would otherwise be forked-and-discarded
+            # by the copy-on-write ``mock``, silently losing the mock. We fork
+            # here and write the owned copy back into its parent's slot so the
+            # whole subtree is privately owned by this composition.
+            builder = builder._maybe_fork_for_mutation()
+            subs = builder._lists.get("sub_agents")
+            if subs:
+                for i, sub in enumerate(subs):
+                    if isinstance(sub, BuilderBase):
+                        subs[i] = _apply(sub)
             name = builder._config.get("name", "")
             if name in responses:
                 matched.add(name)
                 resp = responses[name]
                 if isinstance(resp, str):
                     resp = [resp]
-                builder.mock(resp)
-            # Recurse into sub-agents
-            for sub in builder._lists.get("sub_agents", []):
-                if isinstance(sub, BuilderBase):
-                    _apply(sub)
+                builder = builder.mock(resp)
+            return builder
 
-        _apply(self)
+        self = _apply(self)
 
         unmatched = set(responses.keys()) - matched
         if unmatched:
@@ -2452,6 +2473,7 @@ class BuilderBase:
         target._reactor_rules.append(spec)
         return target
 
+    @fluent
     def middleware(self, mw) -> Self:
         """Attach a middleware to this builder.
 
@@ -2479,6 +2501,7 @@ class BuilderBase:
             self._middlewares.append(mw)
         return self
 
+    @fluent
     def engine(self, name: str, **kwargs) -> Self:
         """Select the execution engine for this builder.
 
@@ -2502,6 +2525,7 @@ class BuilderBase:
         self._config["_engine_kwargs"] = kwargs
         return self
 
+    @fluent
     def compute(self, config) -> Self:
         """Set compute configuration for this builder.
 
@@ -2523,6 +2547,7 @@ class BuilderBase:
         self._config["_compute"] = config
         return self
 
+    @fluent
     def produces(self, schema: type) -> Self:
         """Annotate what state keys this agent writes. Contract-only, no runtime effect.
 
@@ -2558,6 +2583,7 @@ class BuilderBase:
         self._config["_produces"] = schema
         return self
 
+    @fluent
     def consumes(self, schema: type) -> Self:
         """Annotate what state keys this agent reads. Contract-only, no runtime effect.
 
@@ -3206,6 +3232,7 @@ class BuilderBase:
 
         return _build_llm_anatomy(self)
 
+    @fluent
     def checked(self) -> Self:
         """Enable checked mode — build() raises ValueError on contract errors.
 
@@ -3220,11 +3247,13 @@ class BuilderBase:
         self._config["_check_mode"] = "checked"
         return self
 
+    @fluent
     def strict(self) -> Self:
         """Strictest contract checking — build() raises on errors AND warnings."""
         self._config["_check_mode"] = "strict"
         return self
 
+    @fluent
     def unchecked(self) -> Self:
         """Disable contract checking on build()."""
         self._config["_check_mode"] = False
@@ -3324,16 +3353,19 @@ class BuilderBase:
     # Pipeline-level visibility policies
     # ------------------------------------------------------------------
 
+    @fluent
     def transparent(self) -> Self:
         """All agents visible regardless of position. For debugging/demos."""
         self._config["_visibility_policy"] = "transparent"
         return self
 
+    @fluent
     def filtered(self) -> Self:
         """Only terminal agents visible. Topology-inferred (default)."""
         self._config["_visibility_policy"] = "filtered"
         return self
 
+    @fluent
     def annotated(self) -> Self:
         """All events reach client with visibility metadata. Client filters."""
         self._config["_visibility_policy"] = "annotate"
