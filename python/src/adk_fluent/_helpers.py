@@ -158,6 +158,17 @@ def _add_tools(builder, tools_arg, *, replace: bool = True):
             ".middleware() for MComposite."
         )
     if replace:
+        existing = builder._lists.get("tools") or []
+        if existing:
+            import warnings
+
+            warnings.warn(
+                f".tools() REPLACES all tools — discarding {len(existing)} tool(s) "
+                f"already set on '{builder._config.get('name', '?')}'. Use .tool(fn) "
+                f"to append individual tools, or pass the complete set to a single "
+                f".tools([...]) call.",
+                stacklevel=3,
+            )
         builder._lists["tools"] = []
     if isinstance(tools_arg, TComposite):
         for item in tools_arg.to_tools():
@@ -510,10 +521,13 @@ async def _run_via_engine(builder, prompt: str) -> tuple[str, list]:
     engine = _resolve_engine(builder)
     global_cfg = get_config()
 
-    # Resolve backend kwargs
-    engine_kwargs = builder._config.get("_engine_kwargs", {})
+    # Resolve backend kwargs. Copy before mutating: the compute-derived
+    # setdefault() calls below would otherwise permanently inject keys into
+    # the builder's own stored _engine_kwargs (or the shared global config),
+    # so a second run with a different .compute() would see stale values.
+    engine_kwargs = dict(builder._config.get("_engine_kwargs") or {})
     if not engine_kwargs:
-        engine_kwargs = global_cfg.get("engine_config", {})
+        engine_kwargs = dict(global_cfg.get("engine_config") or {})
 
     # Resolve compute config
     compute = builder._config.get("_compute")
@@ -572,54 +586,95 @@ async def run_one_shot_async(builder, prompt: str) -> str:
     else:
         # Default ADK path
         from google.adk.runners import InMemoryRunner
-        from google.genai import types
 
         agent = builder.build()
         app_name = f"_ask_{agent.name}"
         runner = InMemoryRunner(agent=agent, app_name=app_name)
-        session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
-        content = types.Content(role="user", parts=[types.Part(text=prompt)])
-
-        last_text = ""
-        async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if part.text:
-                        last_text = part.text
+        last_text = await _adk_run_once(runner, app_name, prompt)
 
     if debug:
         elapsed = time.monotonic() - t0
         _debug_log(agent_name, f"Response received ({len(last_text)} chars, {elapsed:.2f}s)")
 
-    # Structured output parsing
-    schema = builder._config.get("_output_schema")
-    if schema is not None:
-        import json as _json
+    return _parse_structured_output(builder, last_text)
 
-        try:
-            return schema.model_validate_json(last_text)
-        except Exception:
-            try:
-                data = _json.loads(last_text)
-                return schema.model_validate(data)
-            except Exception as e:
-                raise ValueError(
-                    f"Structured output parsing failed for schema "
-                    f"{schema.__name__}. The LLM returned text that could "
-                    f"not be parsed as the requested type.\n"
-                    f"Raw response:\n{last_text}"
-                ) from e
 
+async def _adk_run_once(runner, app_name: str, prompt: str) -> str:
+    """Run a single prompt on an existing ADK runner in a fresh session.
+
+    Factored out so batch execution can build the agent + runner ONCE and
+    reuse them across prompts (each prompt gets its own session), instead of
+    rebuilding the agent and spinning up a new runner per prompt.
+    """
+    from google.genai import types
+
+    session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
+    content = types.Content(role="user", parts=[types.Part(text=prompt)])
+    last_text = ""
+    async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
+        if event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.text:
+                    last_text = part.text
     return last_text
 
 
+def _parse_structured_output(builder, last_text: str):
+    """Parse ``last_text`` against the builder's output schema, if any."""
+    schema = builder._config.get("_output_schema")
+    if schema is None:
+        return last_text
+
+    import json as _json
+
+    from pydantic import ValidationError
+
+    try:
+        return schema.model_validate_json(last_text)
+    except (ValidationError, ValueError):
+        try:
+            data = _json.loads(last_text)
+            return schema.model_validate(data)
+        except (ValidationError, _json.JSONDecodeError, ValueError, TypeError) as e:
+            raise ValueError(
+                f"Structured output parsing failed for schema "
+                f"{schema.__name__}. The LLM returned text that could "
+                f"not be parsed as the requested type.\n"
+                f"Raw response:\n{last_text}"
+            ) from e
+
+
 async def run_map_async(builder, prompts, *, concurrency=5):
-    """Run agent against multiple prompts concurrently with bounded concurrency."""
+    """Run agent against multiple prompts concurrently with bounded concurrency.
+
+    On the default ADK path the agent and runner are built ONCE and reused
+    across all prompts (each prompt runs in its own session), instead of
+    rebuilding the agent + a fresh InMemoryRunner per prompt.
+    """
+    prompts = list(prompts)
     semaphore = asyncio.Semaphore(concurrency)
+    engine = _resolve_engine(builder)
+
+    # Engine (non-ADK) path: defer to per-prompt execution.
+    if engine is not None and engine != "adk":
+
+        async def _one_engine(prompt):
+            async with semaphore:
+                return await run_one_shot_async(builder, prompt)
+
+        return await asyncio.gather(*[_one_engine(p) for p in prompts])
+
+    # ADK path: build the agent + runner once and share across prompts.
+    from google.adk.runners import InMemoryRunner
+
+    agent = builder.build()
+    app_name = f"_ask_{agent.name}"
+    runner = InMemoryRunner(agent=agent, app_name=app_name)
 
     async def _one(prompt):
         async with semaphore:
-            return await run_one_shot_async(builder, prompt)
+            last_text = await _adk_run_once(runner, app_name, prompt)
+            return _parse_structured_output(builder, last_text)
 
     return await asyncio.gather(*[_one(p) for p in prompts])
 
@@ -960,11 +1015,14 @@ class Artifact:
         version = await ctx.save_artifact(self._filename, part)
         return version
 
-    async def load(self, ctx, *, version: int | None = None) -> str | None:
-        """Load artifact content. Returns text string or None if not found.
+    async def load(self, ctx, *, version: int | None = None) -> str | bytes | None:
+        """Load artifact content. Returns the content, or None if not found.
 
-        Automatically extracts text from the Part wrapper.
-        Works with CallbackContext or ToolContext.
+        Text artifacts return ``str``; binary artifacts (saved with bytes,
+        e.g. ``application/octet-stream``) return ``bytes``. Callers handling
+        both kinds should check the type — do not assume ``str`` and call
+        string methods unconditionally. Works with CallbackContext or
+        ToolContext.
         """
         part = await ctx.load_artifact(self._filename, version=version)
         if part is None:
@@ -972,7 +1030,7 @@ class Artifact:
         if hasattr(part, "text") and part.text:
             return part.text
         if hasattr(part, "inline_data") and part.inline_data:
-            return part.inline_data.data
+            return part.inline_data.data  # bytes — see return-type note above
         return str(part)
 
     async def list_versions(self, ctx) -> list[int]:
