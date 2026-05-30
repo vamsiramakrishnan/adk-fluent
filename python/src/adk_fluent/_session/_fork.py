@@ -176,7 +176,11 @@ class ForkManager:
                 result.update(copy.deepcopy(state))
                 if name == prefer:
                     prefer_state = state
-            if prefer_state:
+            # ``is not None`` — not truthiness. A preferred branch whose
+            # state is an empty dict ({}) is a legitimate override that
+            # must still win on shared keys; ``if prefer_state:`` would
+            # treat it as falsy and silently degrade to a last-wins union.
+            if prefer_state is not None:
                 result.update(copy.deepcopy(prefer_state))
             return result
 

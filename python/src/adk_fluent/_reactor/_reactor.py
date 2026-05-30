@@ -179,7 +179,7 @@ class Reactor:
             and not self._current_task.done()
         ):
             interrupted_rule = self._current_rule
-            self._current_task.cancel()
+            victim = self._current_task
             if self._bus is not None:
                 self._bus.emit(
                     Interrupted(
@@ -188,6 +188,16 @@ class Reactor:
                         resume_cursor=self._tape.head,
                     )
                 )
+            # Cancel and *await* clean teardown before dispatching the
+            # preempting rule. Awaiting here is what makes preemption
+            # deterministic: the victim's _runner finally-block has run
+            # and cleared _current_task by the time gather() returns, so
+            # the dispatch below is guaranteed to start the new rule
+            # rather than mistaking the (now-dead) victim for a live task.
+            victim.cancel()
+            await asyncio.gather(victim, return_exceptions=True)
+            await self._dispatch(rule, change)
+            return
 
         # If there's a current running task that is still active and
         # this one isn't higher-priority preemptive, queue it.
@@ -216,15 +226,25 @@ class Reactor:
                 # the scheduler. Consumers can observe via the bus.
                 pass
             finally:
-                self._current_task = None
-                self._current_rule = None
-                # Drain any queued tasks in priority order.
-                if self._pending:
-                    nxt = heapq.heappop(self._pending)
-                    await self._dispatch(nxt.rule, nxt.change)
+                # Clear the running slot only if it still points at this
+                # runner. A preemptive _submit awaits this task's
+                # teardown and then dispatches the next rule itself, so
+                # by the time a later runner is installed this guard
+                # prevents a stale finally from clobbering it.
+                if self._current_task is task:
+                    self._current_task = None
+                    self._current_rule = None
+                    # Drain queued tasks in priority order. Scheduling on
+                    # the loop (rather than awaiting inline) keeps the
+                    # drain off this task's call stack, so it survives
+                    # even when this runner exits via cancellation.
+                    if self._pending:
+                        nxt = heapq.heappop(self._pending)
+                        loop.create_task(self._dispatch(nxt.rule, nxt.change))
 
         self._current_rule = rule
-        self._current_task = loop.create_task(_runner())
+        task = loop.create_task(_runner())
+        self._current_task = task
 
 
 # Re-export the internal payload for tests that want to build one directly.
