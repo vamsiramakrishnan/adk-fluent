@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-05-31
+
+### Added
+
+- **`AdkSubagentRunner`** — a real, runnable `SubagentRunner` (previously only the Protocol + `FakeSubagentRunner` shipped). Builds a fluent `Agent` from a `SubagentSpec` and executes it through the existing one-shot engine, so `H.task_tool(registry, AdkSubagentRunner())` works in production. Threads caller `context` into the subagent's session state.
+- **Model providers** (`adk_fluent.compute`) — `GeminiProvider` (google-genai), `OllamaProvider` (httpx), plus `OpenAIProvider` / `AnthropicProvider` with lazy imports and a clear `ImportError` when their SDK is absent, and `provider_from_model()` prefix routing. The dependency-light asyncio backend now has real providers to drive.
+- **`ADKBackend.run()` / `.stream()`** — the primary `adk` backend can now execute (and stream) through the unified backend interface, not just compile.
+- **CLI subcommands** — `adk-fluent new` (scaffold), `run`, `doctor`, `serve` (alongside the existing `visualize`).
+- **Real OpenTelemetry observability** — `M.trace()` emits `agent:`/`model:` spans (latency, model, token counts) and `M.metrics()` records counters/histograms when the `[observability]` extra is installed; a clear one-time warning otherwise (previously silent no-ops).
+- **`T` toolset wrappers** — one-liner factories `T.bigquery` / `T.spanner` / `T.bigtable` / `T.vertex_ai_search` (+ `vertex_search`) / `T.enterprise_search` / `T.url_context` / `T.computer_use` for the high-value ADK toolsets.
+- **`BuilderBase.from_native()`** — the inverse of `.build()`: adopt a native ADK agent (`LlmAgent` → `Agent`, `Sequential`/`Parallel`/`Loop` → `Pipeline`/`FanOut`/`Loop`) as a fluent builder for inspection and incremental adoption.
+- **`BuilderBase.from_dict()` / `from_yaml()`** — structural serialization round-trip (type + config + nested topology; callables are name-only and documented as not restored). Makes the `[yaml]` extra's advertised `.from_yaml()` real.
+- **Eval regression-gating** — `EvalReport.save_baseline` / `load_baseline` / `compare_to_baseline` / `assert_no_regression`, with `RegressionResult` / `MetricDelta` / `RegressionError`. Fail CI when a metric drops beyond tolerance versus a stored baseline.
+- **Cost-aware routing** — `Route.by_cost(cost_table).cheapest(...)` / `.costliest(...)` (`CostRoute`) wires the `Route` predicate algebra to the `H` usage cost table; unknown models are never auto-chosen.
+- **Runtime contract enforcement** — `.enforce_contracts()` promotes the annotation-only `.consumes()` / `.produces()` to runtime checks (the dual of build-time `.strict()`).
+- **Artifact subscribe/observe** — `A.watch` / `A.watch_version` / `A.on_change`, the read/observe dual of `A.publish`, loading an artifact (and its version) into state for change detection.
+- **Cross-namespace `>>` operator algebra** — `S.set(...) >> Agent(...) >> C.window(5) >> A.publish(...) >> Agent(...)` composes into one pipeline. C transforms bind to the adjacent agent's `.context()`; S/A flow through as steps. Strictly additive — existing same-namespace operators unchanged.
+- **Durable-backend codegen** — Temporal/DBOS/Prefect workers now generate parallel / loop / fallback / route topologies (not sequential-only), and `annotate_checkpoints` is a real pass returning `CheckpointAnnotation` that the Temporal backend consumes for activity boundaries.
+- **Human-in-the-loop approval UX** — `UI.approval(responder=, memory=)` ships an `InteractiveApprovalHandler` bridging a permission `ask` → `UI.confirm` surface → responder → allow/deny, with `ApprovalMemory` "always allow/never" short-circuiting (`ApprovalRequest` / `ApprovalVerdict` / `Responder`).
+- **`a2ui-agent` package** (separate distribution, import name `a2ui`) — schema/catalog/manager + `SendA2uiToClientToolset`, enabling the LLM-guided A2UI path (`T.a2ui(catalog="basic")`). Published separately to PyPI; required by the optional `adk-fluent[a2ui]` extra.
+
+### Changed
+
+- **Guards are now single-phase and fail-closed.** A raw callable passed to `.guard()` registers in exactly ONE phase inferred from its signature (after_model by default) instead of being double-fired into both before- and after-model. Guard chains compose with edit-and-continue semantics (a redact guard threads its result forward instead of short-circuiting). `_LLMJudge` fails **closed** by default (blocks when it cannot evaluate) with a `fail_closed=False` opt-out.
+- **Immutability is enforced across all mutators.** Every hand-written setter (`prepend`, `proceed_if`, `mock`, `produces`, `consumes`, `debug`, `middleware`, `engine`, `compute`, `strict`/`unchecked`/`checked`, `transparent`/`filtered`/`annotated`) now forks-on-write via `@fluent`, honoring the documented "operators are immutable" guarantee. `_reactor_rules` survive forks.
+- **`.tools()` warns** when it destructively discards tools already set (it replaces; `.tool()` appends). `proceed_if` now propagates predicate errors instead of silently skipping the agent. `Artifact.load()` return type widened to `str | bytes | None`.
+- **Batch execution (`map`/`map_async`) builds the agent + runner once** and reuses them across prompts on the ADK path.
+
+### Fixed
+
+- **`.ask()` / `.map()` were broken** — the one-shot runner used an app name prefixed `_ask_`, which this ADK version rejects (must start with a letter); now `ask_`.
+- **Reactor preemption** now deterministically cancels the victim and dispatches the preempting rule (previously both could be dropped).
+- **Guard chains** no longer short-circuit after a transforming guard; the EMAIL PII regex no longer contains a literal `|` in its character class.
+- **`_run_via_engine`** no longer mutates the builder's stored `_engine_kwargs`; **`ForkManager.merge(strategy="prefer")`** honors an empty preferred branch.
+- **`code_ir` cross-suite import leak** — the package was importable under two module identities (`code_ir` and `scripts.code_ir`), producing duplicate node classes and `Cannot emit Python for ModuleNode` when two generator suites ran together; now self-canonicalizing.
+
 ## [0.17.0] - 2026-04-20
 
 ### Added
