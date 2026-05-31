@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio as _asyncio
 import itertools
 from collections.abc import Callable
-from typing import Any, Self
+from typing import Any, Self, cast
 
 __all__ = [
     "BuilderBase",
@@ -395,19 +395,37 @@ def _extract_response_text(llm_response) -> str | None:
 
 
 def _replace_response_text(llm_response, new_text: str):
-    """Return a modified LlmResponse with replaced text."""
+    """Edit ``llm_response`` in place to carry ``new_text`` and return it.
+
+    Editing the response object in place — rather than building a fresh
+    ``GenerateContentResponse`` — keeps it the correct ``LlmResponse`` shape
+    (a ``.content`` with ``.parts``). That matters for guard *chains*: a
+    downstream guard in the same ``after_model`` chain reads the response via
+    ``.content`` (see ``_extract_response_text``), so a redacting guard must
+    hand the next guard a same-shaped, already-redacted response. Returning
+    the same object (non-None) also preserves the "a transformation occurred"
+    signal that ADK and existing callers rely on.
+    """
     from google.genai import types
 
-    return types.GenerateContentResponse(
-        candidates=[
-            types.Candidate(
-                content=types.Content(
-                    role="model",
-                    parts=[types.Part(text=new_text)],
-                ),
-            )
-        ]
-    )
+    import contextlib
+
+    new_part = types.Part(text=new_text)
+    content = getattr(llm_response, "content", None)
+    if content is not None and hasattr(content, "parts"):
+        content.parts = [new_part]
+        with contextlib.suppress(Exception):  # role is best-effort
+            content.role = "model"
+        return llm_response
+    # Fallback: object has no usable content slot — try to attach one,
+    # else fall back to a fresh response so redaction is never silently lost.
+    try:
+        llm_response.content = types.Content(role="model", parts=[new_part])
+        return llm_response
+    except Exception:  # noqa: BLE001
+        return types.GenerateContentResponse(
+            candidates=[types.Candidate(content=types.Content(role="model", parts=[new_part]))]
+        )
 
 
 def _propagate_middlewares(left: Any, right: Any, result: Any) -> None:
@@ -419,6 +437,33 @@ def _propagate_middlewares(left: Any, right: Any, result: Any) -> None:
             merged.append(mw)
     if merged:
         result._middlewares = merged
+
+
+def _resolve_builder_class(type_name: str) -> type:
+    """Map a serialized ``_type`` name back to its builder class.
+
+    Used by :meth:`BuilderBase.from_dict` to reconstruct the right builder.
+    Imports are local to avoid an import cycle (agent/workflow import _base).
+    """
+    from adk_fluent.agent import Agent, BaseAgent
+    from adk_fluent.workflow import FanOut, Loop, Pipeline
+
+    mapping: dict[str, type] = {
+        "Agent": Agent,
+        "BaseAgent": BaseAgent,
+        "Pipeline": Pipeline,
+        "FanOut": FanOut,
+        "Loop": Loop,
+    }
+    for opt_mod, opt_name in (("adk_fluent.agent", "RemoteA2aAgent"), ("adk_fluent.agent", "RemoteAgent")):
+        try:
+            mod = __import__(opt_mod, fromlist=[opt_name])
+            mapping.setdefault(opt_name, getattr(mod, opt_name))
+        except (ImportError, AttributeError):
+            pass
+    if type_name not in mapping:
+        raise ValueError(f"from_dict: unknown builder type {type_name!r}. Known types: {sorted(mapping)}")
+    return mapping[type_name]
 
 
 def _count_components(component: Any) -> int:
@@ -450,43 +495,59 @@ def _compose_callbacks(fns: list) -> Callable:
     if not fns:
         raise ValueError("_compose_callbacks requires at least one callback")
 
-    # Resolve guard tuples into callables
+    # Resolve guard tuples into callables, tracking which entries are guards.
+    # Guards compose differently from generic callbacks (see _composed below).
     resolved = []
+    guard_flags: list[bool] = []
     for fn in fns:
         if isinstance(fn, tuple) and len(fn) == 2 and isinstance(fn[0], str) and fn[0].startswith("guard:"):
             resolved.append(_resolve_guard_tuple(fn))
+            guard_flags.append(True)
         else:
             resolved.append(fn)
+            guard_flags.append(False)
 
     if len(resolved) == 1:
         return resolved[0]
 
     import inspect
 
-    # Classify each callable as sync/async ONCE at compose time. The
-    # runtime loop uses this to skip the generic iscoroutine probe that
-    # used to run on every turn for every callback.
-    classified: tuple[tuple[Callable, bool], ...] = tuple((fn, inspect.iscoroutinefunction(fn)) for fn in resolved)
+    # Classify each callable as sync/async and guard/non-guard ONCE at compose
+    # time. The runtime loop uses this to skip the generic iscoroutine probe
+    # that used to run on every turn for every callback.
+    classified: tuple[tuple[Callable, bool, bool], ...] = tuple(
+        (fn, inspect.iscoroutinefunction(fn), is_guard) for fn, is_guard in zip(resolved, guard_flags)
+    )
 
     async def _composed(*args, **kwargs):
-        for fn, is_async in classified:
+        # Guards use *edit-and-continue* semantics: a guard that rewrites the
+        # response (e.g. PII redaction) threads the new response forward to
+        # every subsequent guard instead of short-circuiting the chain — so
+        # ``G.pii("redact") | G.length()`` actually runs the length check on
+        # the redacted text. Generic (non-guard) callbacks keep ADK's
+        # "first non-None replaces and stops" semantics.
+        threaded = kwargs.get("llm_response")
+        transformed = False
+        for fn, is_async, is_guard in classified:
+            if is_guard and transformed:
+                kwargs = {**kwargs, "llm_response": threaded}
             if is_async:
                 result = await fn(*args, **kwargs)
-                if result is not None:
-                    return result
             else:
                 result = fn(*args, **kwargs)
-                if result is not None:
-                    # Sync callback returned something; it may still be
-                    # a coroutine (users occasionally write
-                    # ``def cb(...): return some_async()``).
-                    if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
-                        result = await result
-                        if result is not None:
-                            return result
-                    else:
-                        return result
-        return None
+                # Sync callback may still return a coroutine
+                # (``def cb(...): return some_async()``).
+                if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
+                    result = await result
+            if result is None:
+                continue
+            if is_guard:
+                threaded = result
+                transformed = True
+                continue
+            # Generic callback: replace-and-stop.
+            return result
+        return threaded if transformed else None
 
     _composed.__name__ = f"composed_{'_'.join(getattr(f, '__name__', '?') for f in resolved)}"
     return _composed
@@ -562,6 +623,13 @@ class BuilderBase:
     _ADK_TARGET_CLASS: type | None = None
     _KNOWN_PARAMS: set[str] | None = None
     _AUTO_KNOWN_PARAMS_CACHE: set[str] | None = None
+    # Reactor rules attached via ``.on()``; carried across forks in __deepcopy__.
+    # Annotation-only (NO default value): these are set lazily per-instance and
+    # callers rely on ``getattr(self, name, <default>)`` returning their default
+    # when unset. A class-level ``= None`` would make the attribute always exist
+    # and silently break every getattr-with-default call site.
+    _reactor_rules: list[Any] | None
+    _middlewares: list[Any] | None
 
     @classmethod
     def _auto_known_params(cls) -> set[str]:
@@ -661,6 +729,13 @@ class BuilderBase:
         mw = getattr(self, "_middlewares", None)
         if mw is not None:
             new._middlewares = list(mw)
+        # Reactor rules (attached via ``.on()``) live as a plain instance
+        # attribute, not in _config/_callbacks/_lists, so the generic walk
+        # above misses them. Carry them across the fork — otherwise mutating
+        # a frozen builder that has reactor rules silently drops every rule.
+        rules = getattr(self, "_reactor_rules", None)
+        if rules is not None:
+            new._reactor_rules = list(rules)
         # Clones always start unfrozen — subsequent mutation paths expect
         # the same invariant the old deep_clone_builder produced.
         new._frozen = False
@@ -858,6 +933,46 @@ class BuilderBase:
             new._middlewares = list(mw)
         return new
 
+    def _apply_context_transform(self, ctransform) -> BuilderBase:
+        """Bind a C (context) transform to an Agent in a ``>>`` chain.
+
+        A context transform has no standalone state effect; it shapes what an
+        agent sees. In a mixed pipeline it therefore attaches to an adjacent
+        Agent's ``.context()`` instead of becoming a pipeline step:
+
+        - ``Agent >> C``      → that agent, configured with the context.
+        - ``Pipeline >> C``   → the pipeline with its **last Agent step**
+                                 reconfigured. Non-Agent trailing steps (S/A)
+                                 are skipped to find the agent the context
+                                 applies to.
+
+        Raises ``TypeError`` when no Agent is available to receive the context
+        (e.g. ``FanOut >> C`` or a pipeline ending in only S/A steps), pointing
+        the user at the explicit ``.context()`` form.
+        """
+        from adk_fluent.workflow import Pipeline
+
+        # Direct case: self is an Agent (exposes .context()).
+        if hasattr(self, "context"):
+            return self.context(ctransform)  # type: ignore[attr-defined]
+
+        # Pipeline case: rebind the last Agent step's context.
+        if isinstance(self, Pipeline):
+            clone = self._fork_for_operator()
+            steps = clone._lists.get("sub_agents", [])
+            for i in range(len(steps) - 1, -1, -1):
+                step = steps[i]
+                if hasattr(step, "context"):
+                    steps[i] = step.context(ctransform)  # type: ignore[attr-defined]
+                    return clone
+
+        raise TypeError(
+            f"Cannot bind a context transform ({type(ctransform).__name__}) via >> here: "
+            f"the left operand ({type(self).__name__}) has no Agent to receive it. "
+            "A C transform configures an agent's context — place it adjacent to an "
+            "Agent (e.g. C.window(n=5) >> Agent(...)), or use Agent(...).context(C...)."
+        )
+
     def __rshift__(self, other) -> BuilderBase:
         """Create or extend a Pipeline: a >> b >> c.
 
@@ -868,9 +983,18 @@ class BuilderBase:
         - Route (deterministic branching)
         """
         self._freeze()
+        from adk_fluent._context import CTransform
         from adk_fluent._primitive_builders import _fn_step
         from adk_fluent._routing import Route
         from adk_fluent.workflow import Pipeline
+
+        # Cross-namespace: a C (context) transform binds to an Agent's context
+        # rather than becoming a state step. ``Agent >> C`` configures that
+        # agent; ``Pipeline >> C`` configures the pipeline's last Agent step.
+        # (S and A transforms already flow through the callable / _artifact_op
+        # paths below, producing FnStep / ArtifactAgent nodes.)
+        if isinstance(other, CTransform):
+            return self._apply_context_transform(other)
 
         # Callable operand: wrap as zero-cost FnStep
         if callable(other) and not isinstance(other, BuilderBase | Route | type):
@@ -1792,11 +1916,35 @@ class BuilderBase:
     @staticmethod
     def _serialize_value(v: Any) -> Any:
         """Serialize a single value for dict/yaml output."""
+        if isinstance(v, BuilderBase):
+            # Nested builder (e.g. a Pipeline's sub-agents) — recurse so the
+            # topology round-trips structurally via from_dict().
+            return v.to_dict()
+        if isinstance(v, (list, tuple)):
+            return [BuilderBase._serialize_value(x) for x in v]
+        if isinstance(v, dict):
+            return {k: BuilderBase._serialize_value(x) for k, x in v.items()}
         if callable(v):
             return getattr(v, "__qualname__", repr(v))
         if hasattr(v, "name") and hasattr(v, "model_fields"):
             # Built ADK agent
             return f"<agent:{v.name}>"
+        return v
+
+    @staticmethod
+    def _revive_value(v: Any) -> Any:
+        """Deserialization dual of :meth:`_serialize_value`.
+
+        Reconstructs nested builder-dicts (``{"_type": ...}``) into builders,
+        recursing through lists and dicts. Plain scalars and callable-name
+        strings pass through unchanged (callables are not restored).
+        """
+        if isinstance(v, dict) and "_type" in v:
+            return BuilderBase.from_dict(v)
+        if isinstance(v, list):
+            return [BuilderBase._revive_value(x) for x in v]
+        if isinstance(v, dict):
+            return {k: BuilderBase._revive_value(x) for k, x in v.items()}
         return v
 
     def to_dict(self) -> dict[str, Any]:
@@ -1831,6 +1979,133 @@ class BuilderBase:
         except ImportError as e:
             raise ImportError("to_yaml() requires the 'pyyaml' package. Install it with: pip install pyyaml") from e
         return yaml.dump(self.to_dict(), default_flow_style=False)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> BuilderBase:
+        """Reconstruct a builder from a :meth:`to_dict` payload.
+
+        This is a **structural** round-trip: it restores the builder *type*,
+        its config scalars (name, model, instruction, description, …), and
+        nested builder topology (e.g. a Pipeline's sub-agents, recursively).
+
+        It does **NOT** restore callables — callbacks, guards, and tool
+        functions are serialized by :meth:`to_dict` as name strings only and
+        cannot be turned back into live functions. The reconstructed builder
+        is therefore a faithful structural skeleton suitable for inspection,
+        diagramming, topology diffing, and config-as-code workflows — not a
+        behavior-complete clone. Re-attach callables explicitly after loading.
+
+        Example::
+
+            data = (Agent("a") >> Agent("b")).to_dict()
+            skeleton = Pipeline.from_dict(data)   # type + names + topology
+        """
+        builder_cls = _resolve_builder_class(data.get("_type", "Agent"))
+        config = dict(data.get("config", {}))
+        name = config.get("name", "")
+        obj = builder_cls(name)
+        for key, value in config.items():
+            if key == "name":
+                continue
+            # Revive nested builder-dicts stored in config (e.g. sub_agents
+            # held in config rather than _lists), recursing through lists/dicts.
+            # Plain scalars (instruction text, model, schemas) pass through.
+            obj._config[key] = BuilderBase._revive_value(value)
+        # Restore nested builder children (topology). Non-builder list items
+        # (tools/functions serialized as name strings) are intentionally not
+        # restored — they are not runnable callables. See the docstring.
+        for field, items in data.get("lists", {}).items():
+            for item in items:
+                if isinstance(item, dict) and "_type" in item:
+                    obj._lists[field].append(BuilderBase.from_dict(item))
+        return obj
+
+    @classmethod
+    def from_yaml(cls, source: str) -> BuilderBase:
+        """Reconstruct a builder from YAML produced by :meth:`to_yaml`.
+
+        ``source`` may be a YAML string or a path to a ``.yaml`` file. Shares
+        the structural-round-trip semantics (and limitations) of
+        :meth:`from_dict` — callables are not restored.
+        """
+        import os
+
+        try:
+            import yaml
+        except ImportError as e:
+            raise ImportError("from_yaml() requires the 'pyyaml' package. Install it with: pip install pyyaml") from e
+
+        if "\n" not in source and source.endswith((".yaml", ".yml")) and os.path.exists(source):
+            with open(source) as f:
+                data = yaml.safe_load(f)
+        else:
+            data = yaml.safe_load(source)
+        return cls.from_dict(data)
+
+    @classmethod
+    def from_native(cls, native: Any) -> BuilderBase:
+        """Adopt a native ADK agent object as a fluent builder — the inverse of ``build()``.
+
+        Recovers the common, round-trippable surface (name, model, instruction,
+        description, tools, and sub-agent topology) for the core agent types:
+
+        * ``LlmAgent``       → :class:`Agent`
+        * ``SequentialAgent`` → :class:`Pipeline`
+        * ``ParallelAgent``   → :class:`FanOut`
+        * ``LoopAgent``       → :class:`Loop`
+
+        This is the missing import path: it lets an existing ADK app be wrapped
+        in the fluent API for inspection (``.to_mermaid()``, ``.diagnose()``) or
+        incremental adoption. Exotic ADK fields and callbacks are not
+        reconstructed — layer fluent calls on top of the returned builder.
+        Raises ``TypeError`` for unsupported native types.
+        """
+        from adk_fluent.agent import Agent
+        from adk_fluent.workflow import FanOut, Loop, Pipeline
+
+        tname = type(native).__name__
+        name = getattr(native, "name", "") or ""
+
+        def _carry_description(builder: BuilderBase) -> None:
+            desc = getattr(native, "description", None)
+            if desc:
+                builder._config["description"] = desc
+
+        if tname in ("SequentialAgent", "ParallelAgent", "LoopAgent"):
+            children = [cls.from_native(c) for c in (getattr(native, "sub_agents", None) or [])]
+            if tname == "SequentialAgent":
+                builder: BuilderBase = Pipeline(name)
+            elif tname == "ParallelAgent":
+                builder = FanOut(name)
+            else:
+                builder = Loop(name)
+                max_iter = getattr(native, "max_iterations", None)
+                if max_iter:
+                    builder._config["max_iterations"] = max_iter
+            builder._lists["sub_agents"].extend(children)
+            _carry_description(builder)
+            return builder
+
+        # LlmAgent (and subclasses with an instruction) → Agent
+        if tname == "LlmAgent" or hasattr(native, "instruction"):
+            model = getattr(native, "model", None)
+            model_str = model if isinstance(model, str) else getattr(model, "model", None)
+            builder = Agent(name, model_str) if model_str else Agent(name)
+            instr = getattr(native, "instruction", None)
+            if instr:
+                builder._config["instruction"] = instr
+            _carry_description(builder)
+            tools = list(getattr(native, "tools", None) or [])
+            if tools:
+                builder._lists["tools"] = tools
+            for sub in getattr(native, "sub_agents", None) or []:
+                builder._lists["sub_agents"].append(cls.from_native(sub))
+            return builder
+
+        raise TypeError(
+            f"from_native: unsupported native agent type {tname!r}. "
+            "Supported: LlmAgent, SequentialAgent, ParallelAgent, LoopAgent."
+        )
 
     # ------------------------------------------------------------------
     # Task 6: with_() — Immutable Variants
@@ -2050,6 +2325,7 @@ class BuilderBase:
     # Task 11: Debug Trace Mode (.debug())
     # ------------------------------------------------------------------
 
+    @fluent
     def debug(self, enabled: bool = True) -> Self:
         """Enable or disable debug tracing to stderr."""
         self._config["_debug"] = enabled
@@ -2059,6 +2335,7 @@ class BuilderBase:
     # Control Flow: proceed_if, loop_until, until
     # ------------------------------------------------------------------
 
+    @fluent
     def prepend(self, fn: Callable) -> Self:
         """Prepend dynamic text to the LLM's input each turn via before_model_callback.
 
@@ -2083,11 +2360,19 @@ class BuilderBase:
         self._callbacks["before_model_callback"].append(_inject_cb)
         return self
 
+    @fluent
     def proceed_if(self, predicate: Callable) -> Self:
         """Only run this agent if predicate(state) is truthy.
 
         Uses ADK's before_agent_callback mechanism. If the predicate returns
-        False, the agent is skipped and the pipeline continues to the next step.
+        a falsy value, the agent is skipped and the pipeline continues to the
+        next step.
+
+        .. note:: Errors raised *inside* the predicate propagate — they are
+           **not** silently treated as "skip". A ``KeyError`` from a typo'd
+           state key is a bug, not a skip signal, and surfacing it loudly is
+           the only way to tell the two apart. Guard against missing keys
+           explicitly (e.g. ``lambda s: s.get("valid") == "yes"``).
 
         Usage:
             enricher.proceed_if(lambda s: s.get("valid") == "yes")
@@ -2095,12 +2380,7 @@ class BuilderBase:
 
         def _gate_cb(callback_context):
             state = callback_context.state
-            try:
-                if not predicate(state):
-                    from google.genai import types
-
-                    return types.Content(role="model", parts=[])
-            except (KeyError, TypeError, ValueError):
+            if not predicate(state):
                 from google.genai import types
 
                 return types.Content(role="model", parts=[])
@@ -2153,6 +2433,7 @@ class BuilderBase:
 
         return self >> tap(fn)
 
+    @fluent
     def mock(self, responses) -> Self:
         """Replace LLM calls with canned responses for testing.
 
@@ -2217,19 +2498,27 @@ class BuilderBase:
         matched = set()
 
         def _apply(builder):
+            # Own a private, unfrozen copy before mutating. Frozen sub-agents
+            # (operands of >> / | / *) would otherwise be forked-and-discarded
+            # by the copy-on-write ``mock``, silently losing the mock. We fork
+            # here and write the owned copy back into its parent's slot so the
+            # whole subtree is privately owned by this composition.
+            builder = builder._maybe_fork_for_mutation()
+            subs = builder._lists.get("sub_agents")
+            if subs:
+                for i, sub in enumerate(subs):
+                    if isinstance(sub, BuilderBase):
+                        subs[i] = _apply(sub)
             name = builder._config.get("name", "")
             if name in responses:
                 matched.add(name)
                 resp = responses[name]
                 if isinstance(resp, str):
                     resp = [resp]
-                builder.mock(resp)
-            # Recurse into sub-agents
-            for sub in builder._lists.get("sub_agents", []):
-                if isinstance(sub, BuilderBase):
-                    _apply(sub)
+                builder = builder.mock(resp)
+            return builder
 
-        _apply(self)
+        self = _apply(self)
 
         unmatched = set(responses.keys()) - matched
         if unmatched:
@@ -2255,7 +2544,8 @@ class BuilderBase:
             raise ValueError(
                 f"mock() could not find agent(s): {', '.join(suggestions)}. Available agents: {', '.join(available)}"
             )
-        return self
+        # _apply returns the (possibly forked) owned root, same runtime type.
+        return cast("Self", self)
 
     def loop_while(self, predicate: Callable, *, max_iterations: int = 3) -> BuilderBase:
         """Loop while predicate(state) returns True.
@@ -2447,11 +2737,13 @@ class BuilderBase:
             priority=priority,
             preemptive=preemptive,
         )
-        if getattr(target, "_reactor_rules", None) is None:
-            target._reactor_rules = []
-        target._reactor_rules.append(spec)
+        rules: list[Any] | None = getattr(target, "_reactor_rules", None)
+        if rules is None:
+            rules = target._reactor_rules = []
+        rules.append(spec)
         return target
 
+    @fluent
     def middleware(self, mw) -> Self:
         """Attach a middleware to this builder.
 
@@ -2471,14 +2763,16 @@ class BuilderBase:
                 "Did you mean .tools(...)? Use .middleware() for middleware/MComposite, "
                 ".tools() for TComposite."
             )
-        if getattr(self, "_middlewares", None) is None:
-            self._middlewares = []
+        mws: list[Any] | None = getattr(self, "_middlewares", None)
+        if mws is None:
+            mws = self._middlewares = []
         if isinstance(mw, MComposite):
-            self._middlewares.extend(mw.to_stack())
+            mws.extend(mw.to_stack())
         else:
-            self._middlewares.append(mw)
+            mws.append(mw)
         return self
 
+    @fluent
     def engine(self, name: str, **kwargs) -> Self:
         """Select the execution engine for this builder.
 
@@ -2502,6 +2796,7 @@ class BuilderBase:
         self._config["_engine_kwargs"] = kwargs
         return self
 
+    @fluent
     def compute(self, config) -> Self:
         """Set compute configuration for this builder.
 
@@ -2523,6 +2818,7 @@ class BuilderBase:
         self._config["_compute"] = config
         return self
 
+    @fluent
     def produces(self, schema: type) -> Self:
         """Annotate what state keys this agent writes. Contract-only, no runtime effect.
 
@@ -2558,6 +2854,7 @@ class BuilderBase:
         self._config["_produces"] = schema
         return self
 
+    @fluent
     def consumes(self, schema: type) -> Self:
         """Annotate what state keys this agent reads. Contract-only, no runtime effect.
 
@@ -2591,6 +2888,64 @@ class BuilderBase:
         if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
             raise TypeError(f"consumes() requires a Pydantic BaseModel subclass, got {schema!r}")
         self._config["_consumes"] = schema
+        return self
+
+    @fluent
+    def enforce_contracts(self, *, consumes: bool = True, produces: bool = True) -> Self:
+        """Promote ``.consumes()`` / ``.produces()`` annotations to RUNTIME checks.
+
+        By default those two methods are static annotations with no runtime
+        effect (they only feed the build-time contract checker). After calling
+        ``.enforce_contracts()`` this agent validates them at execution time:
+
+        * **consumes** — before the agent runs, assert every state key named by
+          the ``.consumes()`` schema is present. Fails fast on missing upstream
+          data instead of letting the agent run on an incomplete state.
+        * **produces** — after the agent runs, assert every state key named by
+          the ``.produces()`` schema was actually written.
+
+        Violations raise :class:`ValueError`. This is the runtime dual of the
+        build-time ``.strict()`` / ``.checked()`` contract checking. The schema
+        is read live at execution time, so call order relative to
+        ``.consumes()`` / ``.produces()`` does not matter.
+        """
+        builder = self
+        name = builder._config.get("name", "?")
+
+        if consumes:
+
+            def _check_consumes(callback_context):
+                schema = builder._config.get("_consumes")
+                if schema is None:
+                    return None
+                state = callback_context.state
+                missing = [k for k in schema.model_fields if k not in state]
+                if missing:
+                    raise ValueError(
+                        f"contract violation: agent '{name}' .consumes() requires state "
+                        f"key(s) {missing}, which are absent before execution."
+                    )
+                return None
+
+            self._callbacks["before_agent_callback"].append(_check_consumes)
+
+        if produces:
+
+            def _check_produces(callback_context):
+                schema = builder._config.get("_produces")
+                if schema is None:
+                    return None
+                state = callback_context.state
+                missing = [k for k in schema.model_fields if k not in state]
+                if missing:
+                    raise ValueError(
+                        f"contract violation: agent '{name}' .produces() promised state "
+                        f"key(s) {missing}, which were not written."
+                    )
+                return None
+
+            self._callbacks["after_agent_callback"].append(_check_produces)
+
         return self
 
     # ------------------------------------------------------------------
@@ -3206,6 +3561,7 @@ class BuilderBase:
 
         return _build_llm_anatomy(self)
 
+    @fluent
     def checked(self) -> Self:
         """Enable checked mode — build() raises ValueError on contract errors.
 
@@ -3220,11 +3576,13 @@ class BuilderBase:
         self._config["_check_mode"] = "checked"
         return self
 
+    @fluent
     def strict(self) -> Self:
         """Strictest contract checking — build() raises on errors AND warnings."""
         self._config["_check_mode"] = "strict"
         return self
 
+    @fluent
     def unchecked(self) -> Self:
         """Disable contract checking on build()."""
         self._config["_check_mode"] = False
@@ -3324,16 +3682,19 @@ class BuilderBase:
     # Pipeline-level visibility policies
     # ------------------------------------------------------------------
 
+    @fluent
     def transparent(self) -> Self:
         """All agents visible regardless of position. For debugging/demos."""
         self._config["_visibility_policy"] = "transparent"
         return self
 
+    @fluent
     def filtered(self) -> Self:
         """Only terminal agents visible. Topology-inferred (default)."""
         self._config["_visibility_policy"] = "filtered"
         return self
 
+    @fluent
     def annotated(self) -> Self:
         """All events reach client with visibility metadata. Client filters."""
         self._config["_visibility_policy"] = "annotate"

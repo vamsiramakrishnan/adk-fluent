@@ -355,13 +355,28 @@ class TestRegexDetectorAsync:
 
 
 class TestLLMJudgeAsync:
-    @pytest.mark.asyncio
-    async def test_always_passes(self):
+    def test_fails_closed_by_default(self):
+        """When the judge cannot evaluate, it must block, not pass through.
+
+        A security control that can't run should never silently approve. We
+        exercise the fallback path directly (it fires on missing google-genai,
+        API errors, and unparseable responses) so the test does not depend on
+        whether the SDK/credentials happen to be available.
+        """
         from adk_fluent._guards import _LLMJudge
 
         judge = _LLMJudge()
-        result = await judge.judge("some text")
-        assert result.passed is True
+        assert judge._fallback("unavailable").passed is False
+        # Unparseable judge output also fails closed.
+        assert judge._parse_response("not valid json", "toxic").passed is False
+
+    def test_fail_open_opt_out(self):
+        """fail_closed=False restores lenient pass-through for non-security use."""
+        from adk_fluent._guards import _LLMJudge
+
+        judge = _LLMJudge(fail_closed=False)
+        assert judge._fallback("unavailable").passed is True
+        assert judge._parse_response("not valid json", "toxic").passed is True
 
     @pytest.mark.asyncio
     async def test_custom_judge_async(self):

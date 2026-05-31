@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "button"
+      "surfaceId": "usage_chart"
     },
     "version": "v0.10"
   },
@@ -10,12 +10,14 @@
     "updateComponents": {
       "components": [
         {
-          "component": "Button",
+          "component": "BarChart",
+          "data": "/stats/usage_history",
           "id": "root",
-          "variant": "Click Me"
+          "x": "month",
+          "y": "api_calls"
         }
       ],
-      "surfaceId": "button"
+      "surfaceId": "usage_chart"
     },
     "version": "v0.10"
   }

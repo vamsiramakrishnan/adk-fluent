@@ -25,6 +25,12 @@ from adk_fluent._permissions._decision import (
     PermissionBehavior,
     PermissionDecision,
 )
+from adk_fluent._permissions._interactive import (
+    ApprovalRequest,
+    ApprovalVerdict,
+    InteractiveApprovalHandler,
+    Responder,
+)
 from adk_fluent._permissions._memory import ApprovalMemory
 from adk_fluent._permissions._mode import ALL_MODES, PermissionMode
 from adk_fluent._permissions._plugin import PermissionHandler, PermissionPlugin
@@ -37,12 +43,16 @@ from adk_fluent._permissions._policy import (
 __all__ = [
     "ALL_MODES",
     "ApprovalMemory",
+    "ApprovalRequest",
+    "ApprovalVerdict",
     "DEFAULT_MUTATING_TOOLS",
     "DEFAULT_READ_ONLY_TOOLS",
+    "InteractiveApprovalHandler",
     "PermissionBehavior",
     "PermissionDecision",
     "PermissionHandler",
     "PermissionMode",
     "PermissionPlugin",
     "PermissionPolicy",
+    "Responder",
 ]

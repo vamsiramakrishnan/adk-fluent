@@ -221,37 +221,10 @@ def _walk_plan_nodes(
                 _walk_plan_nodes(children, lines, cfg, indent)
 
         elif node_type == "ParallelNode":
-            lines.append(f"{prefix}# Parallel: {name}")
-            children = node.get("children", [])
-            if children and isinstance(children[0], dict):
-                task_names = []
-                for i, child in enumerate(children):
-                    child_safe = _safe_identifier(child.get("name", f"branch_{i}"))
-                    task_names.append(child_safe)
-                    if child.get("temporal_type") == "activity":
-                        timeout = int(cfg.activity_timeout_seconds)
-                        lines.append(f"{prefix}{child_safe}_handle = workflow.start_activity(")
-                        lines.append(f'{prefix}    "{child.get("name", "")}",')
-                        lines.append(f"{prefix}    args=[prompt, dict(state)],")
-                        lines.append(f"{prefix}    start_to_close_timeout=timedelta(seconds={timeout}),")
-                        lines.append(f"{prefix})")
-                # Await all
-                for tn in task_names:
-                    lines.append(f"{prefix}{tn}_result = await {tn}_handle")
-                    lines.append(f'{prefix}state.update({tn}_result.get("state", {{}}))')
-                    lines.append(f'{prefix}results.append({tn}_result.get("text", ""))')
-            lines.append("")
+            _emit_parallel(node, lines, cfg, indent)
 
         elif node_type == "LoopNode":
-            max_iter = node.get("max_iterations", 10)
-            lines.append(f"{prefix}# Loop: {name} (max {max_iter} iterations)")
-            lines.append(f"{prefix}for _iter_{safe} in range({max_iter}):")
-            children = node.get("children", [])
-            if children and isinstance(children[0], dict):
-                _walk_plan_nodes(children, lines, cfg, indent + 1)
-            else:
-                lines.append(f"{prefix}    pass")
-            lines.append("")
+            _emit_loop(node, lines, cfg, indent)
 
         elif node_type == "TransformNode":
             lines.append(f"{prefix}# Transform: {name} (inline, deterministic)")
@@ -263,26 +236,10 @@ def _walk_plan_nodes(
             lines.append("")
 
         elif node_type == "FallbackNode":
-            lines.append(f"{prefix}# Fallback: {name}")
-            children = node.get("children", [])
-            if children and isinstance(children[0], dict):
-                for i, child in enumerate(children):
-                    if i == 0:
-                        lines.append(f"{prefix}try:")
-                    else:
-                        lines.append(f"{prefix}except Exception:")
-                        lines.append(f"{prefix}    try:")
-                    _walk_plan_nodes([child], lines, cfg, indent + 1 + (1 if i > 0 else 0))
-                # Close nested try blocks
-                for i in range(1, len(children)):
-                    exc_indent = "    " * (indent + len(children) - i)
-                    lines.append(f"{exc_indent}except Exception:")
-                    lines.append(f"{exc_indent}    raise")
-            lines.append("")
+            _emit_fallback(node, lines, cfg, indent)
 
         elif node_type == "RouteNode":
-            lines.append(f"{prefix}# Route: {name} (deterministic routing)")
-            lines.append("")
+            _emit_route(node, lines, cfg, indent)
 
         elif temporal_type == "signal_wait":
             lines.append(f"{prefix}# Gate: {name} (waiting for signal)")
@@ -300,6 +257,177 @@ def _walk_plan_nodes(
             lines.append("")
 
 
+def _emit_parallel(
+    node: dict,
+    lines: list[str],
+    cfg: TemporalWorkerConfig,
+    indent: int,
+) -> None:
+    """Emit a parallel fan-out: start every branch activity, then gather.
+
+    Branch activities are started concurrently via ``workflow.start_activity``
+    (which returns an awaitable handle) and awaited together with
+    ``asyncio.gather`` so they run in parallel inside the workflow.
+    """
+    prefix = "    " * indent
+    name = node.get("name", "unknown")
+    lines.append(f"{prefix}# Parallel: {name} (concurrent activities via asyncio.gather)")
+    children = node.get("children", [])
+    activity_children = [c for c in children if isinstance(c, dict) and c.get("temporal_type") == "activity"]
+    if not activity_children:
+        # No directly-parallelizable activities — fall back to sequential walk.
+        if children and isinstance(children[0], dict):
+            _walk_plan_nodes(children, lines, cfg, indent)
+        lines.append("")
+        return
+
+    timeout = int(cfg.activity_timeout_seconds)
+    handle_names: list[str] = []
+    for child in activity_children:
+        child_safe = _safe_identifier(child.get("name", "branch"))
+        handle_names.append(child_safe)
+        lines.append(f"{prefix}{child_safe}_handle = workflow.start_activity(")
+        lines.append(f'{prefix}    "{child.get("name", "")}",')
+        lines.append(f"{prefix}    args=[prompt, dict(state)],")
+        lines.append(f"{prefix}    start_to_close_timeout=timedelta(seconds={timeout}),")
+        lines.append(f"{prefix})")
+    gathered = ", ".join(f"{h}_handle" for h in handle_names)
+    result_vars = ", ".join(f"{h}_result" for h in handle_names)
+    # A single handle needs a trailing comma to unpack as a tuple.
+    if len(handle_names) == 1:
+        result_vars += ","
+    lines.append(f"{prefix}{result_vars} = await asyncio.gather({gathered})")
+    for h in handle_names:
+        lines.append(f'{prefix}state.update({h}_result.get("state", {{}}))')
+        lines.append(f'{prefix}results.append({h}_result.get("text", ""))')
+    lines.append("")
+
+
+def _emit_loop(
+    node: dict,
+    lines: list[str],
+    cfg: TemporalWorkerConfig,
+    indent: int,
+) -> None:
+    """Emit a bounded loop.
+
+    The loop is bounded by ``max_iterations`` (defaults to 10 when the IR
+    does not specify a limit, matching ``Loop.max_iterations`` semantics).
+    An ``until`` predicate, when present in the plan, is checked at the top
+    of each iteration and breaks the loop early.
+    """
+    prefix = "    " * indent
+    name = node.get("name", "unknown")
+    safe = _safe_identifier(name)
+    max_iter = node.get("max_iterations") or 10
+    lines.append(f"{prefix}# Loop: {name} (bounded, max {max_iter} iterations)")
+    lines.append(f"{prefix}for _iter_{safe} in range({int(max_iter)}):")
+    body_indent = indent + 1
+    body_prefix = "    " * body_indent
+    has_until = node.get("until_key") is not None
+    if has_until:
+        until_key = node["until_key"]
+        lines.append(f"{body_prefix}# until predicate: stop when state signals completion")
+        lines.append(f'{body_prefix}if state.get("{until_key}"):')
+        lines.append(f"{body_prefix}    break")
+    children = node.get("children", [])
+    if children and isinstance(children[0], dict):
+        _walk_plan_nodes(children, lines, cfg, body_indent)
+    else:
+        lines.append(f"{body_prefix}pass")
+    lines.append("")
+
+
+def _emit_fallback(
+    node: dict,
+    lines: list[str],
+    cfg: TemporalWorkerConfig,
+    indent: int,
+) -> None:
+    """Emit a fallback cascade as nested ``try`` / ``except`` blocks.
+
+    The first child runs in the outermost ``try``. Each subsequent child is
+    attempted inside the ``except`` handler of the previous one, so a failure
+    cascades to the next alternative. The final alternative re-raises if it
+    too fails.
+    """
+    name = node.get("name", "unknown")
+    prefix = "    " * indent
+    lines.append(f"{prefix}# Fallback: {name} (try each alternative in order)")
+    children = [c for c in node.get("children", []) if isinstance(c, dict)]
+    if not children:
+        lines.append(f"{prefix}pass")
+        lines.append("")
+        return
+
+    def _emit_attempt(idx: int, level: int) -> None:
+        attempt_prefix = "    " * level
+        lines.append(f"{attempt_prefix}try:")
+        _walk_plan_nodes([children[idx]], lines, cfg, level + 1)
+        if idx + 1 < len(children):
+            lines.append(f"{attempt_prefix}except Exception:")
+            _emit_attempt(idx + 1, level + 1)
+        else:
+            # Last alternative: surface the failure if it also fails.
+            lines.append(f"{attempt_prefix}except Exception:")
+            lines.append(f"{attempt_prefix}    raise")
+
+    _emit_attempt(0, indent)
+    lines.append("")
+
+
+def _emit_route(
+    node: dict,
+    lines: list[str],
+    cfg: TemporalWorkerConfig,
+    indent: int,
+) -> None:
+    """Emit a deterministic branch keyed on a state value.
+
+    Generates an ``if`` / ``elif`` / ``else`` cascade. Each branch condition
+    delegates to a predicate supplied at workflow construction time via
+    ``self._route_predicates`` (keyed by route name + branch index), so the
+    original routing rules stay authoritative while the generated workflow
+    code remains deterministic and replay-safe.
+    """
+    name = node.get("name", "unknown")
+    safe = _safe_identifier(name)
+    prefix = "    " * indent
+    route_key = node.get("route_key")
+    branches = node.get("branches", []) or []
+    default_plan = node.get("default")
+
+    key_repr = repr(route_key) if route_key is not None else "None"
+    lines.append(f"{prefix}# Route: {name} (deterministic branch on state[{key_repr}])")
+    lines.append(f"{prefix}_route_value_{safe} = state.get({key_repr})")
+
+    if not branches and default_plan is None:
+        lines.append(f"{prefix}pass")
+        lines.append("")
+        return
+
+    for i, branch_plan in enumerate(branches):
+        keyword = "if" if i == 0 else "elif"
+        lines.append(f'{prefix}{keyword} self._route_match("{safe}", {i}, _route_value_{safe}, state):')
+        if branch_plan and isinstance(branch_plan[0], dict):
+            _walk_plan_nodes(branch_plan, lines, cfg, indent + 1)
+        else:
+            lines.append(f"{prefix}    pass")
+
+    if default_plan is not None:
+        if branches:
+            lines.append(f"{prefix}else:")
+            default_indent = indent + 1
+        else:
+            # No rules, only a default — emit it unconditionally.
+            default_indent = indent
+        if default_plan and isinstance(default_plan[0], dict):
+            _walk_plan_nodes(default_plan, lines, cfg, default_indent)
+        else:
+            lines.append(f"{'    ' * default_indent}pass")
+    lines.append("")
+
+
 def _generate_workflow_class(
     plan: list[dict],
     activities: list[dict],
@@ -313,11 +441,23 @@ def _generate_workflow_class(
         "",
         "    def __init__(self) -> None:",
         "        self._state: dict[str, Any] = {}",
+        "        # Route predicates: {(route_name, branch_index): callable(value, state)}.",
+        "        # Populated by the worker from the original routing rules.",
+        "        self._route_predicates: dict[tuple[str, int], Any] = {}",
         "",
         '    @workflow.signal(name="approve")',
         "    async def approve(self, gate_name: str) -> None:",
         '        """Signal handler for gate approval."""',
         '        self._state[f"{gate_name}_approved"] = True',
+        "",
+        "    def _route_match(",
+        "        self, route_name: str, branch_index: int, value: Any, state: dict[str, Any]",
+        "    ) -> bool:",
+        '        """Evaluate a route branch predicate (deterministic, replay-safe)."""',
+        "        pred = self._route_predicates.get((route_name, branch_index))",
+        "        if pred is None:",
+        "            return False",
+        "        return bool(pred(value, state))",
         "",
         "    @workflow.run",
         "    async def run(self, prompt: str, initial_state: dict[str, Any] | None = None) -> dict[str, Any]:",
@@ -438,51 +578,33 @@ async def create_workflow_class(
     with a Temporal worker.
     """
     try:
-        from temporalio import workflow as _workflow  # type: ignore[import-not-found]
+        from temporalio import (  # type: ignore[import-not-found]  # noqa: F401 — verify temporalio is installed
+            workflow as _workflow,
+        )
     except ImportError:
         raise ImportError(
             "temporalio is required for create_workflow_class(). Install with: pip install temporalio"
         ) from None
 
-    plan = runnable.node_plan
-    activities = _collect_activities(plan)
-
-    # For now, generate a simple sequential workflow
-    # More complex patterns (parallel, loop, fallback) would need
-    # deeper AST generation or a plan interpreter approach
-    activity_names = [a["name"] for a in activities]
-
-    @_workflow.defn(name="adk_fluent_agent_workflow")
-    class DynamicAgentWorkflow:
-        """Dynamically generated workflow from IR plan."""
-
-        def __init__(self):
-            self._state: dict[str, Any] = {}
-            self._approved_gates: set[str] = set()
-
-        @_workflow.signal(name="approve")
-        async def approve(self, gate_name: str) -> None:
-            self._approved_gates.add(gate_name)
-
-        @_workflow.run
-        async def run(self, prompt: str, initial_state: dict[str, Any] | None = None) -> dict[str, Any]:
-            from datetime import timedelta
-
-            state = dict(initial_state or {})
-            results = []
-
-            for act_name in activity_names:
-                result = await _workflow.execute_activity(
-                    act_name,
-                    args=[prompt, state],
-                    start_to_close_timeout=timedelta(seconds=300),
-                )
-                state.update(result.get("state", {}))
-                results.append(result.get("text", ""))
-
-            return {"results": results, "state": state}
-
-    return DynamicAgentWorkflow
+    # Generate the full workflow source (parallel / loop / fallback / route
+    # aware) and materialize the class by executing it. This keeps the
+    # dynamic worker in lock-step with the codegen output instead of being
+    # limited to a flat sequential walk.
+    cfg = TemporalWorkerConfig()
+    class_lines = _generate_workflow_class(runnable.node_plan, _collect_activities(runnable.node_plan), cfg)
+    header = [
+        "from __future__ import annotations",
+        "import asyncio",
+        "from datetime import timedelta",
+        "from typing import Any",
+        "from temporalio import activity, workflow",
+        "",
+        "",
+    ]
+    source = "\n".join(header + class_lines)
+    namespace: dict[str, Any] = {}
+    exec(compile(source, "<adk_fluent_temporal_workflow>", "exec"), namespace)  # noqa: S102 — generated, trusted source
+    return namespace["AgentPipelineWorkflow"]
 
 
 async def create_worker(

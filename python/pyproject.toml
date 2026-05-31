@@ -47,7 +47,7 @@ search = [
 a2a = [
     "google-adk[a2a]>=1.20.0",
 ]
-a2ui = ["a2ui-agent-sdk>=0.2.0"]
+a2ui = ["a2ui-agent>=0.2.0"]
 examples = [
     "python-dotenv>=1.0",
 ]
@@ -232,9 +232,18 @@ exclude_lines = [
     "raise NotImplementedError",
 ]
 
+[tool.uv.sources]
+# Resolve the optional A2UI dependency from the in-repo package during
+# local development. The published PyPI release is used otherwise.
+a2ui-agent = { path = "../a2ui-agent", editable = true }
+
 [dependency-groups]
 dev = [
     "pytest-asyncio>=1.3.0",
+    # In-repo A2UI package so the LLM-guided A2UI tests run in local dev.
+    # Resolved from the path source above; the PyPI release is used by users
+    # who install the published ``adk-fluent[a2ui]`` extra.
+    "a2ui-agent",
 ]
 docs = [
     "sphinx-hoverxref>=1.4.2",

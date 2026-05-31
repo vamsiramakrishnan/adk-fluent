@@ -77,11 +77,14 @@ form = UI.form("Customer Feedback", fields={"name": "text", "email": "email", "m
 assert isinstance(form, UISurface)
 
 # --- 5. Preset: account metrics dashboard ---
-dashboard = UI.dashboard("Account Overview", cards=[
-    {"title": "Active Users", "bind": "/stats/active_users"},
-    {"title": "MRR", "bind": "/stats/mrr"},
-    {"title": "Churn Rate", "bind": "/stats/churn"},
-])
+dashboard = UI.dashboard(
+    "Account Overview",
+    cards=[
+        {"title": "Active Users", "bind": "/stats/active_users"},
+        {"title": "MRR", "bind": "/stats/mrr"},
+        {"title": "Churn Rate", "bind": "/stats/churn"},
+    ],
+)
 assert isinstance(dashboard, UISurface)
 dash_msgs = compile_surface(dashboard)
 assert any("createSurface" in m for m in dash_msgs)
@@ -95,11 +98,17 @@ table = UI.table(["Name", "Email", "Role"], data_bind="/team/members")
 assert isinstance(table, UISurface)
 
 # --- 8. Preset: onboarding wizard ---
-wizard = UI.wizard("Account Setup", steps=[
-    ("Company Info", UI.text_field("Company Name", bind=UI.bind("/company/name"))),
-    ("Plan Selection", UI.text("Choose your plan") >> (UI.button("Starter") | UI.button("Pro") | UI.button("Enterprise"))),
-    ("Confirmation", UI.text("Review your selections and confirm.")),
-])
+wizard = UI.wizard(
+    "Account Setup",
+    steps=[
+        ("Company Info", UI.text_field("Company Name", bind=UI.bind("/company/name"))),
+        (
+            "Plan Selection",
+            UI.text("Choose your plan") >> (UI.button("Starter") | UI.button("Pro") | UI.button("Enterprise")),
+        ),
+        ("Confirmation", UI.text("Review your selections and confirm.")),
+    ],
+)
 assert isinstance(wizard, UISurface)
 
 # --- 9. Generic component (escape hatch for custom visualizations) ---

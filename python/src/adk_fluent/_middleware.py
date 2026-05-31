@@ -279,18 +279,37 @@ class M:
         return MComposite([RateLimitMiddleware(rate=rate, time_period=time_period)], kind="rate_limit")
 
     @staticmethod
-    def trace(exporter: Any = None) -> MComposite:
-        """OpenTelemetry span export (no-op if opentelemetry not installed)."""
+    def trace(exporter: Any = None, *, tracer: Any = None) -> MComposite:
+        """OpenTelemetry span export at agent and model boundaries.
+
+        When ``opentelemetry`` is installed, wraps every agent invocation in an
+        ``agent:{name}`` span and every model call in a ``model:{agent}`` span,
+        attaching agent name, model name, latency, and (when available) input/
+        output token counts. When it is not installed this is a graceful no-op
+        that emits a one-time warning with the enable hint
+        (``pip install adk-fluent[observability]``). Pass ``tracer`` to supply a
+        custom ``opentelemetry`` tracer (e.g. for tests).
+        """
         from adk_fluent.middleware import TraceMiddleware
 
-        return MComposite([TraceMiddleware(exporter=exporter)], kind="trace")
+        return MComposite([TraceMiddleware(exporter=exporter, tracer=tracer)], kind="trace")
 
     @staticmethod
-    def metrics(collector: Any = None) -> MComposite:
-        """Metrics collection (no-op if no collector provided)."""
+    def metrics(collector: Any = None, *, meter: Any = None) -> MComposite:
+        """Metrics collection via OpenTelemetry counters and histograms.
+
+        When ``opentelemetry`` is installed, records ``adk.agent.calls``,
+        ``adk.agent.latency``, ``adk.model.input_tokens``,
+        ``adk.model.output_tokens`` and ``adk.agent.errors`` via
+        ``opentelemetry.metrics.get_meter``. When it is not installed this is a
+        graceful no-op that emits a one-time warning with the enable hint
+        (``pip install adk-fluent[observability]``). A legacy ``collector`` with
+        an ``increment(name)`` method is still honoured. Pass ``meter`` to supply
+        a custom ``opentelemetry`` meter (e.g. for tests).
+        """
         from adk_fluent.middleware import MetricsMiddleware
 
-        return MComposite([MetricsMiddleware(collector=collector)], kind="metrics")
+        return MComposite([MetricsMiddleware(collector=collector, meter=meter)], kind="metrics")
 
     # --- A2A-specific middleware ---
 

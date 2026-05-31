@@ -123,7 +123,22 @@ class Signal:
         return True
 
     def update(self, fn: Callable[[Any], Any]) -> bool:
-        """Apply ``fn(current) -> new_value`` atomically. Returns whether emission occurred."""
+        """Apply ``fn(current) -> new_value`` and store the result.
+
+        The read-modify-write is a single synchronous critical section:
+        ``self._value`` is sampled, ``fn`` is applied, and the result is
+        committed via :meth:`set` with no ``await`` in between. In the
+        single-threaded asyncio model this guarantees no other coroutine
+        can interleave between the read and the write, so concurrent
+        ``update`` calls cannot clobber one another (no lost updates).
+
+        Note: ``fn`` itself must not ``await`` or otherwise yield control;
+        it is expected to be a pure synchronous transform.
+
+        Returns whether an emission occurred.
+        """
+        # Sample-and-commit with no intervening await — atomic under the
+        # cooperative-scheduling guarantees of a single event loop.
         return self.set(fn(self._value))
 
     # ------------------------------------------------------------------

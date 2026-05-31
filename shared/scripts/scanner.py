@@ -172,7 +172,15 @@ def discover_classes(modules: list[str]) -> list[tuple[type, str]]:
         for attr_name in dir(mod):
             if attr_name.startswith("_"):
                 continue
-            obj = getattr(mod, attr_name, None)
+            try:
+                # ``getattr`` only swallows AttributeError. Many ADK packages
+                # expose lazy attributes via module-level ``__getattr__`` that
+                # import optional dependencies (e.g. ``mcp``) on access; those
+                # raise ModuleNotFoundError/ImportError, not AttributeError.
+                # Skip any attribute we cannot resolve.
+                obj = getattr(mod, attr_name, None)
+            except Exception:
+                continue
             if obj is None or not isinstance(obj, type):
                 continue
             if obj.__module__ != modname:

@@ -12,7 +12,7 @@
         {
           "component": "Text",
           "id": "text",
-          "text": "Delete this item?",
+          "text": "Upgrade to Enterprise plan? ($499/mo, billed annually)",
           "variant": "body"
         },
         {

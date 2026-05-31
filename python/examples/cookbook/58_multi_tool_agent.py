@@ -109,9 +109,10 @@ verified_agent = task_agent.writes("task_result") >> verifier
 # Task agent has 3 tools (stored in _lists, not _config)
 assert len(task_agent._lists["tools"]) == 3
 
-# Guardrail registered on both before and after model callbacks
+# Single-phase dispatch: safety_guardrail(callback_context, llm_request) is a
+# pre-model guard, so it registers in before_model_callback only (not both).
 assert safety_guardrail in task_agent._callbacks["before_model_callback"]
-assert safety_guardrail in task_agent._callbacks["after_model_callback"]
+assert safety_guardrail not in task_agent._callbacks.get("after_model_callback", [])
 
 # DI resources stored
 assert task_agent._config["_resources"] == {"api_key": "prod_key"}

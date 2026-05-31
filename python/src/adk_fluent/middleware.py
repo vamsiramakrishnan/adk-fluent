@@ -1453,32 +1453,183 @@ class _SampledMiddleware:
 # ---------------------------------------------------------------------------
 
 
+# Module-level latch so the "opentelemetry not installed" guidance is emitted
+# exactly once per process no matter how many M.trace()/M.metrics() instances
+# are created. Mirrors the lazy-import + ImportError guidance pattern in
+# ``_guards._DLPDetector`` (raise/warn with an actionable install hint).
+_OTEL_WARNED = False
+_OTEL_INSTALL_HINT = (
+    "opentelemetry is not installed — M.trace()/M.metrics() are no-ops and "
+    "emit no spans or metrics. Enable real OpenTelemetry export with: "
+    "pip install adk-fluent[observability]"
+)
+
+
+def _warn_otel_missing() -> None:
+    """Emit the install guidance once per process (logger + warnings)."""
+    global _OTEL_WARNED
+    if _OTEL_WARNED:
+        return
+    _OTEL_WARNED = True
+    import warnings
+
+    _logging.getLogger(__name__).warning(_OTEL_INSTALL_HINT)
+    warnings.warn(_OTEL_INSTALL_HINT, stacklevel=3)
+
+
+def _otel_trace() -> Any | None:
+    """Lazy-import ``opentelemetry.trace`` (None + one-time warning if absent)."""
+    try:
+        from opentelemetry import trace
+    except ImportError:
+        _warn_otel_missing()
+        return None
+    return trace
+
+
+def _otel_metrics() -> Any | None:
+    """Lazy-import ``opentelemetry.metrics`` (None + one-time warning if absent)."""
+    try:
+        from opentelemetry import metrics
+    except ImportError:
+        _warn_otel_missing()
+        return None
+    return metrics
+
+
+def _model_name_from_request(request: Any) -> str | None:
+    """Best-effort extraction of the model name from an LlmRequest."""
+    model = getattr(request, "model", None)
+    if isinstance(model, str):
+        return model
+    if model is not None:
+        # Some ADK builds wrap the model in an object with a ``model`` attr.
+        inner = getattr(model, "model", None)
+        if isinstance(inner, str):
+            return inner
+    return None
+
+
+def _usage_tokens(response: Any) -> tuple[int, int]:
+    """Return ``(input_tokens, output_tokens)`` from a response, 0 if absent."""
+    usage = getattr(response, "usage_metadata", None)
+    if usage is None:
+        return 0, 0
+    in_tokens = getattr(usage, "prompt_token_count", 0) or 0
+    out_tokens = getattr(usage, "candidates_token_count", 0) or 0
+    return int(in_tokens), int(out_tokens)
+
+
 class TraceMiddleware:
-    """OpenTelemetry span export. Graceful no-op if opentelemetry not installed."""
+    """OpenTelemetry span export for agent and model boundaries.
 
-    def __init__(self, exporter: Any = None):
-        self._tracer = None
+    When ``opentelemetry`` is installed, every agent invocation and every
+    model call is wrapped in a span via ``opentelemetry.trace.get_tracer``:
+
+    - ``agent:{name}`` spans (``before_agent`` -> ``after_agent``) with
+      attributes ``adk.agent.name`` and ``adk.agent.latency_ms``.
+    - ``model:{agent}`` spans (``before_model`` -> ``after_model``) with
+      attributes ``adk.agent.name``, ``adk.model.name`` (when available),
+      ``adk.model.latency_ms``, ``adk.model.input_tokens`` and
+      ``adk.model.output_tokens`` (when the response carries
+      ``usage_metadata``). Model errors are recorded on the span.
+
+    When ``opentelemetry`` is not installed this is a graceful no-op that
+    emits a one-time warning explaining how to enable it
+    (``pip install adk-fluent[observability]``). It never adds a hard
+    dependency — the import is performed lazily at construction time.
+
+    A custom ``tracer`` may be passed for advanced wiring/testing; otherwise
+    the global tracer from the configured ``TracerProvider`` is used.
+    """
+
+    def __init__(self, exporter: Any = None, *, tracer: Any = None):
         self._exporter = exporter
-        self._spans: dict[str, Any] = {}
-        try:
-            from opentelemetry import trace
+        self._tracer = tracer
+        if self._tracer is None:
+            trace = _otel_trace()
+            if trace is not None:
+                self._tracer = trace.get_tracer("adk-fluent")
+        # In-flight spans keyed by agent name. Model spans are nested under
+        # the owning agent and are sequential per agent, so a name key is safe.
+        self._agent_spans: dict[str, Any] = {}
+        self._agent_started: dict[str, float] = {}
+        self._model_spans: dict[str, Any] = {}
+        self._model_started: dict[str, float] = {}
 
-            self._tracer = trace.get_tracer("adk-fluent")
-        except ImportError:
-            _logging.getLogger(__name__).debug("opentelemetry not installed — M.trace() is a no-op")
+    # --- Agent boundary ---
 
-    async def before_agent(self, ctx: Any) -> Any:
-        if self._tracer:
-            name = getattr(ctx, "agent_name", "unknown")
-            self._spans[name] = self._tracer.start_span(f"agent:{name}")
+    async def before_agent(self, ctx: Any, agent_name: str) -> Any:
+        if self._tracer is not None:
+            span = self._tracer.start_span(f"agent:{agent_name}")
+            span.set_attribute("adk.agent.name", agent_name)
+            self._agent_spans[agent_name] = span
+            self._agent_started[agent_name] = _time.monotonic()
         return None
 
-    async def after_agent(self, ctx: Any) -> Any:
-        name = getattr(ctx, "agent_name", "unknown")
-        span = self._spans.pop(name, None)
-        if span:
+    async def after_agent(self, ctx: Any, agent_name: str) -> Any:
+        span = self._agent_spans.pop(agent_name, None)
+        started = self._agent_started.pop(agent_name, None)
+        if span is not None:
+            if started is not None:
+                span.set_attribute("adk.agent.latency_ms", (_time.monotonic() - started) * 1000.0)
             span.end()
         return None
+
+    # --- Model boundary ---
+
+    async def before_model(self, ctx: Any, request: Any) -> Any:
+        if self._tracer is None:
+            return None
+        agent_name = self._ctx_agent_name(ctx)
+        span = self._tracer.start_span(f"model:{agent_name}")
+        span.set_attribute("adk.agent.name", agent_name)
+        model = _model_name_from_request(request)
+        if model:
+            span.set_attribute("adk.model.name", model)
+        self._model_spans[agent_name] = span
+        self._model_started[agent_name] = _time.monotonic()
+        return None
+
+    async def after_model(self, ctx: Any, response: Any) -> Any:
+        agent_name = self._ctx_agent_name(ctx)
+        span = self._model_spans.pop(agent_name, None)
+        started = self._model_started.pop(agent_name, None)
+        if span is not None:
+            if started is not None:
+                span.set_attribute("adk.model.latency_ms", (_time.monotonic() - started) * 1000.0)
+            in_tokens, out_tokens = _usage_tokens(response)
+            span.set_attribute("adk.model.input_tokens", in_tokens)
+            span.set_attribute("adk.model.output_tokens", out_tokens)
+            span.end()
+        return None
+
+    async def on_model_error(self, ctx: Any, request: Any, error: Any) -> Any:
+        agent_name = self._ctx_agent_name(ctx)
+        span = self._model_spans.pop(agent_name, None)
+        self._model_started.pop(agent_name, None)
+        if span is not None:
+            with _contextlib.suppress(Exception):
+                span.record_exception(error)
+            self._set_error_status(span)
+            span.end()
+        return None
+
+    @staticmethod
+    def _ctx_agent_name(ctx: Any) -> str:
+        # before_model/after_model receive the TraceContext, not agent_name.
+        # The plugin stores the active agent on the raw invocation context.
+        name = getattr(getattr(ctx, "invocation_context", None), "agent", None)
+        if name is not None:
+            name = getattr(name, "name", None)
+        return name or "unknown"
+
+    @staticmethod
+    def _set_error_status(span: Any) -> None:
+        with _contextlib.suppress(Exception):
+            from opentelemetry.trace import Status, StatusCode
+
+            span.set_status(Status(StatusCode.ERROR))
 
 
 # ---------------------------------------------------------------------------
@@ -1487,23 +1638,88 @@ class TraceMiddleware:
 
 
 class MetricsMiddleware:
-    """Metrics collection. Graceful no-op if no collector provided."""
+    """Metrics collection via OpenTelemetry (or a custom collector).
 
-    def __init__(self, collector: Any = None):
+    When ``opentelemetry`` is installed, records via
+    ``opentelemetry.metrics.get_meter``:
+
+    - ``adk.agent.calls`` (counter) — per ``after_agent``, tagged ``agent``.
+    - ``adk.agent.latency`` (histogram, ms) — per agent invocation.
+    - ``adk.model.input_tokens`` / ``adk.model.output_tokens`` (counters) —
+      from ``response.usage_metadata`` per model call.
+    - ``adk.agent.errors`` (counter) — per ``on_model_error``.
+
+    When ``opentelemetry`` is not installed this is a graceful no-op that
+    emits a one-time warning explaining how to enable it
+    (``pip install adk-fluent[observability]``). It never adds a hard
+    dependency. An optional legacy ``collector`` with an ``increment(name)``
+    method is still honoured for backward compatibility.
+
+    A custom ``meter`` may be passed for advanced wiring/testing.
+    """
+
+    def __init__(self, collector: Any = None, *, meter: Any = None):
         self._collector = collector
+        self._meter = meter
         self._counts: dict[str, int] = {}
+        self._started: dict[str, float] = {}
+        # Instruments (created lazily so import of adk_fluent stays otel-free).
+        self._calls = None
+        self._errors = None
+        self._latency = None
+        self._in_tokens = None
+        self._out_tokens = None
+        if self._meter is None:
+            metrics = _otel_metrics()
+            if metrics is not None:
+                self._meter = metrics.get_meter("adk-fluent")
+        if self._meter is not None:
+            self._calls = self._meter.create_counter("adk.agent.calls", unit="1", description="Agent invocations")
+            self._errors = self._meter.create_counter(
+                "adk.agent.errors", unit="1", description="Model errors per agent"
+            )
+            self._latency = self._meter.create_histogram(
+                "adk.agent.latency", unit="ms", description="Agent invocation latency"
+            )
+            self._in_tokens = self._meter.create_counter(
+                "adk.model.input_tokens", unit="1", description="Prompt tokens consumed"
+            )
+            self._out_tokens = self._meter.create_counter(
+                "adk.model.output_tokens", unit="1", description="Completion tokens produced"
+            )
 
-    async def after_agent(self, ctx: Any) -> Any:
-        name = getattr(ctx, "agent_name", "unknown")
-        self._counts[name] = self._counts.get(name, 0) + 1
-        if self._collector and hasattr(self._collector, "increment"):
-            self._collector.increment(f"agent.{name}.calls")
+    async def before_agent(self, ctx: Any, agent_name: str) -> Any:
+        self._started[agent_name] = _time.monotonic()
+        return None
+
+    async def after_agent(self, ctx: Any, agent_name: str) -> Any:
+        self._counts[agent_name] = self._counts.get(agent_name, 0) + 1
+        attrs = {"agent": agent_name}
+        if self._calls is not None:
+            self._calls.add(1, attrs)
+        started = self._started.pop(agent_name, None)
+        if started is not None and self._latency is not None:
+            self._latency.record((_time.monotonic() - started) * 1000.0, attrs)
+        if self._collector is not None and hasattr(self._collector, "increment"):
+            self._collector.increment(f"agent.{agent_name}.calls")
+        return None
+
+    async def after_model(self, ctx: Any, response: Any) -> Any:
+        agent_name = TraceMiddleware._ctx_agent_name(ctx)
+        in_tokens, out_tokens = _usage_tokens(response)
+        attrs = {"agent": agent_name}
+        if self._in_tokens is not None and in_tokens:
+            self._in_tokens.add(in_tokens, attrs)
+        if self._out_tokens is not None and out_tokens:
+            self._out_tokens.add(out_tokens, attrs)
         return None
 
     async def on_model_error(self, ctx: Any, request: Any, error: Any) -> Any:
-        name = getattr(ctx, "agent_name", "unknown")
-        if self._collector and hasattr(self._collector, "increment"):
-            self._collector.increment(f"agent.{name}.errors")
+        agent_name = TraceMiddleware._ctx_agent_name(ctx)
+        if self._errors is not None:
+            self._errors.add(1, {"agent": agent_name})
+        if self._collector is not None and hasattr(self._collector, "increment"):
+            self._collector.increment(f"agent.{agent_name}.errors")
         return None
 
 

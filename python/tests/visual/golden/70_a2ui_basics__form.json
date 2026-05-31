@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "feedback"
+      "surfaceId": "customer_feedback"
     },
     "version": "v0.10"
   },
@@ -12,7 +12,7 @@
         {
           "component": "Text",
           "id": "text",
-          "text": "Feedback",
+          "text": "Customer Feedback",
           "variant": "h1"
         },
         {
@@ -84,7 +84,7 @@
           "id": "root"
         }
       ],
-      "surfaceId": "feedback"
+      "surfaceId": "customer_feedback"
     },
     "version": "v0.10"
   }

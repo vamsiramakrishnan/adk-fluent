@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "field"
+      "surfaceId": "company_field"
     },
     "version": "v0.10"
   },
@@ -12,12 +12,14 @@
         {
           "component": "TextField",
           "id": "root",
-          "label": "Name",
-          "value": null,
+          "label": "Company",
+          "value": {
+            "path": "/customer/company"
+          },
           "variant": "shortText"
         }
       ],
-      "surfaceId": "field"
+      "surfaceId": "company_field"
     },
     "version": "v0.10"
   }

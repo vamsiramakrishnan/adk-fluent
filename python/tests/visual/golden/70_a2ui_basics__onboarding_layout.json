@@ -1,0 +1,114 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "onboarding_layout"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Welcome to Acme",
+          "variant": "h2"
+        },
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/textfield/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "textfield",
+          "label": "Full Name",
+          "value": {
+            "path": "/customer/name"
+          },
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "text",
+            "textfield"
+          ],
+          "component": "Column",
+          "id": "column_2"
+        },
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/textfield_2/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            },
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/textfield_2/value"
+                  }
+                },
+                "call": "email",
+                "returnType": "boolean"
+              },
+              "message": "Email check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "textfield_2",
+          "label": "Email",
+          "value": {
+            "path": "/customer/email"
+          },
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "column_2",
+            "textfield_2"
+          ],
+          "component": "Column",
+          "id": "column"
+        },
+        {
+          "component": "TextField",
+          "id": "textfield_3",
+          "label": "Company",
+          "value": {
+            "path": "/customer/company"
+          },
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "column",
+            "textfield_3"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "onboarding_layout"
+    },
+    "version": "v0.10"
+  }
+]

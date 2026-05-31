@@ -11,11 +11,25 @@ class TestGuardCompile:
         builder = Agent("test").guard(G.json() | G.length(max=500))
         assert len(builder._callbacks.get("after_model_callback", [])) >= 2
 
-    def test_guard_callable_backwards_compatible(self):
-        fn = lambda ctx: None
+    def test_guard_callable_single_phase_default(self):
+        """A raw callable guard registers in exactly one phase (after_model by
+        default), not both — the old dual registration double-fired it with
+        two incompatible argument shapes."""
+        fn = lambda ctx: None  # noqa: E731
         builder = Agent("test").guard(fn)
-        assert fn in builder._callbacks.get("before_model_callback", [])
         assert fn in builder._callbacks.get("after_model_callback", [])
+        assert fn not in builder._callbacks.get("before_model_callback", [])
+
+    def test_guard_callable_before_model_when_request_param(self):
+        """A callable that takes llm_request (and not llm_response) is a
+        pre-model guard and registers only in before_model."""
+
+        def pre_guard(callback_context, llm_request):  # noqa: ARG001
+            return None
+
+        builder = Agent("test").guard(pre_guard)
+        assert pre_guard in builder._callbacks.get("before_model_callback", [])
+        assert pre_guard not in builder._callbacks.get("after_model_callback", [])
 
     def test_guard_stores_specs(self):
         builder = Agent("test").guard(G.json())

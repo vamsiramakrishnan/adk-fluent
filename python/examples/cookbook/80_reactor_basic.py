@@ -111,11 +111,13 @@ async def test_reactor_logs_agreement_to_crm() -> None:
 
     async def crm_handler(change) -> None:  # noqa: ANN001
         if change.value is not None:
-            crm_log.append({
-                "customer": "CUST-4821",
-                "plan": change.value,
-                "agent": "closer",
-            })
+            crm_log.append(
+                {
+                    "customer": "CUST-4821",
+                    "plan": change.value,
+                    "agent": "closer",
+                }
+            )
             done.set()
 
     reactor = Reactor(tape, bus=bus)

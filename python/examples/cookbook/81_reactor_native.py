@@ -144,9 +144,9 @@ async def test_phase_transition_fires_handler() -> None:
     task = asyncio.create_task(reactor.run())
     await asyncio.sleep(0.05)
 
-    phase.set("verify")    # not negotiate — no fire
+    phase.set("verify")  # not negotiate — no fire
     phase.set("negotiate")  # match — fires
-    phase.set("commit")    # not negotiate — no fire
+    phase.set("commit")  # not negotiate — no fire
     await asyncio.sleep(0.1)
 
     reactor.stop()

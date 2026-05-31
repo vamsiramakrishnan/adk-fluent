@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "text"
+      "surfaceId": "submit_btn"
     },
     "version": "v0.10"
   },
@@ -11,12 +11,18 @@
       "components": [
         {
           "component": "Text",
-          "id": "root",
-          "text": "Hello, World!",
+          "id": "text",
+          "text": "Continue",
           "variant": "body"
+        },
+        {
+          "child": "text",
+          "component": "Button",
+          "id": "root",
+          "variant": "primary"
         }
       ],
-      "surfaceId": "text"
+      "surfaceId": "submit_btn"
     },
     "version": "v0.10"
   }

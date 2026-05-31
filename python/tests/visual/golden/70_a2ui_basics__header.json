@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "custom"
+      "surfaceId": "header"
     },
     "version": "v0.10"
   },
@@ -10,14 +10,13 @@
     "updateComponents": {
       "components": [
         {
-          "component": "BarChart",
-          "data": "test",
+          "component": "Text",
           "id": "root",
-          "x": "date",
-          "y": "value"
+          "text": "Welcome to Acme",
+          "variant": "h2"
         }
       ],
-      "surfaceId": "custom"
+      "surfaceId": "header"
     },
     "version": "v0.10"
   }

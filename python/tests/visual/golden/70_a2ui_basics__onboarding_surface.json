@@ -1,0 +1,154 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "onboarding"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Welcome to Acme",
+          "variant": "h2"
+        },
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/textfield/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "textfield",
+          "label": "Full Name",
+          "value": {
+            "path": "/customer/name"
+          },
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "text",
+            "textfield"
+          ],
+          "component": "Column",
+          "id": "column_3"
+        },
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/textfield_2/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            },
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/textfield_2/value"
+                  }
+                },
+                "call": "email",
+                "returnType": "boolean"
+              },
+              "message": "Email check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "textfield_2",
+          "label": "Email",
+          "value": {
+            "path": "/customer/email"
+          },
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "column_3",
+            "textfield_2"
+          ],
+          "component": "Column",
+          "id": "column_2"
+        },
+        {
+          "component": "TextField",
+          "id": "textfield_3",
+          "label": "Company",
+          "value": {
+            "path": "/customer/company"
+          },
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "column_2",
+            "textfield_3"
+          ],
+          "component": "Column",
+          "id": "column"
+        },
+        {
+          "component": "Text",
+          "id": "text_2",
+          "text": "Cancel",
+          "variant": "body"
+        },
+        {
+          "child": "text_2",
+          "component": "Button",
+          "id": "button",
+          "variant": "default"
+        },
+        {
+          "component": "Text",
+          "id": "text_3",
+          "text": "Continue",
+          "variant": "body"
+        },
+        {
+          "child": "text_3",
+          "component": "Button",
+          "id": "button_2",
+          "variant": "primary"
+        },
+        {
+          "children": [
+            "button",
+            "button_2"
+          ],
+          "component": "Row",
+          "id": "row"
+        },
+        {
+          "children": [
+            "column",
+            "row"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "onboarding"
+    },
+    "version": "v0.10"
+  }
+]

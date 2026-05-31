@@ -1,0 +1,40 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "name_field"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/root/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "root",
+          "label": "Full Name",
+          "value": {
+            "path": "/customer/name"
+          },
+          "variant": "shortText"
+        }
+      ],
+      "surfaceId": "name_field"
+    },
+    "version": "v0.10"
+  }
+]

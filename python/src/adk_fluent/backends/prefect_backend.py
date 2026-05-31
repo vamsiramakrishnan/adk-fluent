@@ -321,12 +321,22 @@ class PrefectBackend:
         ]
 
     def _classify_route(self, node: Any) -> list[dict[str, Any]]:
-        """RouteNode → Conditional in flow body."""
-        children_plans = []
+        """RouteNode → Conditional in flow body.
+
+        Preserves per-branch sub-plans so codegen can emit an if/elif/else
+        cascade keyed on the route state key.
+        """
+        branches: list[list[dict[str, Any]]] = []
+        children_plans: list[dict[str, Any]] = []
         for _pred, child in getattr(node, "rules", ()):
-            children_plans.extend(self._walk_node(child))
+            branch_plan = self._walk_node(child)
+            branches.append(branch_plan)
+            children_plans.extend(branch_plan)
+
+        default_plan: list[dict[str, Any]] | None = None
         if getattr(node, "default", None) is not None:
-            children_plans.extend(self._walk_node(node.default))
+            default_plan = self._walk_node(node.default)
+            children_plans.extend(default_plan)
 
         return [
             {
@@ -335,6 +345,9 @@ class PrefectBackend:
                 "prefect_type": "inline",
                 "deterministic": True,
                 "cache_result": False,
+                "route_key": getattr(node, "key", None),
+                "branches": branches,
+                "default": default_plan,
                 "children": children_plans,
             }
         ]

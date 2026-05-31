@@ -330,24 +330,25 @@ class TestProceedIf:
         assert isinstance(flow, Pipeline)
         assert len(flow._lists.get("sub_agents", [])) == 3
 
-    def test_proceed_if_callback_handles_exception(self):
-        """The gate callback handles predicate exceptions by skipping."""
+    def test_proceed_if_callback_propagates_exception(self):
+        """The gate callback propagates predicate errors instead of swallowing them.
+
+        A ``KeyError`` from a typo'd state key is a bug, not a skip signal.
+        Surfacing it loudly is the only way to distinguish the two — silently
+        skipping the agent (the old behavior) hides real defects.
+        """
+        import pytest
+
         agent = Agent("a").model("gemini-2.5-flash")
         agent.proceed_if(lambda s: s["nonexistent_key"] > 5)  # Will raise KeyError
 
         cb = agent._callbacks["before_agent_callback"][0]
 
         class FakeContext:
-            class state:
-                @staticmethod
-                def get(key, default=None):
-                    return {}.get(key, default)
+            state: dict = {}  # noqa: RUF012 — real dict raises a genuine KeyError
 
-                def __getitem__(self, key):
-                    raise KeyError(key)
-
-        result = cb(callback_context=FakeContext())
-        assert result is not None  # Should skip on exception
+        with pytest.raises(KeyError):
+            cb(callback_context=FakeContext())
 
 
 # ======================================================================

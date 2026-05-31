@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "row"
+      "surfaceId": "actions"
     },
     "version": "v0.10"
   },
@@ -12,25 +12,37 @@
         {
           "component": "Text",
           "id": "text",
-          "text": "Left",
+          "text": "Cancel",
           "variant": "body"
+        },
+        {
+          "child": "text",
+          "component": "Button",
+          "id": "button",
+          "variant": "default"
         },
         {
           "component": "Text",
           "id": "text_2",
-          "text": "Right",
+          "text": "Continue",
           "variant": "body"
         },
         {
+          "child": "text_2",
+          "component": "Button",
+          "id": "button_2",
+          "variant": "primary"
+        },
+        {
           "children": [
-            "text",
-            "text_2"
+            "button",
+            "button_2"
           ],
           "component": "Row",
           "id": "root"
         }
       ],
-      "surfaceId": "row"
+      "surfaceId": "actions"
     },
     "version": "v0.10"
   }

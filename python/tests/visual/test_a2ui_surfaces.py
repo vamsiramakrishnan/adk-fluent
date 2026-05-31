@@ -161,7 +161,7 @@ class TestA2UIProtocolCompliance:
             "DateTimeInput",
         }
         # Surfaces using UI.component() escape hatch (custom types allowed)
-        custom_surfaces = {"70_a2ui_basics__custom"}
+        custom_surfaces = {"70_a2ui_basics__usage_chart"}
         for key, msgs in self.all_surfaces.items():
             if key in custom_surfaces:
                 continue  # Skip custom component escape hatch tests

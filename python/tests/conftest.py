@@ -20,10 +20,18 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _SHARED = _REPO_ROOT / "shared"
 _SHARED_SCRIPTS = _SHARED / "scripts"
-for _p in (_SHARED_SCRIPTS, _REPO_ROOT / "python"):
-    _ps = str(_p)
-    if _ps not in sys.path:
-        sys.path.insert(0, _ps)
+# ``python/`` is prepended so first-party packages resolve first. The
+# ``shared/scripts/`` dir is APPENDED (not prepended) so that its codegen
+# helpers (``doc_generator``, ``generator``, ...) remain importable by bare
+# name WITHOUT shadowing installed distributions that share a top-level name
+# — notably the runtime ``a2ui`` package (shared/scripts also contains an
+# unrelated ``a2ui`` codegen package).
+_python_dir = str(_REPO_ROOT / "python")
+if _python_dir not in sys.path:
+    sys.path.insert(0, _python_dir)
+_shared_scripts_dir = str(_SHARED_SCRIPTS)
+if _shared_scripts_dir not in sys.path:
+    sys.path.append(_shared_scripts_dir)
 
 # Map the legacy `scripts.*` package namespace to `shared/scripts/` so that
 # `from scripts.code_ir import ...` keeps working without touching call sites.

@@ -5,7 +5,45 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-__all__ = ["Route", "Fallback"]
+__all__ = ["Route", "Fallback", "CostRoute"]
+
+# Reference token counts used to compare model costs deterministically.
+# Cost routing ranks candidate models, not absolute spend, so any fixed
+# probe size yields the same ordering. 1k in / 1k out is a neutral default.
+_PROBE_INPUT_TOKENS = 1_000
+_PROBE_OUTPUT_TOKENS = 1_000
+
+
+def _model_of(agent_or_builder: Any) -> str | None:
+    """Best-effort extraction of an agent's model name.
+
+    Works for fluent builders (model lives in ``_config["model"]``) and for
+    already-built native ADK agents (``.model`` attribute). Returns ``None``
+    when no model can be determined or the model is not a plain string
+    (e.g. a ``BaseLlm`` instance).
+    """
+    model: Any = None
+    if hasattr(agent_or_builder, "_config"):
+        model = agent_or_builder._config.get("model")
+    if model is None:
+        model = getattr(agent_or_builder, "model", None)
+    return model if isinstance(model, str) else None
+
+
+def _estimate_cost(cost_table, model: str | None) -> float:
+    """Estimate the per-call USD cost of ``model`` under ``cost_table``.
+
+    An unknown model — one with no explicit entry and no ``"*"`` wildcard —
+    costs ``+inf`` so it is never auto-selected when a known option exists.
+    Uses a fixed probe token count; only the relative ordering matters.
+    """
+    if model is None:
+        return float("inf")
+    rates = getattr(cost_table, "rates", {})
+    if model not in rates and "*" not in rates:
+        return float("inf")
+    rate = cost_table.rate_for(model)
+    return rate.cost_for(_PROBE_INPUT_TOKENS, _PROBE_OUTPUT_TOKENS)
 
 
 def _make_fallback_builder(children: list):
@@ -45,6 +83,32 @@ class Route:
         self._key = key
         self._rules: list[tuple[Callable, Any]] = []
         self._default: Any = None
+
+    @classmethod
+    def by_cost(cls, cost_table=None) -> CostRoute:
+        """Begin a cost-aware route over candidate agents.
+
+        Returns a :class:`CostRoute` that selects among candidate agents by
+        the estimated per-call USD cost of each agent's model, using
+        ``cost_table`` (a :class:`~adk_fluent.CostTable`). The selection is
+        deterministic and side-effect free: model costs are known at build
+        time, so ``.cheapest(...)`` resolves to a single chosen agent with no
+        LLM call.
+
+        Args:
+            cost_table: A :class:`CostTable` mapping model name → rate. If
+                ``None``, every candidate model is treated as unknown
+                (``+inf`` cost) and the first candidate is used as a tie-break.
+
+        Usage::
+
+            Route.by_cost(cost_table).cheapest(flash_agent, pro_agent)
+
+        A candidate whose model is unknown to ``cost_table`` (no explicit
+        entry and no ``"*"`` wildcard) is treated as costing ``+inf`` and is
+        never auto-selected when a known cheaper option exists.
+        """
+        return CostRoute(cost_table=cost_table)
 
     def eq(self, value: Any, agent) -> Route:
         """Branch to agent when state[key] == value."""
@@ -174,6 +238,91 @@ class Route:
         rules_str = f"{len(self._rules)} rules"
         default_str = " + otherwise" if self._default else ""
         return f"Route({key_str}, {rules_str}{default_str})"
+
+
+class CostRoute:
+    """Cost-aware selection among candidate agents.
+
+    Created via :meth:`Route.by_cost`. Picks a single agent based on the
+    estimated per-call USD cost of its model under a
+    :class:`~adk_fluent.CostTable`. Because model rates are known at build
+    time, the choice is fully deterministic and involves no LLM call — it is
+    consistent with the "deterministic routing" philosophy of :class:`Route`.
+
+    Usage::
+
+        # Pick the cheapest model that can do the job.
+        chosen = Route.by_cost(cost_table).cheapest(flash_agent, pro_agent)
+
+        chosen  # resolves to flash_agent if it is cheaper
+
+    Resolution rules:
+        * Each candidate's model is read from its builder config
+          (``_config["model"]``) or, for built agents, the ``.model``
+          attribute.
+        * A model unknown to the cost table (no entry and no ``"*"`` wildcard)
+          is treated as ``+inf`` cost and never auto-chosen when a known
+          cheaper option exists.
+        * Ties (including all-unknown candidates) are broken by declaration
+          order — the first candidate wins.
+    """
+
+    def __init__(self, cost_table=None):
+        self._cost_table = cost_table
+
+    def cheapest(self, *candidates):
+        """Return the candidate whose model has the lowest estimated cost.
+
+        Args:
+            *candidates: Two or more agent builders (or built agents) to
+                choose between.
+
+        Returns:
+            The single cheapest candidate (unchanged), ready to drop into a
+            pipeline, ``>>`` chain, or ``Route.otherwise(...)``.
+
+        Raises:
+            ValueError: If no candidates are supplied.
+        """
+        if not candidates:
+            raise ValueError("Route.by_cost(...).cheapest() requires at least one candidate.")
+
+        best = candidates[0]
+        best_cost = _estimate_cost(self._cost_table, _model_of(best))
+        for candidate in candidates[1:]:
+            cost = _estimate_cost(self._cost_table, _model_of(candidate))
+            if cost < best_cost:
+                best, best_cost = candidate, cost
+        return best
+
+    def costliest(self, *candidates):
+        """Return the candidate whose model has the highest *finite* cost.
+
+        Symmetric counterpart to :meth:`cheapest` for callers who want to
+        deliberately escalate to the strongest known model. Candidates with
+        unknown models (``+inf`` cost) are skipped; if every candidate is
+        unknown the first one is returned. Ties break by declaration order.
+
+        Raises:
+            ValueError: If no candidates are supplied.
+        """
+        if not candidates:
+            raise ValueError("Route.by_cost(...).costliest() requires at least one candidate.")
+
+        best = candidates[0]
+        best_cost = _estimate_cost(self._cost_table, _model_of(best))
+        best_finite = best_cost != float("inf")
+        for candidate in candidates[1:]:
+            cost = _estimate_cost(self._cost_table, _model_of(candidate))
+            finite = cost != float("inf")
+            # Prefer finite over infinite; among same finiteness, prefer higher cost.
+            if (finite and not best_finite) or (finite and best_finite and cost > best_cost):
+                best, best_cost, best_finite = candidate, cost, finite
+        return best
+
+    def __repr__(self) -> str:
+        has_table = self._cost_table is not None
+        return f"CostRoute(cost_table={'set' if has_table else 'None'})"
 
 
 def _make_route_agent(name, rules, default_agent, sub_agents):

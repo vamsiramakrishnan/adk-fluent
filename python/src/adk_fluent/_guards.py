@@ -165,7 +165,7 @@ class _RegexDetector:
 
     _DEFAULT_PATTERNS: dict[str, re.Pattern[str]] = {
         "SSN": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
-        "EMAIL": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
+        "EMAIL": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
         "CREDIT_CARD": re.compile(r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b"),
         "PHONE": re.compile(r"\b\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"),
     }
@@ -351,8 +351,11 @@ class _LLMJudge:
     Calls the configured model to evaluate content for safety, toxicity,
     or hallucination depending on the evaluation prompt.
 
-    Falls back to a conservative pass-through if the GenAI SDK is not
-    available or the API call fails (fail-open with a warning).
+    A content-safety judge is a security control, so it **fails closed** by
+    default: when the GenAI SDK is missing, the API call fails, or the
+    response cannot be parsed, ``judge`` returns ``passed=False`` (block)
+    rather than silently letting content through. Pass ``fail_closed=False``
+    to restore the lenient pass-through behavior for non-security use.
     """
 
     _TOXICITY_PROMPT = (
@@ -375,8 +378,18 @@ class _LLMJudge:
         "where score=0.0 means fully grounded and score=1.0 means entirely fabricated."
     )
 
-    def __init__(self, model: str = "gemini-2.5-flash"):
+    def __init__(self, model: str = "gemini-2.5-flash", *, fail_closed: bool = True):
         self._model = model
+        self._fail_closed = fail_closed
+
+    def _fallback(self, reason: str) -> JudgmentResult:
+        """Result to return when the judge cannot evaluate the content.
+
+        Fail-closed (block) by default; opt into fail-open via fail_closed=False.
+        """
+        if self._fail_closed:
+            return JudgmentResult(passed=False, score=1.0, reason=f"judge unavailable, failing closed: {reason}")
+        return JudgmentResult(passed=True, score=0.0, reason=reason)
 
     async def judge(self, text: str, context: dict | None = None) -> JudgmentResult:
         """Evaluate content using LLM.
@@ -414,18 +427,19 @@ class _LLMJudge:
             import logging
             import warnings
 
+            action = "blocking content (fail-closed)" if self._fail_closed else "passing content through unchecked"
             msg = (
-                "google-genai not installed — _LLMJudge guard is disabled and will "
-                "pass all content through unchecked. Install with: pip install google-genai"
+                f"google-genai not installed — _LLMJudge guard cannot evaluate and is {action}. "
+                "Install with: pip install google-genai"
             )
             logging.getLogger(__name__).warning(msg)
             warnings.warn(msg, stacklevel=2)
-            return JudgmentResult(passed=True, score=0.0, reason="google-genai not available")
+            return self._fallback("google-genai not available")
         except Exception as exc:
             import logging
 
             logging.getLogger(__name__).warning("_LLMJudge API call failed: %s", exc)
-            return JudgmentResult(passed=True, score=0.0, reason=f"Judge API error: {exc}")
+            return self._fallback(f"Judge API error: {exc}")
 
     def _parse_response(self, response_text: str, fail_key: str) -> JudgmentResult:
         """Parse the JSON response from the judge LLM."""
@@ -446,8 +460,8 @@ class _LLMJudge:
             reason = str(data.get("reason", ""))
             return JudgmentResult(passed=not is_bad, score=score, reason=reason)
         except (_json.JSONDecodeError, ValueError, TypeError):
-            # If we can't parse the response, fail-open with a warning
-            return JudgmentResult(passed=True, score=0.0, reason=f"Could not parse judge response: {text[:200]}")
+            # Cannot parse the judge's response — fail closed by default.
+            return self._fallback(f"could not parse judge response: {text[:200]}")
 
 
 class _CustomJudge:

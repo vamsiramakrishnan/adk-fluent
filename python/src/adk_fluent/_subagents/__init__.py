@@ -31,6 +31,7 @@ testable in isolation and lets callers wire in whatever execution engine
 they like (local ADK agent, remote A2A endpoint, canned responses).
 """
 
+from adk_fluent._subagents._adk_runner import AdkSubagentRunner
 from adk_fluent._subagents._registry import SubagentRegistry
 from adk_fluent._subagents._result import SubagentResult
 from adk_fluent._subagents._runner import (
@@ -42,6 +43,7 @@ from adk_fluent._subagents._spec import SubagentSpec
 from adk_fluent._subagents._task_tool import make_task_tool
 
 __all__ = [
+    "AdkSubagentRunner",
     "FakeSubagentRunner",
     "SubagentRegistry",
     "SubagentResult",

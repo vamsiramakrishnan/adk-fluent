@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "metrics"
+      "surfaceId": "account_overview"
     },
     "version": "v0.10"
   },
@@ -12,20 +12,20 @@
         {
           "component": "Text",
           "id": "text",
-          "text": "Metrics",
+          "text": "Account Overview",
           "variant": "h1"
         },
         {
           "component": "Text",
           "id": "text_2",
-          "text": "Users",
+          "text": "Active Users",
           "variant": "caption"
         },
         {
           "component": "Text",
           "id": "text_3",
           "text": {
-            "path": "/users"
+            "path": "/stats/active_users"
           },
           "variant": "h3"
         },
@@ -43,8 +43,64 @@
           "id": "card"
         },
         {
+          "component": "Text",
+          "id": "text_4",
+          "text": "MRR",
+          "variant": "caption"
+        },
+        {
+          "component": "Text",
+          "id": "text_5",
+          "text": {
+            "path": "/stats/mrr"
+          },
+          "variant": "h3"
+        },
+        {
           "children": [
-            "card"
+            "text_4",
+            "text_5"
+          ],
+          "component": "Column",
+          "id": "column_2"
+        },
+        {
+          "child": "column_2",
+          "component": "Card",
+          "id": "card_2"
+        },
+        {
+          "component": "Text",
+          "id": "text_6",
+          "text": "Churn Rate",
+          "variant": "caption"
+        },
+        {
+          "component": "Text",
+          "id": "text_7",
+          "text": {
+            "path": "/stats/churn"
+          },
+          "variant": "h3"
+        },
+        {
+          "children": [
+            "text_6",
+            "text_7"
+          ],
+          "component": "Column",
+          "id": "column_3"
+        },
+        {
+          "child": "column_3",
+          "component": "Card",
+          "id": "card_3"
+        },
+        {
+          "children": [
+            "card",
+            "card_2",
+            "card_3"
           ],
           "component": "Row",
           "id": "row"
@@ -58,7 +114,7 @@
           "id": "root"
         }
       ],
-      "surfaceId": "metrics"
+      "surfaceId": "account_overview"
     },
     "version": "v0.10"
   }

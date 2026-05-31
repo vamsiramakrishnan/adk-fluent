@@ -147,16 +147,32 @@ class TestSyncAsyncBridge:
 
 
 # ======================================================================
-# Fix 5: Serialization -- from_dict/from_yaml removed
+# Fix 5: Serialization -- from_dict/from_yaml are STRUCTURAL round-trips
 # ======================================================================
+#
+# These were once removed because a naive round-trip silently dropped
+# callables (the real antipattern: a round-trip that *looks* complete but
+# isn't). They are back as explicitly STRUCTURAL round-trips: type, config,
+# and nested builder topology round-trip; callables (callbacks/guards/tool
+# fns) are serialized as name strings and are NOT restored. The limitation
+# is documented on the methods, so the result is an honest skeleton, not a
+# misleading clone.
 
 
-class TestSerializationRemoval:
-    def test_builder_base_has_no_from_dict(self):
-        assert not hasattr(BuilderBase, "from_dict")
+class TestSerializationRoundTrip:
+    def test_builder_base_has_from_dict(self):
+        assert hasattr(BuilderBase, "from_dict")
 
-    def test_builder_base_has_no_from_yaml(self):
-        assert not hasattr(BuilderBase, "from_yaml")
+    def test_builder_base_has_from_yaml(self):
+        assert hasattr(BuilderBase, "from_yaml")
+
+    def test_callables_are_not_restored(self):
+        from adk_fluent import Agent
+
+        agent = Agent("a", "gemini-2.5-flash").before_agent(lambda ctx: None)
+        rebuilt = Agent.from_dict(agent.to_dict())
+        # Structural skeleton: the callback is gone (name-only, unrestorable).
+        assert not rebuilt._callbacks.get("before_agent_callback")
 
     def test_to_dict_still_works(self):
         agent = Agent("test").model("gemini-2.5-flash")

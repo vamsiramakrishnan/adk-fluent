@@ -154,10 +154,27 @@ class TestFuseTransforms:
 
 
 class TestAnnotateCheckpoints:
-    def test_returns_unchanged(self):
-        """Placeholder pass returns IR unchanged."""
+    def test_tags_io_nodes_without_mutating_ir(self):
+        """annotate_checkpoints is a real pass: it tags I/O-bearing nodes as
+        checkpoint boundaries and returns a CheckpointAnnotation wrapping the
+        (unmutated) IR."""
+        from adk_fluent.compile.passes import CheckpointAnnotation
+
         node = AgentNode(name="test")
-        assert annotate_checkpoints(node) is node
+        ann = annotate_checkpoints(node)
+        assert isinstance(ann, CheckpointAnnotation)
+        assert ann.ir is node  # IR itself is not mutated
+        assert ann.is_boundary("test")  # an AgentNode is an I/O checkpoint
+
+    def test_idempotent(self):
+        """Re-annotating an already-annotated result is a no-op-safe identity."""
+        from adk_fluent.compile.passes import CheckpointAnnotation
+
+        node = AgentNode(name="test")
+        ann = annotate_checkpoints(node)
+        again = annotate_checkpoints(ann)
+        assert isinstance(again, CheckpointAnnotation)
+        assert again.ir is node
 
 
 class TestValidateContracts:

@@ -278,17 +278,83 @@ def _generate_workflow_body(plan: list[dict], cfg: DBOSWorkerConfig, indent: int
             lines.append("")
 
         elif node_type == "FallbackNode":
-            lines.append(f"{prefix}# Fallback: {name}")
-            children = node.get("children", [])
-            if children and isinstance(children[0], dict):
-                for i, child in enumerate(children):
-                    kw = "try" if i == 0 else "except Exception"
-                    lines.append(f"{prefix}{kw}:")
-                    body = _generate_workflow_body([child], cfg, indent + 1)
-                    lines.extend(body)
+            lines.append(f"{prefix}# Fallback: {name} (try each alternative in order)")
+            children = [c for c in node.get("children", []) if isinstance(c, dict)]
+            if children:
+                _emit_fallback_cascade(lines, children, cfg, indent)
+            else:
+                lines.append(f"{prefix}pass")
             lines.append("")
 
+        elif node_type == "RouteNode":
+            _emit_route_branch(lines, node, cfg, indent)
+
     return lines
+
+
+def _emit_fallback_cascade(
+    lines: list[str],
+    children: list[dict],
+    cfg: DBOSWorkerConfig,
+    indent: int,
+) -> None:
+    """Emit a nested try/except fallback cascade across alternatives."""
+
+    def _attempt(idx: int, level: int) -> None:
+        attempt_prefix = "    " * level
+        lines.append(f"{attempt_prefix}try:")
+        lines.extend(_generate_workflow_body([children[idx]], cfg, level + 1))
+        lines.append(f"{attempt_prefix}except Exception:")
+        if idx + 1 < len(children):
+            _attempt(idx + 1, level + 1)
+        else:
+            lines.append(f"{attempt_prefix}    raise")
+
+    _attempt(0, indent)
+
+
+def _emit_route_branch(
+    lines: list[str],
+    node: dict,
+    cfg: DBOSWorkerConfig,
+    indent: int,
+) -> None:
+    """Emit an if/elif/else cascade keyed on the route state value."""
+    prefix = "    " * indent
+    name = node.get("name", "unknown")
+    safe = _safe_identifier(name)
+    route_key = node.get("route_key")
+    branches = node.get("branches", []) or []
+    default_plan = node.get("default")
+    key_repr = repr(route_key) if route_key is not None else "None"
+    lines.append(f"{prefix}# Route: {name} (deterministic branch on state[{key_repr}])")
+    lines.append(f"{prefix}_route_value_{safe} = state.get({key_repr})")
+
+    if not branches and default_plan is None:
+        lines.append(f"{prefix}pass")
+        lines.append("")
+        return
+
+    lines.append(f"{prefix}# The runtime sets state['_route_{safe}_branch'] to the")
+    lines.append(f"{prefix}# matching rule index (or -1 for the default) from the")
+    lines.append(f"{prefix}# original Route rules, keyed on _route_value_{safe}.")
+    for i, branch_plan in enumerate(branches):
+        keyword = "if" if i == 0 else "elif"
+        lines.append(f'{prefix}{keyword} state.get("_route_{safe}_branch") == {i}:')
+        if branch_plan and isinstance(branch_plan[0], dict):
+            lines.extend(_generate_workflow_body(branch_plan, cfg, indent + 1))
+        else:
+            lines.append(f"{prefix}    pass")
+
+    if default_plan is not None:
+        default_indent = indent + 1 if branches else indent
+        if branches:
+            lines.append(f"{prefix}else:")
+        if default_plan and isinstance(default_plan[0], dict):
+            lines.extend(_generate_workflow_body(default_plan, cfg, default_indent))
+        else:
+            lines.append(f"{'    ' * default_indent}pass")
+    lines.append("")
 
 
 def _generate_app_setup(cfg: DBOSWorkerConfig) -> list[str]:

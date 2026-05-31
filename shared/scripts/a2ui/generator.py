@@ -130,8 +130,8 @@ def _gen_component_factory(comp: dict) -> str:
 
     # Special params
     if has_bind:
-        kw_params.append("bind: str | None = None")
-        doc_params.append("bind: JSON Pointer path for two-way data binding.")
+        kw_params.append("bind: str | UIBinding | None = None")
+        doc_params.append("bind: JSON Pointer path (or UIBinding) for two-way data binding.")
 
     if has_checks:
         kw_params.append("checks: list[UICheck] | None = None")
@@ -161,7 +161,7 @@ def _gen_component_factory(comp: dict) -> str:
 
     # Bindings
     if has_bind:
-        body_lines.append("_bindings = (UIBinding(path=bind),) if bind else ()")
+        body_lines.append("_bindings = (_as_binding(bind),) if bind else ()")
 
     # Checks
     if has_checks:
@@ -324,9 +324,9 @@ def _gen_alias(alias_name: str, alias_def: dict) -> str:
 """
     elif component == "TextField":
         return f"""    @staticmethod
-    def {alias_name}(label: str, *, bind: str | None = None, checks: list[UICheck] | None = None, id: str | None = None) -> UIComponent:
+    def {alias_name}(label: str, *, bind: str | UIBinding | None = None, checks: list[UICheck] | None = None, id: str | None = None) -> UIComponent:
         \"\"\"{doc}\"\"\"
-        _bindings = (UIBinding(path=bind),) if bind else ()
+        _bindings = (_as_binding(bind),) if bind else ()
         _checks = tuple(checks) if checks else ()
         return _component("TextField", id=id, label=label, variant="{default_variant}", _bindings=_bindings, _checks=_checks)
 """
@@ -356,6 +356,7 @@ def generate_factories(seed: dict) -> str:
     lines.append("    UIBinding,")
     lines.append("    UICheck,")
     lines.append("    UIComponent,")
+    lines.append("    _as_binding,")
     lines.append("    _component,")
     lines.append(")")
     lines.append("")

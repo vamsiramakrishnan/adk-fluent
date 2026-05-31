@@ -2,7 +2,7 @@
   {
     "createSurface": {
       "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-      "surfaceId": "setup"
+      "surfaceId": "account_setup"
     },
     "version": "v0.10"
   },
@@ -12,25 +12,28 @@
         {
           "component": "Text",
           "id": "text",
-          "text": "Setup",
+          "text": "Account Setup",
           "variant": "h1"
         },
         {
           "component": "Text",
           "id": "text_2",
-          "text": "Welcome",
+          "text": "Company Info",
           "variant": "h3"
         },
         {
-          "component": "Text",
-          "id": "text_3",
-          "text": "Hi",
-          "variant": "body"
+          "component": "TextField",
+          "id": "textfield",
+          "label": "Company Name",
+          "value": {
+            "path": "/company/name"
+          },
+          "variant": "shortText"
         },
         {
           "children": [
             "text_2",
-            "text_3"
+            "textfield"
           ],
           "component": "Column",
           "id": "column"
@@ -42,20 +45,59 @@
         },
         {
           "component": "Text",
-          "id": "text_4",
-          "text": "Done",
+          "id": "text_3",
+          "text": "Plan Selection",
           "variant": "h3"
         },
         {
           "component": "Text",
-          "id": "text_5",
-          "text": "Bye",
+          "id": "text_4",
+          "text": "Choose your plan",
           "variant": "body"
+        },
+        {
+          "component": "Button",
+          "id": "button",
+          "variant": "Starter"
+        },
+        {
+          "component": "Button",
+          "id": "button_2",
+          "variant": "Pro"
+        },
+        {
+          "children": [
+            "button",
+            "button_2"
+          ],
+          "component": "Row",
+          "id": "row_2"
+        },
+        {
+          "component": "Button",
+          "id": "button_3",
+          "variant": "Enterprise"
+        },
+        {
+          "children": [
+            "row_2",
+            "button_3"
+          ],
+          "component": "Row",
+          "id": "row"
         },
         {
           "children": [
             "text_4",
-            "text_5"
+            "row"
+          ],
+          "component": "Column",
+          "id": "column_3"
+        },
+        {
+          "children": [
+            "text_3",
+            "column_3"
           ],
           "component": "Column",
           "id": "column_2"
@@ -66,16 +108,42 @@
           "id": "card_2"
         },
         {
+          "component": "Text",
+          "id": "text_5",
+          "text": "Confirmation",
+          "variant": "h3"
+        },
+        {
+          "component": "Text",
+          "id": "text_6",
+          "text": "Review your selections and confirm.",
+          "variant": "body"
+        },
+        {
+          "children": [
+            "text_5",
+            "text_6"
+          ],
+          "component": "Column",
+          "id": "column_4"
+        },
+        {
+          "child": "column_4",
+          "component": "Card",
+          "id": "card_3"
+        },
+        {
           "children": [
             "text",
             "card",
-            "card_2"
+            "card_2",
+            "card_3"
           ],
           "component": "Column",
           "id": "root"
         }
       ],
-      "surfaceId": "setup"
+      "surfaceId": "account_setup"
     },
     "version": "v0.10"
   }
