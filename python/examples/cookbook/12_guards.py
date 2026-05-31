@@ -144,9 +144,12 @@ builder_full = (
 
 # --- ASSERT ---
 
-# Legacy guard registers as dual callback:
+# A raw callable guard registers in exactly ONE phase, inferred from its
+# signature: medical_safety_screen takes (callback_context, llm_request), so it
+# is a pre-model guard and lands in before_model_callback only — it is NOT
+# double-fired into after_model_callback with a mismatched argument shape.
 assert medical_safety_screen in builder_legacy._callbacks["before_model_callback"]
-assert medical_safety_screen in builder_legacy._callbacks["after_model_callback"]
+assert medical_safety_screen not in builder_legacy._callbacks.get("after_model_callback", [])
 
 # G.json() compiles to after_model_callback:
 json_cbs = builder_json._callbacks.get("after_model_callback", [])

@@ -45,6 +45,13 @@ assert "_internal" not in clean["config"]
 assert "ticket_router" in yaml_manifest
 assert "gemini-2.5-flash" in yaml_manifest
 
-# from_dict and from_yaml were removed: callables can't round-trip
-assert not hasattr(Agent, "from_dict")
-assert not hasattr(Agent, "from_yaml")
+# from_dict / from_yaml do a STRUCTURAL round-trip: builder type, config, and
+# nested topology are restored. Callables (callbacks/guards/tool fns) are
+# serialized as name strings and are NOT restored — the result is a faithful
+# skeleton for inspection, diffing, and config-as-code, not a live clone.
+restored = Agent.from_dict(config_snapshot)
+assert restored._config["name"] == "ticket_router"
+assert restored._config["model"] == ticket_router._config["model"]
+
+from_yaml_restored = Agent.from_yaml(yaml_manifest)
+assert from_yaml_restored._config["name"] == "ticket_router"
