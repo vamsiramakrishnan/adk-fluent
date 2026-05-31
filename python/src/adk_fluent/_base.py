@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio as _asyncio
 import itertools
 from collections.abc import Callable
-from typing import Any, Self
+from typing import Any, Self, cast
 
 __all__ = [
     "BuilderBase",
@@ -623,6 +623,13 @@ class BuilderBase:
     _ADK_TARGET_CLASS: type | None = None
     _KNOWN_PARAMS: set[str] | None = None
     _AUTO_KNOWN_PARAMS_CACHE: set[str] | None = None
+    # Reactor rules attached via ``.on()``; carried across forks in __deepcopy__.
+    # Annotation-only (NO default value): these are set lazily per-instance and
+    # callers rely on ``getattr(self, name, <default>)`` returning their default
+    # when unset. A class-level ``= None`` would make the attribute always exist
+    # and silently break every getattr-with-default call site.
+    _reactor_rules: list[Any] | None
+    _middlewares: list[Any] | None
 
     @classmethod
     def _auto_known_params(cls) -> set[str]:
@@ -2537,7 +2544,8 @@ class BuilderBase:
             raise ValueError(
                 f"mock() could not find agent(s): {', '.join(suggestions)}. Available agents: {', '.join(available)}"
             )
-        return self
+        # _apply returns the (possibly forked) owned root, same runtime type.
+        return cast("Self", self)
 
     def loop_while(self, predicate: Callable, *, max_iterations: int = 3) -> BuilderBase:
         """Loop while predicate(state) returns True.
@@ -2729,9 +2737,10 @@ class BuilderBase:
             priority=priority,
             preemptive=preemptive,
         )
-        if getattr(target, "_reactor_rules", None) is None:
-            target._reactor_rules = []
-        target._reactor_rules.append(spec)
+        rules: list[Any] | None = getattr(target, "_reactor_rules", None)
+        if rules is None:
+            rules = target._reactor_rules = []
+        rules.append(spec)
         return target
 
     @fluent
@@ -2754,12 +2763,13 @@ class BuilderBase:
                 "Did you mean .tools(...)? Use .middleware() for middleware/MComposite, "
                 ".tools() for TComposite."
             )
-        if getattr(self, "_middlewares", None) is None:
-            self._middlewares = []
+        mws: list[Any] | None = getattr(self, "_middlewares", None)
+        if mws is None:
+            mws = self._middlewares = []
         if isinstance(mw, MComposite):
-            self._middlewares.extend(mw.to_stack())
+            mws.extend(mw.to_stack())
         else:
-            self._middlewares.append(mw)
+            mws.append(mw)
         return self
 
     @fluent

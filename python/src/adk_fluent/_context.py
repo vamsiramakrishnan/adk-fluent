@@ -152,7 +152,7 @@ class CTransform:
         from adk_fluent._base import BuilderBase
 
         if isinstance(other, BuilderBase) and hasattr(other, "context"):
-            return other.context(self)
+            return other.context(self)  # type: ignore[attr-defined]
         if isinstance(other, BuilderBase):
             # Workflow builders (Pipeline/Loop/FanOut) have no .context(); a C
             # transform cannot bind to them directly. Surface a clear error.

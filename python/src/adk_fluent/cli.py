@@ -108,7 +108,7 @@ def _cmd_run(args: argparse.Namespace) -> None:
         print("Error: empty prompt", file=sys.stderr)
         sys.exit(1)
 
-    response = builder.ask(prompt)
+    response = builder.ask(prompt)  # type: ignore[attr-defined]
     print(response)
 
 
