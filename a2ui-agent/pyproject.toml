@@ -40,9 +40,8 @@ Issues = "https://github.com/vamsiramakrishnan/adk-fluent/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/a2ui"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/a2ui/data" = "a2ui/data"
+# Bundled JSON catalogs under src/a2ui/data are included as package data by the
+# packages entry above — no force-include (it produced duplicate wheel entries).
 
 [tool.hatch.build.targets.sdist]
 exclude = [
