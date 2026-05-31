@@ -1081,26 +1081,11 @@ export function autoBuild<T>(item: BuilderBase<T> | T): T {
   return item;
 }
 
-// ----------------------------------------------------------------------
-// Eager registration of the Agent / BaseAgent classes for fromDict /
-// fromNative reconstruction. A *dynamic* import is used (rather than a
-// static top-level import) to break the agent.ts ↔ builder-base.ts cycle:
-// agent.ts's ``class Agent extends BuilderBase`` must see a fully-defined
-// BuilderBase, so its module body must execute AFTER this file finishes.
-// Top-level await keeps the registry populated before any consumer calls
-// fromDict()/fromNative(), while the deferred import sidesteps the TDZ a
-// static import would introduce. The try/catch makes this a no-op in exotic
-// bundler environments where the dynamic import is unavailable — callers
-// then get the clear "Ensure builders/agent.js is imported" error.
-try {
-  const agentMod = (await import("../builders/agent.js")) as {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Agent?: new (...args: any[]) => BuilderBase;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    BaseAgent?: new (...args: any[]) => BuilderBase;
-  };
-  if (agentMod.Agent) registerBuilderClass("Agent", agentMod.Agent);
-  if (agentMod.BaseAgent) registerBuilderClass("BaseAgent", agentMod.BaseAgent);
-} catch {
-  /* registration is best-effort; resolveBuilderClass() reports if missing */
-}
+// Agent / BaseAgent registration for fromDict / fromNative reconstruction is
+// performed by the package barrel (index.ts), which imports those classes and
+// calls registerBuilderClass(...) synchronously. A top-level await here would
+// deadlock the barrel's circular module graph (index → builder-base → agent →
+// builder-base). Workflow builders self-register via the _workflowRegistry
+// when builders/workflow.js loads. Callers importing builder-base in isolation
+// (without the barrel or an explicit registerBuilderClass) get the clear
+// "not registered" error from resolveBuilderClass.
