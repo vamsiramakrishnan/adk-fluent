@@ -765,6 +765,9 @@ from ._hooks._registry import HookRegistry as HookRegistry
 from ._hooks._registry import HookCallable as HookCallable
 from ._permissions import ALL_MODES as ALL_MODES
 from ._permissions import ApprovalMemory as ApprovalMemory
+from ._permissions import InteractiveApprovalHandler as InteractiveApprovalHandler
+from ._permissions import ApprovalRequest as ApprovalRequest
+from ._permissions import ApprovalVerdict as ApprovalVerdict
 from ._permissions import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
 from ._permissions import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
 from ._permissions import PermissionBehavior as PermissionBehavior
@@ -1386,6 +1389,9 @@ __all__ = [
     "ManifoldToolset",
     "ALL_MODES",
     "ApprovalMemory",
+    "InteractiveApprovalHandler",
+    "ApprovalRequest",
+    "ApprovalVerdict",
     "DEFAULT_MUTATING_TOOLS",
     "DEFAULT_READ_ONLY_TOOLS",
     "PermissionBehavior",

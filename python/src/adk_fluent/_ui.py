@@ -1811,6 +1811,51 @@ class UI:
         return UISurface(name="confirm", root=root)
 
     @staticmethod
+    def approval(
+        *,
+        responder: Any = None,
+        memory: Any = None,
+        message: Any = None,
+    ) -> Any:
+        """Create a shipped human-in-the-loop permission handler.
+
+        Bridges a permission ``ask`` decision to a ``UI.confirm`` surface and a
+        pluggable responder, returning an :class:`InteractiveApprovalHandler`
+        callable with the :data:`PermissionHandler` signature
+        ``(tool_name, tool_args, decision) -> bool``. Drops straight into the
+        permission plugin::
+
+            from adk_fluent import UI, H
+
+            mem = H.approval_memory()
+            handler = UI.approval(responder=my_responder, memory=mem)
+            plugin = H.permission_plugin(policy=policy, handler=handler, memory=mem)
+
+        When the policy returns ``ask`` for a tool, the plugin invokes this
+        handler, which renders ``UI.confirm("Run `<tool>`(<args>)?")`` and asks
+        the responder for a verdict (``True``/``False`` or an
+        :class:`ApprovalVerdict` string). An ``always``/``never`` verdict is
+        recorded in the shared ``memory`` so the next ask for that tool is
+        short-circuited without prompting again.
+
+        Args:
+            responder: ``responder(ApprovalRequest) -> bool | ApprovalVerdict``.
+                Defaults to a blocking console ``input()`` prompt for real CLI
+                use. Tests inject a fake responder so no real stdin is needed.
+            memory: Optional :class:`ApprovalMemory` for "always allow this
+                tool" persistence. Pass the same instance to the plugin.
+            message: Optional ``message(tool_name, tool_args, prompt) -> str``
+                to customise the rendered question.
+        """
+        from adk_fluent._permissions._interactive import InteractiveApprovalHandler
+
+        return InteractiveApprovalHandler(
+            responder=responder,
+            memory=memory,
+            message=message,
+        )
+
+    @staticmethod
     def table(
         columns: list[str],
         *,
