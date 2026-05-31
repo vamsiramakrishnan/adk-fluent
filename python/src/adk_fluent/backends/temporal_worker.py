@@ -273,9 +273,7 @@ def _emit_parallel(
     name = node.get("name", "unknown")
     lines.append(f"{prefix}# Parallel: {name} (concurrent activities via asyncio.gather)")
     children = node.get("children", [])
-    activity_children = [
-        c for c in children if isinstance(c, dict) and c.get("temporal_type") == "activity"
-    ]
+    activity_children = [c for c in children if isinstance(c, dict) and c.get("temporal_type") == "activity"]
     if not activity_children:
         # No directly-parallelizable activities — fall back to sequential walk.
         if children and isinstance(children[0], dict):
@@ -401,7 +399,7 @@ def _emit_route(
 
     key_repr = repr(route_key) if route_key is not None else "None"
     lines.append(f"{prefix}# Route: {name} (deterministic branch on state[{key_repr}])")
-    lines.append(f'{prefix}_route_value_{safe} = state.get({key_repr})')
+    lines.append(f"{prefix}_route_value_{safe} = state.get({key_repr})")
 
     if not branches and default_plan is None:
         lines.append(f"{prefix}pass")
@@ -410,9 +408,7 @@ def _emit_route(
 
     for i, branch_plan in enumerate(branches):
         keyword = "if" if i == 0 else "elif"
-        lines.append(
-            f'{prefix}{keyword} self._route_match("{safe}", {i}, _route_value_{safe}, state):'
-        )
+        lines.append(f'{prefix}{keyword} self._route_match("{safe}", {i}, _route_value_{safe}, state):')
         if branch_plan and isinstance(branch_plan[0], dict):
             _walk_plan_nodes(branch_plan, lines, cfg, indent + 1)
         else:

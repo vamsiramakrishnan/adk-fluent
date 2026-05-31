@@ -502,9 +502,7 @@ class EvalReport:
             return EvalReport.from_dict(baseline)
         if isinstance(baseline, str):
             return EvalReport.load_baseline(baseline)
-        raise TypeError(
-            f"baseline must be an EvalReport, dict, or path str — got {type(baseline).__name__}"
-        )
+        raise TypeError(f"baseline must be an EvalReport, dict, or path str — got {type(baseline).__name__}")
 
     def compare_to_baseline(
         self,

@@ -19,7 +19,6 @@ import pytest
 from adk_fluent import T
 from adk_fluent._tools import TComposite
 
-
 # ---------------------------------------------------------------------------
 # Search / grounding tools (no credentials required to construct)
 # ---------------------------------------------------------------------------
@@ -28,9 +27,7 @@ from adk_fluent._tools import TComposite
 def test_vertex_ai_search_returns_composite_with_right_class():
     from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool
 
-    comp = T.vertex_ai_search(
-        data_store_id="projects/p/locations/l/collections/c/dataStores/d"
-    )
+    comp = T.vertex_ai_search(data_store_id="projects/p/locations/l/collections/c/dataStores/d")
     assert isinstance(comp, TComposite)
     tools = comp.to_tools()
     assert len(tools) == 1
@@ -52,9 +49,7 @@ def test_vertex_ai_search_passes_through_args():
 def test_vertex_search_alias_is_same_factory():
     from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool
 
-    comp = T.vertex_search(
-        data_store_id="projects/p/locations/l/collections/c/dataStores/d"
-    )
+    comp = T.vertex_search(data_store_id="projects/p/locations/l/collections/c/dataStores/d")
     assert isinstance(comp, TComposite)
     assert isinstance(comp.to_tools()[0], VertexAiSearchTool)
 
@@ -110,10 +105,7 @@ def test_composite_usable_in_agent_tools():
     from adk_fluent import Agent
 
     agent = (
-        Agent("searcher", "gemini-2.5-flash")
-        .instruct("Search.")
-        .tools(T.enterprise_search() | T.url_context())
-        .build()
+        Agent("searcher", "gemini-2.5-flash").instruct("Search.").tools(T.enterprise_search() | T.url_context()).build()
     )
     assert len(agent.tools) == 2
 
@@ -139,9 +131,7 @@ def _make_fake_computer():
         async def open_web_browser(self): ...
         async def click_at(self, x, y): ...
         async def hover_at(self, x, y): ...
-        async def type_text_at(
-            self, x, y, text, press_enter=True, clear_before_typing=True
-        ): ...
+        async def type_text_at(self, x, y, text, press_enter=True, clear_before_typing=True): ...
         async def scroll_document(self, direction): ...
         async def scroll_at(self, x, y, direction, magnitude): ...
         async def wait(self, seconds): ...

@@ -125,7 +125,7 @@ def _run_agent(agents_dir: Path, folder: str, prompt: str, timeout: int) -> str:
     )
     combined = result.stdout + result.stderr
     if result.returncode != 0:
-        error_lines = [l for l in combined.split("\n") if "Error" in l or "error" in l.lower()]
+        error_lines = [ln for ln in combined.split("\n") if "Error" in ln or "error" in ln.lower()]
         summary = "\n".join(error_lines[-5:]) if error_lines else combined[-300:]
         if "ModuleNotFoundError" in combined or "ImportError" in combined:
             pytest.skip(f"Agent '{folder}' has a missing import (cookbook_to_agents bug):\n{summary}")

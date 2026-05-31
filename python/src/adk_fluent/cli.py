@@ -74,8 +74,7 @@ def _load_builder(spec: str) -> BuilderBase:
     if len(builders) > 1:
         names = ", ".join(sorted(builders))
         print(
-            f"Error: multiple builders found in {module_path} ({names}); "
-            f"specify one with 'module:attr'",
+            f"Error: multiple builders found in {module_path} ({names}); specify one with 'module:attr'",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -197,10 +196,7 @@ def _cmd_serve(args: argparse.Namespace) -> None:
     print("To run interactively in the terminal:")
     print(f"  adk run {package_hint}")
     print()
-    print(
-        "Note: the target module must expose a `root_agent` (built ADK object) "
-        "for the ADK CLI to discover it."
-    )
+    print("Note: the target module must expose a `root_agent` (built ADK object) for the ADK CLI to discover it.")
 
 
 def _cmd_visualize(args: argparse.Namespace) -> None:

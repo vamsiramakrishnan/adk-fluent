@@ -86,9 +86,7 @@ class AdkSubagentRunner:
         from adk_fluent import Agent
 
         agent = (
-            Agent(spec.role, spec.model or self._default_model)
-            .instruct(spec.instruction)
-            .describe(spec.description)
+            Agent(spec.role, spec.model or self._default_model).instruct(spec.instruction).describe(spec.description)
         )
 
         if spec.tool_names and self._tool_resolver is not None:

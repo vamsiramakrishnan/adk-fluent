@@ -268,9 +268,7 @@ class TestOnChange:
     def test_on_change_explicit_version_key(self):
         from adk_fluent._artifacts import A
 
-        ver_step, _watch, _h = A.on_change(
-            "inbox.json", lambda s: None, into="inbox", version_key="iv"
-        )
+        ver_step, _watch, _h = A.on_change("inbox.json", lambda s: None, into="inbox", version_key="iv")
         assert ver_step._into_key == "iv"
 
     def test_on_change_composes_into_pipeline(self):
@@ -344,9 +342,7 @@ class TestWatchPipelineIntegration:
         artifact_errors = [
             i
             for i in issues
-            if isinstance(i, dict)
-            and "artifact" in i.get("message", "").lower()
-            and i["level"] == "error"
+            if isinstance(i, dict) and "artifact" in i.get("message", "").lower() and i["level"] == "error"
         ]
         assert artifact_errors == []
 

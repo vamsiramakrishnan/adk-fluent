@@ -43,7 +43,7 @@ from __future__ import annotations
 import contextlib
 import threading
 from collections.abc import Awaitable, Callable, Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from adk_fluent._reactor._predicate import SignalPredicate
@@ -154,10 +154,7 @@ class SignalRegistry:
         try:
             return self._signals[name]
         except KeyError as exc:
-            raise KeyError(
-                f"Signal {name!r} is not registered. "
-                f"Create it with R.signal({name!r}, ...) first."
-            ) from exc
+            raise KeyError(f"Signal {name!r} is not registered. Create it with R.signal({name!r}, ...) first.") from exc
 
     def has(self, name: str) -> bool:
         return name in self._signals

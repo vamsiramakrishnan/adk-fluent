@@ -215,8 +215,7 @@ class InteractiveApprovalHandler:
             return verdict
         if not isinstance(verdict, str):
             raise TypeError(
-                "approval responder must return a bool or an ApprovalVerdict "
-                f"string, got {type(verdict).__name__}"
+                f"approval responder must return a bool or an ApprovalVerdict string, got {type(verdict).__name__}"
             )
 
         normalised = verdict.strip().lower()

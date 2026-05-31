@@ -55,9 +55,7 @@ class TestCheapest:
 
     def test_wildcard_makes_all_known(self):
         # With a "*" wildcard, the previously-unknown model now has a finite cost.
-        table = COST_TABLE.with_rate(
-            "*", input_per_million=0.01, output_per_million=0.01
-        )
+        table = COST_TABLE.with_rate("*", input_per_million=0.01, output_per_million=0.01)
         flash = Agent("flash", "gemini-2.5-flash")
         cheap_wild = Agent("wild", "anything")
         # Wildcard rate (0.01/0.01) is cheaper than flash (0.30/2.50).

@@ -46,9 +46,7 @@ def test_satisfies_runner_protocol():
 
 
 def test_wires_into_make_task_tool():
-    registry = SubagentRegistry(
-        [SubagentSpec(role="researcher", instruction="Find papers.", description="research")]
-    )
+    registry = SubagentRegistry([SubagentSpec(role="researcher", instruction="Find papers.", description="research")])
     runner = _mocked_runner("found three papers")
     task = make_task_tool(registry, runner)
 
@@ -76,9 +74,7 @@ def test_run_returns_non_error_result():
 
 
 def test_task_tool_end_to_end():
-    registry = SubagentRegistry(
-        [SubagentSpec(role="reviewer", instruction="Critique the draft.")]
-    )
+    registry = SubagentRegistry([SubagentSpec(role="reviewer", instruction="Critique the draft.")])
     runner = _mocked_runner("looks good")
     task = make_task_tool(registry, runner)
 
@@ -167,9 +163,7 @@ def test_tool_names_resolved_via_resolver():
         return agent.mock(["done"])
 
     runner = AdkSubagentRunner(agent_factory=factory)
-    spec = SubagentSpec(
-        role="r", instruction="i", tool_names=("demo_tool", "missing_tool")
-    )
+    spec = SubagentSpec(role="r", instruction="i", tool_names=("demo_tool", "missing_tool"))
     result = runner.run(spec, "go")
 
     assert result.is_error is False

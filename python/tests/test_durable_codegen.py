@@ -261,11 +261,7 @@ def test_dbos_fallback_is_nested_cascade():
     runnable = DBOSBackend().compile(builder.to_ir())
     tree = ast.parse(generate_app_code(runnable))
     nested = any(
-        isinstance(s, ast.Try)
-        for tr in ast.walk(tree)
-        if isinstance(tr, ast.Try)
-        for h in tr.handlers
-        for s in h.body
+        isinstance(s, ast.Try) for tr in ast.walk(tree) if isinstance(tr, ast.Try) for h in tr.handlers for s in h.body
     )
     assert nested, "expected a nested try/except cascade in DBOS output"
 

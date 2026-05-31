@@ -107,10 +107,7 @@ class GeminiProvider:
             try:
                 from google import genai  # type: ignore[attr-defined]
             except ImportError as exc:  # pragma: no cover - core dependency
-                msg = (
-                    "google-genai is required for GeminiProvider. "
-                    "Install it with: pip install google-genai"
-                )
+                msg = "google-genai is required for GeminiProvider. Install it with: pip install google-genai"
                 raise ImportError(msg) from exc
             self._client = genai.Client()
         return self._client
@@ -212,10 +209,7 @@ class OpenAIProvider:
             try:
                 from openai import AsyncOpenAI  # type: ignore[import-not-found]
             except ImportError as exc:
-                msg = (
-                    "The 'openai' package is required for OpenAIProvider. "
-                    "Install it with: pip install openai"
-                )
+                msg = "The 'openai' package is required for OpenAIProvider. Install it with: pip install openai"
                 raise ImportError(msg) from exc
             self._client = AsyncOpenAI(**client_kwargs)
 
@@ -335,9 +329,7 @@ class AnthropicProvider:
 
     DEFAULT_MAX_TOKENS = 4096
 
-    def __init__(
-        self, model: str = "claude-3-5-sonnet-latest", *, client: Any = None, **client_kwargs: Any
-    ) -> None:
+    def __init__(self, model: str = "claude-3-5-sonnet-latest", *, client: Any = None, **client_kwargs: Any) -> None:
         self._model = model
         self._client = client
         if client is None:
@@ -345,8 +337,7 @@ class AnthropicProvider:
                 from anthropic import AsyncAnthropic  # type: ignore[import-not-found]
             except ImportError as exc:
                 msg = (
-                    "The 'anthropic' package is required for AnthropicProvider. "
-                    "Install it with: pip install anthropic"
+                    "The 'anthropic' package is required for AnthropicProvider. Install it with: pip install anthropic"
                 )
                 raise ImportError(msg) from exc
             self._client = AsyncAnthropic(**client_kwargs)
@@ -476,10 +467,7 @@ class OllamaProvider:
             try:
                 import httpx  # type: ignore[import-not-found]  # noqa: F401
             except ImportError as exc:
-                msg = (
-                    "The 'httpx' package is required for OllamaProvider. "
-                    "Install it with: pip install httpx"
-                )
+                msg = "The 'httpx' package is required for OllamaProvider. Install it with: pip install httpx"
                 raise ImportError(msg) from exc
 
     @property

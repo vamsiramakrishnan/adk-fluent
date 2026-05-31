@@ -570,7 +570,11 @@ def test_full_coding_agent():
             .skip("glob_search", fallback="No matching files found.")
             .with_bus(bus)
         )
-        hooks = H.hooks(project).shell("post_tool_use", "echo 'lint {file_path}'").shell("tool_error", "echo 'error: {error}'")
+        hooks = (
+            H.hooks(project)
+            .shell("post_tool_use", "echo 'lint {file_path}'")
+            .shell("tool_error", "echo 'error: {error}'")
+        )
         hooks.bridge_to(bus)
 
         agent = (
