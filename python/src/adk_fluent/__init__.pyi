@@ -191,11 +191,11 @@ from ._eval import ECriterion as ECriterion
 from ._eval import ECase as ECase
 from ._eval import EvalSuite as EvalSuite
 from ._eval import EvalReport as EvalReport
+from ._eval import ComparisonReport as ComparisonReport
+from ._eval import EPersona as EPersona
 from ._eval import RegressionResult as RegressionResult
 from ._eval import MetricDelta as MetricDelta
 from ._eval import RegressionError as RegressionError
-from ._eval import ComparisonReport as ComparisonReport
-from ._eval import EPersona as EPersona
 from ._exceptions import ADKFluentError as ADKFluentError
 from ._exceptions import BuilderError as BuilderError
 from ._exceptions import GuardViolation as GuardViolation
@@ -296,6 +296,7 @@ from ._prompt import PVersioned as PVersioned
 from ._prompt_schema import PromptSchema as PromptSchema
 from ._routing import Route as Route
 from ._routing import Fallback as Fallback
+from ._routing import CostRoute as CostRoute
 from ._schema_base import DeclarativeField as DeclarativeField
 from ._schema_base import DeclarativeMetaclass as DeclarativeMetaclass
 from ._schema_base import DeclarativeSchema as DeclarativeSchema
@@ -765,20 +766,25 @@ from ._hooks._registry import HookRegistry as HookRegistry
 from ._hooks._registry import HookCallable as HookCallable
 from ._permissions import ALL_MODES as ALL_MODES
 from ._permissions import ApprovalMemory as ApprovalMemory
-from ._permissions import InteractiveApprovalHandler as InteractiveApprovalHandler
 from ._permissions import ApprovalRequest as ApprovalRequest
 from ._permissions import ApprovalVerdict as ApprovalVerdict
 from ._permissions import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
 from ._permissions import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
+from ._permissions import InteractiveApprovalHandler as InteractiveApprovalHandler
 from ._permissions import PermissionBehavior as PermissionBehavior
 from ._permissions import PermissionDecision as PermissionDecision
 from ._permissions import PermissionHandler as PermissionHandler
 from ._permissions import PermissionMode as PermissionMode
 from ._permissions import PermissionPlugin as PermissionPlugin
 from ._permissions import PermissionPolicy as PermissionPolicy
+from ._permissions import Responder as Responder
 from ._permissions._callback import make_permission_callback as make_permission_callback
 from ._permissions._decision import PermissionBehavior as PermissionBehavior
 from ._permissions._decision import PermissionDecision as PermissionDecision
+from ._permissions._interactive import ApprovalRequest as ApprovalRequest
+from ._permissions._interactive import ApprovalVerdict as ApprovalVerdict
+from ._permissions._interactive import InteractiveApprovalHandler as InteractiveApprovalHandler
+from ._permissions._interactive import Responder as Responder
 from ._permissions._memory import ApprovalMemory as ApprovalMemory
 from ._permissions._mode import PermissionMode as PermissionMode
 from ._permissions._mode import ALL_MODES as ALL_MODES
@@ -799,13 +805,23 @@ from ._plan_mode._latch import MUTATING_TOOLS as MUTATING_TOOLS
 from ._plan_mode._plugin import PlanModePlugin as PlanModePlugin
 from ._plan_mode._policy import PlanModePolicy as PlanModePolicy
 from ._plan_mode._tools import plan_mode_tools as plan_mode_tools
+from ._reactor import R as R
 from ._reactor import Reactor as Reactor
+from ._reactor import ReactorPlugin as ReactorPlugin
 from ._reactor import ReactorRule as ReactorRule
+from ._reactor import RuleSpec as RuleSpec
 from ._reactor import Signal as Signal
 from ._reactor import SignalPredicate as SignalPredicate
+from ._reactor import SignalRegistry as SignalRegistry
 from ._reactor import computed as computed
+from ._reactor import default_registry as default_registry
 from ._reactor import reaction as reaction
 from ._reactor import track_reads as track_reads
+from ._reactor._namespace import R as R
+from ._reactor._namespace import SignalRegistry as SignalRegistry
+from ._reactor._namespace import RuleSpec as RuleSpec
+from ._reactor._namespace import default_registry as default_registry
+from ._reactor._plugin import ReactorPlugin as ReactorPlugin
 from ._reactor._predicate import SignalPredicate as SignalPredicate
 from ._reactor._reactor import Reactor as Reactor
 from ._reactor._reactor import ReactorRule as ReactorRule
@@ -848,14 +864,15 @@ from ._session._tape_backend import InMemoryBackend as InMemoryBackend
 from ._session._tape_backend import JsonlBackend as JsonlBackend
 from ._session._tape_backend import NullBackend as NullBackend
 from ._session._tape_backend import TapeBackend as TapeBackend
-from ._subagents import FakeSubagentRunner as FakeSubagentRunner
 from ._subagents import AdkSubagentRunner as AdkSubagentRunner
+from ._subagents import FakeSubagentRunner as FakeSubagentRunner
 from ._subagents import SubagentRegistry as SubagentRegistry
 from ._subagents import SubagentResult as SubagentResult
 from ._subagents import SubagentRunner as SubagentRunner
 from ._subagents import SubagentRunnerError as SubagentRunnerError
 from ._subagents import SubagentSpec as SubagentSpec
 from ._subagents import make_task_tool as make_task_tool
+from ._subagents._adk_runner import AdkSubagentRunner as AdkSubagentRunner
 from ._subagents._registry import SubagentRegistry as SubagentRegistry
 from ._subagents._result import SubagentResult as SubagentResult
 from ._subagents._runner import SubagentRunner as SubagentRunner
@@ -903,6 +920,7 @@ from .compile.passes import run_passes as run_passes
 from .compile.passes import fuse_transforms as fuse_transforms
 from .compile.passes import validate_contracts as validate_contracts
 from .compile.passes import annotate_checkpoints as annotate_checkpoints
+from .compile.passes import CheckpointAnnotation as CheckpointAnnotation
 from .compute import ModelProvider as ModelProvider
 from .compute import StateStore as StateStore
 from .compute import ToolRuntime as ToolRuntime
@@ -915,6 +933,11 @@ from .compute import Chunk as Chunk
 from .compute import ComputeConfig as ComputeConfig
 from .compute import InMemoryStateStore as InMemoryStateStore
 from .compute import InMemoryArtifactStore as InMemoryArtifactStore
+from .compute import GeminiProvider as GeminiProvider
+from .compute import OpenAIProvider as OpenAIProvider
+from .compute import AnthropicProvider as AnthropicProvider
+from .compute import OllamaProvider as OllamaProvider
+from .compute import provider_from_model as provider_from_model
 from .compute._protocol import ModelProvider as ModelProvider
 from .compute._protocol import StateStore as StateStore
 from .compute._protocol import ToolRuntime as ToolRuntime
@@ -927,6 +950,11 @@ from .compute._protocol import Chunk as Chunk
 from .compute.memory import InMemoryStateStore as InMemoryStateStore
 from .compute.memory import InMemoryArtifactStore as InMemoryArtifactStore
 from .compute.memory import LocalToolRuntime as LocalToolRuntime
+from .compute.providers import GeminiProvider as GeminiProvider
+from .compute.providers import OpenAIProvider as OpenAIProvider
+from .compute.providers import AnthropicProvider as AnthropicProvider
+from .compute.providers import OllamaProvider as OllamaProvider
+from .compute.providers import provider_from_model as provider_from_model
 from .testing import check_contracts as check_contracts
 from .testing import infer_data_flow as infer_data_flow
 from .testing import DataFlowSuggestion as DataFlowSuggestion
@@ -1144,10 +1172,10 @@ __all__ = [
     "EvalSuite",
     "EvalReport",
     "ComparisonReport",
+    "EPersona",
     "RegressionResult",
     "MetricDelta",
     "RegressionError",
-    "EPersona",
     "ADKFluentError",
     "BuilderError",
     "GuardViolation",
@@ -1247,6 +1275,7 @@ __all__ = [
     "PromptSchema",
     "Route",
     "Fallback",
+    "CostRoute",
     "DeclarativeField",
     "DeclarativeMetaclass",
     "DeclarativeSchema",
@@ -1389,9 +1418,6 @@ __all__ = [
     "ManifoldToolset",
     "ALL_MODES",
     "ApprovalMemory",
-    "InteractiveApprovalHandler",
-    "ApprovalRequest",
-    "ApprovalVerdict",
     "DEFAULT_MUTATING_TOOLS",
     "DEFAULT_READ_ONLY_TOOLS",
     "PermissionBehavior",
@@ -1501,12 +1527,21 @@ __all__ = [
     "SYSTEM_MESSAGE_STATE_KEY",
     "HookAsk",
     "HookCallable",
+    "ApprovalRequest",
+    "ApprovalVerdict",
+    "InteractiveApprovalHandler",
+    "Responder",
     "make_permission_callback",
+    "R",
     "Reactor",
+    "ReactorPlugin",
     "ReactorRule",
+    "RuleSpec",
     "Signal",
     "SignalPredicate",
+    "SignalRegistry",
     "computed",
+    "default_registry",
     "reaction",
     "track_reads",
     "current_tracker",
@@ -1517,8 +1552,8 @@ __all__ = [
     "TapeBackend",
     "active_cache",
     "use_cache",
-    "FakeSubagentRunner",
     "AdkSubagentRunner",
+    "FakeSubagentRunner",
     "SubagentRegistry",
     "SubagentResult",
     "SubagentRunner",
@@ -1553,6 +1588,7 @@ __all__ = [
     "fuse_transforms",
     "validate_contracts",
     "annotate_checkpoints",
+    "CheckpointAnnotation",
     "ModelProvider",
     "StateStore",
     "ToolRuntime",
@@ -1564,6 +1600,11 @@ __all__ = [
     "ComputeConfig",
     "InMemoryStateStore",
     "InMemoryArtifactStore",
+    "GeminiProvider",
+    "OpenAIProvider",
+    "AnthropicProvider",
+    "OllamaProvider",
+    "provider_from_model",
     "LocalToolRuntime",
     "check_contracts",
     "infer_data_flow",

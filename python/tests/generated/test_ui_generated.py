@@ -5,10 +5,7 @@ Regenerate with: just a2ui-generate
 
 from __future__ import annotations
 
-import pytest
-
 from adk_fluent._ui import UI, UIBinding, UICheck, UIComponent, UISurface
-
 
 # === Component factory tests ===
 
