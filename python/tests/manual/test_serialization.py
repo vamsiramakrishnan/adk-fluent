@@ -85,6 +85,31 @@ class TestFromDictStructural:
         assert rebuilt._config["name"] == "math"
         assert rebuilt._config["instruction"] == "Do math."
 
+    def test_round_trip_is_stable(self):
+        """to_dict(from_dict(to_dict(x))) must equal to_dict(x) for structure."""
+        from adk_fluent import FanOut
+
+        original = (
+            FanOut("fan")
+            .branch(Agent("web", "gemini-2.5-flash").instruct("Search web."))
+            .branch(Agent("papers", "gemini-2.5-flash").instruct("Search papers."))
+        )
+        d1 = original.to_dict()
+        d2 = FanOut.from_dict(d1).to_dict()
+        assert d1 == d2
+
+    def test_all_workflow_types_round_trip(self):
+        from adk_fluent import FanOut, Loop, Pipeline
+
+        for ctor, payload in (
+            (Pipeline, Pipeline("p").step(Agent("a", "gemini-2.5-flash"))),
+            (FanOut, FanOut("f").branch(Agent("a", "gemini-2.5-flash"))),
+            (Loop, Loop("l").step(Agent("a", "gemini-2.5-flash")).max_iterations(3)),
+        ):
+            rebuilt = ctor.from_dict(payload.to_dict())
+            assert type(rebuilt).__name__ == ctor.__name__
+            assert rebuilt._config["name"] == payload._config["name"]
+
 
 class TestFromNative:
     """from_native() adopts a native ADK object as a fluent builder (inverse of build())."""

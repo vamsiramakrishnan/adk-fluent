@@ -1913,11 +1913,31 @@ class BuilderBase:
             # Nested builder (e.g. a Pipeline's sub-agents) — recurse so the
             # topology round-trips structurally via from_dict().
             return v.to_dict()
+        if isinstance(v, (list, tuple)):
+            return [BuilderBase._serialize_value(x) for x in v]
+        if isinstance(v, dict):
+            return {k: BuilderBase._serialize_value(x) for k, x in v.items()}
         if callable(v):
             return getattr(v, "__qualname__", repr(v))
         if hasattr(v, "name") and hasattr(v, "model_fields"):
             # Built ADK agent
             return f"<agent:{v.name}>"
+        return v
+
+    @staticmethod
+    def _revive_value(v: Any) -> Any:
+        """Deserialization dual of :meth:`_serialize_value`.
+
+        Reconstructs nested builder-dicts (``{"_type": ...}``) into builders,
+        recursing through lists and dicts. Plain scalars and callable-name
+        strings pass through unchanged (callables are not restored).
+        """
+        if isinstance(v, dict) and "_type" in v:
+            return BuilderBase.from_dict(v)
+        if isinstance(v, list):
+            return [BuilderBase._revive_value(x) for x in v]
+        if isinstance(v, dict):
+            return {k: BuilderBase._revive_value(x) for k, x in v.items()}
         return v
 
     def to_dict(self) -> dict[str, Any]:
@@ -1980,7 +2000,10 @@ class BuilderBase:
         for key, value in config.items():
             if key == "name":
                 continue
-            obj._config[key] = value
+            # Revive nested builder-dicts stored in config (e.g. sub_agents
+            # held in config rather than _lists), recursing through lists/dicts.
+            # Plain scalars (instruction text, model, schemas) pass through.
+            obj._config[key] = BuilderBase._revive_value(value)
         # Restore nested builder children (topology). Non-builder list items
         # (tools/functions serialized as name strings) are intentionally not
         # restored — they are not runnable callables. See the docstring.
