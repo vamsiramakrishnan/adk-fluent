@@ -366,7 +366,16 @@ interface QueueEntry {
 export class Reactor {
   private readonly rules: ReactorRule[] = [];
   private readonly unsubs: Array<() => void> = [];
-  private _current: { rule: ReactorRule; token: AgentToken | null } | null = null;
+  private _current: {
+    rule: ReactorRule;
+    token: AgentToken | null;
+    /** Identity of this run; a settled handler only clears the slot if it
+     * still points at this `id`. Mirrors Python's `if self._current_task is
+     * task` guard so a preempted victim's deferred teardown can't clobber a
+     * live successor's slot or spuriously drain the queue. */
+    id: number;
+  } | null = null;
+  private _runCounter = 0;
   private readonly queue: QueueEntry[] = [];
   private readonly registry: TokenRegistry;
   private readonly onPreempt?: (victim: ReactorRule, cursor: number) => void;
@@ -428,12 +437,9 @@ export class Reactor {
       .sort((a, b) => a.priority - b.priority);
 
     for (const rule of candidates) {
-      const evaluated = rule.predicate.evaluate(current, previous, () => {
+      rule.predicate.evaluate(current, previous, () => {
         this._dispatch(rule, current, previous);
       });
-      if (evaluated === "fired") {
-        // already dispatched synchronously via `fire`
-      }
     }
   }
 
@@ -441,7 +447,24 @@ export class Reactor {
     const cursor = this.cursor();
 
     if (this._current && rule.preemptive) {
-      // Preempt the running rule.
+      // Preempt the running rule. Cancel its (cooperative) token and hand
+      // the slot to the preemptor immediately.
+      //
+      // Parity note vs. Python: Python's `_submit` can `await
+      // asyncio.gather(victim, ...)` because `victim.cancel()` forcibly
+      // raises `CancelledError` into the victim task, so its teardown
+      // completes promptly. TS cancellation is cooperative — the token is
+      // a flag, and a handler that ignores it would never settle, so we
+      // must NOT block the preemptor on the victim's completion (that would
+      // stall the reactor behind an uncooperative handler).
+      //
+      // Instead we preserve the same *guarantee* — a stale victim teardown
+      // can neither clobber the preemptor's slot nor drain the queue — via
+      // the run-identity guard in `_finish`. The victim's deferred
+      // `complete()` still runs when its handler settles, but by then the
+      // slot points at a different run `id`, so `_finish(victimId)` is a
+      // no-op. This makes preemption deterministic regardless of when the
+      // victim's promise resolves.
       const victim = this._current.rule;
       const victimToken = this._current.token;
       if (victimToken) victimToken.cancelWithCursor(cursor);
@@ -463,7 +486,9 @@ export class Reactor {
       token = new AgentToken(rule.agentName);
       this.registry.install(token);
     }
-    this._current = { rule, token };
+
+    const id = ++this._runCounter;
+    this._current = { rule, token, id };
 
     const ctx: ReactorContext = {
       agentName: rule.agentName,
@@ -473,26 +498,33 @@ export class Reactor {
       cursor,
     };
 
+    // Bind teardown to THIS run's id. A preempted victim's deferred
+    // teardown lands here too, but by then the slot points at a successor
+    // run, so `_finish` no-ops and cannot clobber it or drain the queue.
+    const complete = (): void => this._finish(id);
+
     let result: unknown;
     try {
       result = rule.handler(ctx);
     } catch {
       // Rule failures are isolated from the reactor loop.
-      this._finish();
+      complete();
       return;
     }
 
     if (isThenable(result)) {
-      (result as Promise<void>).then(
-        () => this._finish(),
-        () => this._finish(),
-      );
+      (result as Promise<void>).then(complete, complete);
     } else {
-      this._finish();
+      complete();
     }
   }
 
-  private _finish(): void {
+  private _finish(id: number): void {
+    // Only the run that currently owns the slot may clear it and drain the
+    // queue. This guards against a preempted victim's stale teardown
+    // clobbering a freshly-installed successor (parity with Python's
+    // `if self._current_task is task` check).
+    if (!this._current || this._current.id !== id) return;
     this._current = null;
     const next = this.queue.shift();
     if (next) this._dispatch(next.rule, next.current, next.previous);
