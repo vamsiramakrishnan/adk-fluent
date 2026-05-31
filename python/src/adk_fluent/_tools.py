@@ -124,7 +124,6 @@ def _build_flux_a2ui_toolset(*, schema: Any = None) -> TComposite:
     return TComposite([_FluxA2UIToolset(schema=schema)], kind="a2ui_flux")
 
 
-
 _A2UI_ENABLED_KEY = "system:a2ui_enabled"
 _A2UI_CATALOG_KEY = "system:a2ui_catalog"
 _A2UI_EXAMPLES_KEY = "system:a2ui_examples"
@@ -441,7 +440,7 @@ class T:
             bigquery_tool_config: ``BigQueryToolConfig`` (write modes, etc.).
             tool_filter: ``ToolPredicate`` or list of tool names to expose.
         """
-        from google.adk.integrations.bigquery import BigQueryToolset
+        from google.adk.tools.bigquery import BigQueryToolset
 
         toolset = BigQueryToolset(
             credentials_config=credentials_config,
@@ -580,14 +579,22 @@ class T:
             excluded_predefined_functions: Names of predefined computer-use
                 functions to omit from the toolset.
         """
+        import inspect as _inspect
+
         from google.adk.tools.computer_use.computer_use_toolset import (
             ComputerUseToolset,
         )
 
-        toolset = ComputerUseToolset(
-            computer=computer,
-            excluded_predefined_functions=excluded_predefined_functions,
-        )
+        # ``excluded_predefined_functions`` exists only in some ADK versions
+        # (the 1.25.x ComputerUseToolset signature is ``(*, computer)``). Pass
+        # it through only when the installed toolset actually accepts it.
+        kwargs: dict[str, Any] = {"computer": computer}
+        if (
+            excluded_predefined_functions is not None
+            and "excluded_predefined_functions" in _inspect.signature(ComputerUseToolset.__init__).parameters
+        ):
+            kwargs["excluded_predefined_functions"] = excluded_predefined_functions
+        toolset = ComputerUseToolset(**kwargs)
         return TComposite([toolset], kind="computer_use")
 
     # --- A2UI ---
@@ -627,7 +634,7 @@ class T:
             from a2ui.adk.send_a2ui_to_client_toolset import SendA2uiToClientToolset  # type: ignore[import-not-found]
         except ImportError as exc:
             raise A2UINotInstalled(
-                "T.a2ui() requires the 'a2ui-agent-sdk' package. Install with: pip install a2ui-agent-sdk"
+                "T.a2ui() requires the 'a2ui-agent' package. Install with: pip install a2ui-agent"
             ) from exc
 
         # Use provider functions that read from session state — the same
