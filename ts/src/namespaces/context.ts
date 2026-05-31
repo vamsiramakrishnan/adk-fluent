@@ -48,6 +48,32 @@ export class CTransform {
       this.suppressHistory || other.suppressHistory,
     );
   }
+
+  /**
+   * Reverse-bind: ``C.window(5).then(agent)`` configures ``agent`` with this
+   * context transform, mirroring Python's ``C.__rshift__`` /
+   * ``BuilderBase.__rrshift__`` so a chain can start with a C transform.
+   *
+   * ``other`` is expected to expose a ``.context()`` method (an Agent). The
+   * binding returns whatever ``other.context(this)`` returns (a configured
+   * Agent), preserving the immutable-clone contract. Throws a clear Error if
+   * ``other`` cannot receive a context transform.
+   *
+   * Typed as ``unknown`` to avoid a circular import on the builder types;
+   * the only requirement is a ``context(spec)`` method.
+   */
+  then(other: unknown): unknown {
+    const target = other as { context?: (spec: unknown) => unknown } | null;
+    if (target && typeof target.context === "function") {
+      return target.context(this);
+    }
+    throw new Error(
+      `Cannot bind a context transform via C.then() here: the right operand ` +
+        `has no .context() to receive it. A C transform configures an agent's ` +
+        `context — place it adjacent to an Agent (e.g. C.window(5).then(agent)), ` +
+        `or use agent.context(C...).`,
+    );
+  }
 }
 
 /**
