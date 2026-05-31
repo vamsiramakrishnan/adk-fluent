@@ -167,6 +167,34 @@ describe("4. consumes / produces + enforceContracts()", () => {
     const before = callbacksOf(agent, "before_agent_callback");
     expect(() => before[0]({ state: { alpha: 1 } })).toThrow(/beta/);
   });
+
+  it("is call-order-independent: enforceContracts() BEFORE consumes()/produces()", () => {
+    // Reviewer's case — annotations chained AFTER enabling enforcement must
+    // still be enforced (the gate must use the later clone's schema, not the
+    // null one captured when enforceContracts() ran).
+    const agent = new Agent("a", M)
+      .enforceContracts()
+      .consumes({ fields: ["needed"] })
+      .produces({ fields: ["result"] });
+    const before = callbacksOf(agent, "before_agent_callback");
+    const after = callbacksOf(agent, "after_agent_callback");
+    expect(before).toHaveLength(1);
+    expect(after).toHaveLength(1);
+    expect(() => before[0]({ state: {} })).toThrow(/contract violation.*consumes.*needed/i);
+    expect(() => after[0]({ state: {} })).toThrow(/contract violation.*produces.*result/i);
+    expect(before[0]({ state: { needed: 1 } })).toBeUndefined();
+  });
+
+  it("re-declaring consumes() under enforcement replaces (not duplicates) the gate", () => {
+    const agent = new Agent("a", M)
+      .enforceContracts()
+      .consumes({ fields: ["x"] })
+      .consumes({ fields: ["y"] }); // overrides x
+    const before = callbacksOf(agent, "before_agent_callback");
+    expect(before).toHaveLength(1); // single gate, latest schema
+    expect(() => before[0]({ state: {} })).toThrow(/\by\b/);
+    expect(before[0]({ state: { y: 1 } })).toBeUndefined();
+  });
 });
 
 describe("5. then() cross-namespace operator algebra", () => {

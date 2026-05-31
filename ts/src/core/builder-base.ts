@@ -653,7 +653,17 @@ export abstract class BuilderBase<TBuild = unknown> {
    * plain object (its own keys). Mirrors Python ``_base.py::consumes``.
    */
   consumes(schema: unknown): this {
-    return this._setConfig("_consumes", schema);
+    let next = this._setConfig("_consumes", schema);
+    // If enforcement is already enabled, (re)install the gate over THIS clone's
+    // schema so calling .consumes() after .enforceContracts() still enforces.
+    if (next._config.get("_enforceConsumes")) {
+      next = next._installContractGate(
+        "before_agent_callback",
+        "consumes",
+        next._makeConsumesGate(schema),
+      );
+    }
+    return next;
   }
 
   /**
@@ -662,7 +672,15 @@ export abstract class BuilderBase<TBuild = unknown> {
    * Mirrors Python ``_base.py::produces``.
    */
   produces(schema: unknown): this {
-    return this._setConfig("_produces", schema);
+    let next = this._setConfig("_produces", schema);
+    if (next._config.get("_enforceProduces")) {
+      next = next._installContractGate(
+        "after_agent_callback",
+        "produces",
+        next._makeProducesGate(schema),
+      );
+    }
+    return next;
   }
 
   /**
@@ -680,49 +698,86 @@ export abstract class BuilderBase<TBuild = unknown> {
   enforceContracts(opts: { consumes?: boolean; produces?: boolean } = {}): this {
     const checkConsumes = opts.consumes ?? true;
     const checkProduces = opts.produces ?? true;
-    const name = (this._config.get("name") as string) ?? "?";
 
-    let next: this = this;
+    let next: this = this._setConfig("_enforceConsumes", checkConsumes)._setConfig(
+      "_enforceProduces",
+      checkProduces,
+    );
 
-    if (checkConsumes) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const consumesGate: CallbackFn = (callbackContext: any) => {
-        const schema = next._config.get("_consumes");
-        if (schema == null) return undefined;
-        const state = (callbackContext?.state ?? {}) as State;
-        const fields = BuilderBase._schemaFieldNames(schema);
-        const missing = fields.filter((k) => !(k in state));
-        if (missing.length > 0) {
-          throw new Error(
-            `contract violation: agent '${name}' .consumes() requires state ` +
-              `key(s) [${missing.join(", ")}], which are absent before execution.`,
-          );
-        }
-        return undefined;
-      };
-      next = next._addCallback("before_agent_callback", consumesGate);
+    // Install gates now for any schema already declared. .consumes() /
+    // .produces() called LATER re-install over their own clone (so call order
+    // does not matter), and the marker keeps exactly one gate per kind. Each
+    // gate closes over the schema VALUE — not a builder clone — so it stays
+    // correct across immutable clones without sharing mutable state, keeping
+    // sub-expression reuse safe.
+    const consumesSchema = next._config.get("_consumes");
+    if (checkConsumes && consumesSchema != null) {
+      next = next._installContractGate(
+        "before_agent_callback",
+        "consumes",
+        next._makeConsumesGate(consumesSchema),
+      );
     }
-
-    if (checkProduces) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const producesGate: CallbackFn = (callbackContext: any) => {
-        const schema = next._config.get("_produces");
-        if (schema == null) return undefined;
-        const state = (callbackContext?.state ?? {}) as State;
-        const fields = BuilderBase._schemaFieldNames(schema);
-        const missing = fields.filter((k) => !(k in state));
-        if (missing.length > 0) {
-          throw new Error(
-            `contract violation: agent '${name}' .produces() promised state ` +
-              `key(s) [${missing.join(", ")}], which were not written.`,
-          );
-        }
-        return undefined;
-      };
-      next = next._addCallback("after_agent_callback", producesGate);
+    const producesSchema = next._config.get("_produces");
+    if (checkProduces && producesSchema != null) {
+      next = next._installContractGate(
+        "after_agent_callback",
+        "produces",
+        next._makeProducesGate(producesSchema),
+      );
     }
-
     return next;
+  }
+
+  /** Build the before-agent gate enforcing a consumes schema (value-captured). */
+  private _makeConsumesGate(schema: unknown): CallbackFn {
+    const name = (this._config.get("name") as string) ?? "?";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (callbackContext: any) => {
+      const state = (callbackContext?.state ?? {}) as State;
+      const missing = BuilderBase._schemaFieldNames(schema).filter((k) => !(k in state));
+      if (missing.length > 0) {
+        throw new Error(
+          `contract violation: agent '${name}' .consumes() requires state ` +
+            `key(s) [${missing.join(", ")}], which are absent before execution.`,
+        );
+      }
+      return undefined;
+    };
+  }
+
+  /** Build the after-agent gate enforcing a produces schema (value-captured). */
+  private _makeProducesGate(schema: unknown): CallbackFn {
+    const name = (this._config.get("name") as string) ?? "?";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (callbackContext: any) => {
+      const state = (callbackContext?.state ?? {}) as State;
+      const missing = BuilderBase._schemaFieldNames(schema).filter((k) => !(k in state));
+      if (missing.length > 0) {
+        throw new Error(
+          `contract violation: agent '${name}' .produces() promised state ` +
+            `key(s) [${missing.join(", ")}], which were not written.`,
+        );
+      }
+      return undefined;
+    };
+  }
+
+  /**
+   * Install a contract gate on a callback list, replacing any prior gate with
+   * the same marker so re-running .consumes() / .produces() never duplicates it.
+   */
+  private _installContractGate(callbackKey: string, marker: string, gate: CallbackFn): this {
+    const clone = this._clone();
+    const existing = clone._callbacks.get(callbackKey) ?? [];
+    const tagged = gate as CallbackFn & { __contractGate?: string };
+    tagged.__contractGate = marker;
+    const filtered = existing.filter(
+      (fn) => (fn as CallbackFn & { __contractGate?: string }).__contractGate !== marker,
+    );
+    filtered.push(tagged);
+    clone._callbacks.set(callbackKey, filtered);
+    return clone;
   }
 
   /**
