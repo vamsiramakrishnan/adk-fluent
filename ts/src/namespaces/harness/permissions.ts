@@ -208,6 +208,21 @@ function globMatch(pattern: string, name: string): boolean {
 }
 
 /**
+ * Signature an interactive permission handler must implement. The
+ * `PermissionPlugin` (and direct callers) invoke it when a policy returns an
+ * `ask` decision; it resolves to `true` (allow) or `false` (deny). May be
+ * async so a handler can await a human in the loop.
+ *
+ * Mirrors the Python `PermissionHandler`:
+ * `(tool_name, tool_args, decision) -> bool`.
+ */
+export type PermissionHandler = (
+  toolName: string,
+  toolInput: Record<string, unknown>,
+  decision: PermissionDecision,
+) => boolean | Promise<boolean>;
+
+/**
  * Persistent record of user approval decisions so the same tool+args
  * pattern isn't asked twice in a session.
  */
@@ -224,10 +239,44 @@ export class ApprovalMemory {
     this.denied.add(this.key(toolName, fingerprint));
   }
 
+  /**
+   * Remember a tool-level verdict (`always` / `never`). A `granted: true`
+   * verdict allows every future call of `toolName`; `false` denies them all.
+   * Mirrors Python `ApprovalMemory.remember_tool`.
+   */
+  rememberTool(toolName: string, granted: boolean): void {
+    if (granted) this.approve(toolName);
+    else this.deny(toolName);
+  }
+
+  /**
+   * Remember a verdict for a specific tool + args fingerprint only.
+   * Mirrors Python `ApprovalMemory.remember_specific`.
+   */
+  rememberSpecific(toolName: string, fingerprint: string, granted: boolean): void {
+    if (granted) this.approve(toolName, fingerprint);
+    else this.deny(toolName, fingerprint);
+  }
+
   remembers(toolName: string, fingerprint?: string): "approved" | "denied" | null {
     const k = this.key(toolName, fingerprint);
     if (this.approved.has(k)) return "approved";
     if (this.denied.has(k)) return "denied";
+    return null;
+  }
+
+  /**
+   * Recall a remembered verdict as a boolean (or `null` when unknown).
+   * Checks the specific tool+fingerprint first, then the tool-level verdict.
+   * Mirrors Python `ApprovalMemory.recall`.
+   */
+  recall(toolName: string, fingerprint?: string): boolean | null {
+    if (fingerprint !== undefined) {
+      const specific = this.remembers(toolName, fingerprint);
+      if (specific !== null) return specific === "approved";
+    }
+    const toolLevel = this.remembers(toolName);
+    if (toolLevel !== null) return toolLevel === "approved";
     return null;
   }
 
@@ -240,3 +289,18 @@ export class ApprovalMemory {
     return fp ? `${name}::${fp}` : name;
   }
 }
+
+// ─── Interactive HITL approval (Capability #8) ──────────────────────────────
+// Re-exported from this harness module so the package root can wire the new
+// symbols. The implementation lives in interactive-approval.ts to keep the
+// UI ⇄ permissions dependency one-directional.
+export {
+  InteractiveApprovalHandler,
+  ApprovalRequest,
+  ApprovalVerdict,
+} from "./interactive-approval.js";
+export type {
+  Responder,
+  ApprovalVerdictValue,
+  InteractiveApprovalOptions,
+} from "./interactive-approval.js";

@@ -11,6 +11,10 @@
 
 import { A2UIError, A2UISurfaceError } from "../_exceptions.js";
 import {
+  InteractiveApprovalHandler,
+  type InteractiveApprovalOptions,
+} from "./harness/interactive-approval.js";
+import {
   fluxBadge,
   fluxBanner,
   fluxButton,
@@ -1503,5 +1507,24 @@ export class UI {
   ): UISurface {
     const root = UI.column([UI.heading(title), new UIComponent("Wizard", { steps: opts.steps })]);
     return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root);
+  }
+
+  /**
+   * Build a human-in-the-loop approval handler.
+   *
+   * Returns an `InteractiveApprovalHandler` that renders a `UI.confirm`
+   * surface for every `ask` permission decision and delegates the verdict to
+   * a pluggable `responder`. Pass `.handler` to `H.permissionPlugin`:
+   *
+   * ```ts
+   * const memory = new ApprovalMemory();
+   * const approval = UI.approval({ responder: myResponder, memory });
+   * const plugin = H.permissionPlugin({ policy, handler: approval.handler, memory });
+   * ```
+   *
+   * In tests, inject a fake responder so no real stdin is required.
+   */
+  static approval(opts: InteractiveApprovalOptions = {}): InteractiveApprovalHandler {
+    return new InteractiveApprovalHandler(opts);
   }
 }
