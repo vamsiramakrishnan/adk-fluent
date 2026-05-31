@@ -334,7 +334,11 @@ export class EvalSuite {
 
   /** Internal: produce a clone with overridden fields. */
   private clone(overrides: { cases?: ECase[]; criteria?: EComposite[] }): EvalSuite {
-    return new EvalSuite(this.agent, overrides.cases ?? this.cases, overrides.criteria ?? this.criteria);
+    return new EvalSuite(
+      this.agent,
+      overrides.cases ?? this.cases,
+      overrides.criteria ?? this.criteria,
+    );
   }
 
   /** Add an evaluation case. Returns a new EvalSuite; the original is unchanged. */

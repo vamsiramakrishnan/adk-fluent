@@ -379,10 +379,7 @@ export function makeTaskTool(
 // Real ADK-backed runner. Re-exported here so the subagents barrel surfaces
 // both the fake and the production runner. (Defined in a sibling module to
 // keep the heavy `@google/adk` import lazy.)
-export {
-  AdkSubagentRunner,
-  DEFAULT_MODEL as ADK_SUBAGENT_DEFAULT_MODEL,
-} from "./adk-runner.js";
+export { AdkSubagentRunner, DEFAULT_MODEL as ADK_SUBAGENT_DEFAULT_MODEL } from "./adk-runner.js";
 export type {
   AdkSubagentRunnerOptions,
   AgentBuilderLike,

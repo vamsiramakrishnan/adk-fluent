@@ -311,7 +311,8 @@ export class T {
     const Cls = _resolveBuilder<typeof _toolBuilders.SpannerToolset>("SpannerToolset");
     let b = new Cls();
     if (opts?.credentialsConfig !== undefined) b = b.credentialsConfig(opts.credentialsConfig);
-    if (opts?.spannerToolSettings !== undefined) b = b.spannerToolSettings(opts.spannerToolSettings);
+    if (opts?.spannerToolSettings !== undefined)
+      b = b.spannerToolSettings(opts.spannerToolSettings);
     if (opts?.toolFilter !== undefined) b = b.toolFilter(opts.toolFilter);
     return new TComposite([{ type: "toolset", kind: "spanner", toolset: b.build() }]);
   }
@@ -382,9 +383,8 @@ export class T {
    * builder shell and returns its config record.
    */
   static enterpriseSearch(): TComposite {
-    const Cls = _resolveBuilder<typeof _toolBuilders.EnterpriseWebSearchTool>(
-      "EnterpriseWebSearchTool",
-    );
+    const Cls =
+      _resolveBuilder<typeof _toolBuilders.EnterpriseWebSearchTool>("EnterpriseWebSearchTool");
     return new TComposite([
       { type: "toolset", kind: "enterprise_search", toolset: new Cls().build() },
     ]);

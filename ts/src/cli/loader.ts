@@ -111,8 +111,7 @@ export async function loadBuilder(spec: string): Promise<LoadedBuilder> {
       .sort()
       .join(", ");
     throw new CliError(
-      `multiple builders found in ${modulePath} (${names}); ` +
-        `specify one with 'module:export'`,
+      `multiple builders found in ${modulePath} (${names}); ` + `specify one with 'module:export'`,
     );
   }
   return builders[0];

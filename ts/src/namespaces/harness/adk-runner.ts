@@ -171,8 +171,7 @@ export class AdkSubagentRunner implements SubagentRunner {
 
     // App names must start with a letter; `spec.role` already does (the spec
     // rejects empty roles). The prefix keeps it unambiguous.
-    const agentName =
-      (agent as { name?: string } | undefined)?.name ?? spec.role;
+    const agentName = (agent as { name?: string } | undefined)?.name ?? spec.role;
     const appName = `subagent_${agentName}`;
 
     const runner = new InMemoryRunner({
@@ -193,9 +192,7 @@ export class AdkSubagentRunner implements SubagentRunner {
       newMessage: newMessage as any,
       stateDelta: context,
     })) {
-      const parts = (
-        event as { content?: { parts?: Array<{ text?: string }> } }
-      ).content?.parts;
+      const parts = (event as { content?: { parts?: Array<{ text?: string }> } }).content?.parts;
       if (parts) {
         for (const part of parts) {
           if (typeof part.text === "string" && part.text.length > 0) {
@@ -216,11 +213,7 @@ export class AdkSubagentRunner implements SubagentRunner {
    * `runAsync` — the structural analogue of Python's `run()` refusing to run
    * inside an active event loop.
    */
-  run(
-    _spec: SubagentSpec,
-    _prompt: string,
-    _context?: Record<string, unknown>,
-  ): SubagentResult {
+  run(_spec: SubagentSpec, _prompt: string, _context?: Record<string, unknown>): SubagentResult {
     throw new SubagentRunnerError(
       "AdkSubagentRunner.run() is synchronous but ADK execution is async in " +
         "JavaScript. Await runner.runAsync(spec, prompt, context) instead.",

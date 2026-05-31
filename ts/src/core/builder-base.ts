@@ -70,8 +70,11 @@ function getWorkflow(name: string): {
 const _builderClassRegistry: Record<string, new (...args: any[]) => BuilderBase> = {};
 
 /** Register a builder class for serialization round-trips. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function registerBuilderClass(name: string, ctor: new (...args: any[]) => BuilderBase): void {
+export function registerBuilderClass(
+  name: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ctor: new (...args: any[]) => BuilderBase,
+): void {
   _builderClassRegistry[name] = ctor;
 }
 
@@ -327,12 +330,7 @@ export abstract class BuilderBase<TBuild = unknown> {
    * If `this` is already a Pipeline, appends `other` as a new step.
    */
   then(
-    other:
-      | BuilderBase
-      | ((...args: unknown[]) => unknown)
-      | CTransform
-      | STransform
-      | AComposite,
+    other: BuilderBase | ((...args: unknown[]) => unknown) | CTransform | STransform | AComposite,
   ): BuilderBase {
     const Pipeline = getWorkflow("Pipeline");
 
@@ -994,9 +992,7 @@ export abstract class BuilderBase<TBuild = unknown> {
    */
   static fromNative(native: unknown): BuilderBase {
     if (native == null || typeof native !== "object") {
-      throw new Error(
-        `fromNative: expected a native ADK agent object, got ${typeof native}.`,
-      );
+      throw new Error(`fromNative: expected a native ADK agent object, got ${typeof native}.`);
     }
     const n = native as Record<string, unknown>;
     const kind = detectNativeKind(native);

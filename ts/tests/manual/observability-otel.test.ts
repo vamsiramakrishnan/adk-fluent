@@ -264,8 +264,6 @@ describe("no-op + one-time-warning path", () => {
     await expect(mw.beforeAgent(ctx("a"), "a")).resolves.toBeUndefined();
     await expect(mw.afterAgent(ctx("a"), "a")).resolves.toBeUndefined();
     await expect(mw.afterModel(ctx("a"), {})).resolves.toBeUndefined();
-    await expect(
-      mw.onModelError(ctx("a"), {}, new Error("x")),
-    ).resolves.toBeUndefined();
+    await expect(mw.onModelError(ctx("a"), {}, new Error("x"))).resolves.toBeUndefined();
   });
 });

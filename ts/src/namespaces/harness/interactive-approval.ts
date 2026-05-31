@@ -32,11 +32,7 @@
 import { createInterface } from "node:readline";
 
 import { UI, type UISurface } from "../ui.js";
-import type {
-  ApprovalMemory,
-  PermissionDecision,
-  PermissionHandler,
-} from "./permissions.js";
+import type { ApprovalMemory, PermissionDecision, PermissionHandler } from "./permissions.js";
 
 /**
  * String verdicts a responder may return instead of a plain boolean.
@@ -90,9 +86,7 @@ export class ApprovalRequest {
  * A responder receives the request and returns either a boolean (allow/deny)
  * or an `ApprovalVerdict` string (allow/deny/always/never). May be async.
  */
-export type Responder = (
-  request: ApprovalRequest,
-) => boolean | string | Promise<boolean | string>;
+export type Responder = (request: ApprovalRequest) => boolean | string | Promise<boolean | string>;
 
 /** Render `{ path: "/x", n: 3 }` as `path="/x", n=3` for a prompt. */
 function formatInput(input: Record<string, unknown>): string {

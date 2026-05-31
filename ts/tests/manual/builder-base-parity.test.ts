@@ -36,15 +36,14 @@ function callbacksOf(builder: BuilderBase, key: string): Array<(ctx: unknown) =>
   const built = builder.build() as Record<string, unknown>;
   const cb = built[key];
   if (cb == null) return [];
-  return Array.isArray(cb) ? (cb as Array<(c: unknown) => unknown>) : [cb as (c: unknown) => unknown];
+  return Array.isArray(cb)
+    ? (cb as Array<(c: unknown) => unknown>)
+    : [cb as (c: unknown) => unknown];
 }
 
 describe("1. fromNative()", () => {
   it("round-trips an Agent (name / model / instruction / description)", () => {
-    const native = new Agent("helper", M)
-      .instruct("Be helpful.")
-      .describe("A helper")
-      .build();
+    const native = new Agent("helper", M).instruct("Be helpful.").describe("A helper").build();
 
     const rebuilt = BuilderBase.fromNative(native);
     expect(rebuilt).toBeInstanceOf(Agent);
