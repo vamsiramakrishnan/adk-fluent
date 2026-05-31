@@ -424,8 +424,7 @@ export abstract class BuilderBase<TBuild = unknown> {
       pred = (predicate as Signal<unknown>).changed;
     } else {
       throw new TypeError(
-        ".on(predicate, ...) requires a SignalPredicate or Signal. " +
-          `Got ${typeof predicate}.`,
+        ".on(predicate, ...) requires a SignalPredicate or Signal. " + `Got ${typeof predicate}.`,
       );
     }
 

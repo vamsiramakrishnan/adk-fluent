@@ -29,14 +29,7 @@
  * Ported from Python cookbook `81_reactor_native.py`.
  */
 import assert from "node:assert/strict";
-import {
-  Agent,
-  FanOut,
-  Pipeline,
-  R,
-  ReactorPlugin,
-  SignalPredicate,
-} from "../../src/index.js";
+import { Agent, FanOut, Pipeline, R, ReactorPlugin, SignalPredicate } from "../../src/index.js";
 import { EventBus } from "../../src/namespaces/harness/events.js";
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -83,9 +76,7 @@ R.clear();
   R.signal("a", 0);
   R.signal("b", 0);
 
-  const pipeline = new Pipeline("flow").step(
-    new Agent("x").on(R.changed("a"), () => {}),
-  );
+  const pipeline = new Pipeline("flow").step(new Agent("x").on(R.changed("a"), () => {}));
   const fanout = new FanOut("parallel")
     .branch(new Agent("y").on(R.changed("a"), () => {}))
     .branch(new Agent("z").on(R.changed("b"), () => {}));
@@ -111,11 +102,13 @@ R.clear();
     fires.push([ctx.current, ctx.previous]);
   };
 
-  const cooler = new Agent("cooler", "gemini-2.5-flash")
-    .instruct("Cool the building.")
-    .on(R.rising("temp").where((v) => (v as number) > 90), handler, {
+  const cooler = new Agent("cooler", "gemini-2.5-flash").instruct("Cool the building.").on(
+    R.rising("temp").where((v) => (v as number) > 90),
+    handler,
+    {
       priority: 10,
-    });
+    },
+  );
 
   const reactor = R.compile([cooler], { bus });
   reactor.start();

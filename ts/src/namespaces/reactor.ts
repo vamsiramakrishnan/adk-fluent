@@ -727,13 +727,7 @@ function autoName(spec: RuleSpec): string {
 }
 
 function coerceHandler(handler: ReactorHandler): ReactorHandler {
-  return (ctx) => {
-    try {
-      return handler(ctx);
-    } catch (err) {
-      throw err;
-    }
-  };
+  return (ctx) => handler(ctx);
 }
 
 /**
