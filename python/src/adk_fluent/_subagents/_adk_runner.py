@@ -112,7 +112,7 @@ class AdkSubagentRunner:
     ) -> SubagentResult:
         """Async variant of :meth:`run`. Safe to ``await`` from a loop."""
         try:
-            text = await self._execute(spec, prompt)
+            text = await self._execute(spec, prompt, context)
         except Exception as exc:  # noqa: BLE001 — surface failures via the result
             return SubagentResult(
                 role=spec.role,
@@ -121,8 +121,15 @@ class AdkSubagentRunner:
             )
         return SubagentResult(role=spec.role, output=text)
 
-    async def _execute(self, spec: SubagentSpec, prompt: str) -> str:
-        """Build the agent and run it once on ``prompt``; return the text."""
+    async def _execute(self, spec: SubagentSpec, prompt: str, context: dict[str, Any] | None = None) -> str:
+        """Build the agent and run it once on ``prompt``; return the text.
+
+        Any ``context`` supplied by the caller (e.g. the parent state threaded
+        in by ``make_task_tool(..., context_provider=...)``) seeds the fresh
+        ADK session's initial state, so the subagent sees it during the run —
+        honoring the :class:`SubagentRunner` contract that ``FakeSubagentRunner``
+        also upholds.
+        """
         from google.adk.runners import InMemoryRunner
 
         from adk_fluent._helpers import _adk_run_once
@@ -133,7 +140,7 @@ class AdkSubagentRunner:
         # (the spec rejects empty roles). Prefix keeps it unambiguous.
         app_name = f"subagent_{agent.name}"
         runner = InMemoryRunner(agent=agent, app_name=app_name)
-        return await _adk_run_once(runner, app_name, prompt)
+        return await _adk_run_once(runner, app_name, prompt, state=context)
 
     def run(
         self,

@@ -211,3 +211,56 @@ async def test_sync_run_inside_loop_raises():
 
     with pytest.raises(SubagentRunnerError):
         runner.run(spec, "go")
+
+
+# ---------------------------------------------------------------------------
+# Context threading (PR #138 review, Codex P2)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_context_threaded_into_session_state(monkeypatch):
+    """The parent context handed to run_async must seed the subagent's session
+    state (honoring the SubagentRunner contract), not be silently dropped."""
+    import adk_fluent._helpers as helpers
+    from adk_fluent import Agent
+
+    captured: dict = {}
+
+    async def _fake_run_once(runner, app_name, prompt, *, state=None):
+        captured["state"] = state
+        captured["prompt"] = prompt
+        return "done"
+
+    monkeypatch.setattr(helpers, "_adk_run_once", _fake_run_once)
+
+    runner = AdkSubagentRunner(
+        agent_factory=lambda s: Agent(s.role, "gemini-2.5-flash").instruct(s.instruction).mock(["done"])
+    )
+    spec = SubagentSpec(role="researcher", instruction="Find papers.")
+    ctx = {"topic": "ai safety", "budget": 3}
+
+    result = await runner.run_async(spec, "go", context=ctx)
+
+    assert result.output == "done"
+    assert result.is_error is False
+    assert captured["state"] == ctx  # context reached the session, not dropped
+
+
+@pytest.mark.asyncio
+async def test_no_context_passes_none_state(monkeypatch):
+    """Without a context, no session state is seeded (state=None)."""
+    import adk_fluent._helpers as helpers
+    from adk_fluent import Agent
+
+    captured: dict = {}
+
+    async def _fake_run_once(runner, app_name, prompt, *, state=None):
+        captured["state"] = state
+        return "ok"
+
+    monkeypatch.setattr(helpers, "_adk_run_once", _fake_run_once)
+
+    runner = AdkSubagentRunner(agent_factory=lambda s: Agent(s.role, "gemini-2.5-flash").mock(["ok"]))
+    await runner.run_async(SubagentSpec(role="r", instruction="i"), "go")
+    assert captured["state"] is None

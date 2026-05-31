@@ -189,7 +189,9 @@ def _validate_components(components: list[dict[str, Any]], catalog: Any) -> list
         return ["'components' must be a non-empty list of component objects"]
 
     ids = [c.get("id") for c in components if isinstance(c, dict)]
-    if "root" not in ids:
+    if ids.count("root") != 1:
+        # Exactly one root is required: zero leaves the renderer without an
+        # entry point, and duplicate roots make the root ambiguous.
         errors.append("exactly one component must have id == 'root'")
 
     known = set(getattr(catalog, "components", {}) or {})

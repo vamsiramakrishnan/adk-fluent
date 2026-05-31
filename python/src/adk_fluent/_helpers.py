@@ -599,16 +599,20 @@ async def run_one_shot_async(builder, prompt: str) -> str:
     return _parse_structured_output(builder, last_text)
 
 
-async def _adk_run_once(runner, app_name: str, prompt: str) -> str:
+async def _adk_run_once(runner, app_name: str, prompt: str, *, state: dict | None = None) -> str:
     """Run a single prompt on an existing ADK runner in a fresh session.
 
     Factored out so batch execution can build the agent + runner ONCE and
     reuse them across prompts (each prompt gets its own session), instead of
     rebuilding the agent and spinning up a new runner per prompt.
+
+    ``state`` seeds the new session's initial state (e.g. a parent/subagent
+    context handed in by a caller), so it is visible to the agent during the
+    run.
     """
     from google.genai import types
 
-    session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
+    session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user", state=state)
     content = types.Content(role="user", parts=[types.Part(text=prompt)])
     last_text = ""
     async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
