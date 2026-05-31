@@ -82,8 +82,13 @@ function looksLikeTaggedConfig(value: unknown): boolean {
   );
 }
 
-async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
+/**
+ * Run the `visualize` command for an argv slice (everything after the
+ * subcommand). Exported so the top-level CLI dispatcher can reuse it without
+ * re-running module-level bootstrap.
+ */
+export async function cmdVisualize(argv: string[]): Promise<void> {
+  const args = parseArgs(argv);
 
   if (args.help || !args.target) {
     printHelp();
@@ -155,7 +160,15 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  process.stderr.write(`${(err as Error).stack ?? String(err)}\n`);
-  process.exit(1);
-});
+// Self-run only when invoked directly as a script (not when imported by the
+// top-level CLI dispatcher). `import.meta.url` matches argv[1] for the entry.
+const _invokedDirectly =
+  typeof process.argv[1] === "string" &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+
+if (_invokedDirectly) {
+  cmdVisualize(process.argv.slice(2)).catch((err) => {
+    process.stderr.write(`${(err as Error).stack ?? String(err)}\n`);
+    process.exit(1);
+  });
+}
