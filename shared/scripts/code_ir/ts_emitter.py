@@ -237,8 +237,10 @@ _INLINE_HELPERS: dict[str, object] = {
     "_add_skill": [("list", "skills", "PARAM")],
     "add_agent_tool": [("list", "tools", "PARAM")],
     # --- Callback dispatchers ---
+    # Single-phase: a guard registers in after_model only (the documented
+    # default phase), NOT both before+after. Registering in both double-fired
+    # the guard with incompatible argument shapes (llmRequest vs llmResponse).
     "_guard_dispatch": [
-        ("callback", "before_model_callback", "PARAM"),
         ("callback", "after_model_callback", "PARAM"),
     ],
     # --- Static visibility/transfer flags ---

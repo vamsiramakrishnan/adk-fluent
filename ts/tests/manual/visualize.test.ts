@@ -92,7 +92,9 @@ describe("normalize()", () => {
       .guard(() => undefined)
       .build() as Record<string, unknown>;
     const node = normalize(config);
-    expect(node.guardCount).toBe(2);
+    // Single-phase dispatch: one .guard() registers one (after_model) callback,
+    // not two (the old dual before+after registration).
+    expect(node.guardCount).toBe(1);
   });
 
   it("degrades gracefully on unknown shapes", () => {

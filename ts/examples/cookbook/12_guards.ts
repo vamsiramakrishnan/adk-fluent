@@ -14,10 +14,11 @@ const concise = new Agent("concise", "gemini-2.5-flash")
   .guard(G.length({ max: 280 }))
   .build() as Record<string, unknown>;
 
-// `.guard()` wires the same composite into both before/after model callbacks.
-// A single callback lands as the bare value; multiple compose into a function.
-assert.ok(concise.before_model_callback);
+// `.guard()` wires the composite into the after_model callback only (guards are
+// single-phase: they validate/transform the response, so they run after the
+// model — not double-registered into before_model).
 assert.ok(concise.after_model_callback);
+assert.ok(!concise.before_model_callback);
 
 // Composed guards via `|` (TypeScript: `.pipe(...)` on the GComposite).
 const safe = new Agent("safe", "gemini-2.5-flash")
@@ -25,7 +26,7 @@ const safe = new Agent("safe", "gemini-2.5-flash")
   .guard(G.length({ max: 500 }).pipe(G.regex(/password|secret/i, { action: "redact" })))
   .build() as Record<string, unknown>;
 
-assert.ok(safe.before_model_callback);
 assert.ok(safe.after_model_callback);
+assert.ok(!safe.before_model_callback);
 
 export { concise, safe };

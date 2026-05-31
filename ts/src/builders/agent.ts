@@ -466,9 +466,10 @@ export class Agent extends BuilderBase {
    * Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned.
    */
   guard(value: unknown): this {
-    let next: this = this._addCallback("before_model_callback", value);
-    next = next._addCallback("after_model_callback", value);
-    return next;
+    // Single-phase dispatch: register in after_model only (the documented
+    // default guard phase). Registering in both before+after double-fired the
+    // guard with incompatible argument shapes. Mirrors ts_emitter's mapping.
+    return this._addCallback("after_model_callback", value);
   }
 
   /**
