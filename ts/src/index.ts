@@ -10,7 +10,7 @@
  */
 
 // Core
-export { BuilderBase, autoBuild } from "./core/builder-base.js";
+export { BuilderBase, autoBuild, registerBuilderClass } from "./core/builder-base.js";
 export { until, UNSET } from "./core/types.js";
 export type {
   State,
@@ -22,8 +22,17 @@ export type {
 } from "./core/types.js";
 
 // Builders
-export { Agent } from "./builders/agent.js";
+export { Agent, BaseAgent } from "./builders/agent.js";
 export { Pipeline, FanOut, Loop, Fallback } from "./builders/workflow.js";
+
+// Register Agent/BaseAgent for fromDict()/fromNative() reconstruction. The
+// barrel is the single place importing both the builder classes and the
+// registry, so it wires them synchronously — avoiding a circular top-level
+// await in builder-base.ts. (Workflow builders self-register on import.)
+import { registerBuilderClass as _registerBuilderClass } from "./core/builder-base.js";
+import { Agent as _Agent, BaseAgent as _BaseAgent } from "./builders/agent.js";
+_registerBuilderClass("Agent", _Agent);
+_registerBuilderClass("BaseAgent", _BaseAgent);
 
 // Namespaces
 export { S, STransform } from "./namespaces/state.js";
@@ -46,6 +55,9 @@ export {
   ComparisonReport,
   EvalSuite,
   ComparisonSuite,
+  RegressionResult,
+  MetricDelta,
+  RegressionError,
 } from "./namespaces/eval.js";
 export type { ECriterion, EPersonaSpec } from "./namespaces/eval.js";
 export {
@@ -71,6 +83,15 @@ export {
   PermissionMode,
   PermissionBehavior,
   PermissionDecision,
+  InteractiveApprovalHandler,
+  ApprovalRequest,
+  ApprovalVerdict,
+} from "./namespaces/harness/permissions.js";
+export type {
+  PermissionHandler,
+  Responder,
+  ApprovalVerdictValue,
+  InteractiveApprovalOptions,
 } from "./namespaces/harness/permissions.js";
 export { SandboxPolicy } from "./namespaces/harness/sandbox.js";
 export { ErrorStrategy } from "./namespaces/harness/error-strategy.js";
@@ -165,6 +186,7 @@ export {
   SubagentRegistry,
   SubagentRunnerError,
   FakeSubagentRunner,
+  AdkSubagentRunner,
   makeTaskTool,
 } from "./namespaces/harness/subagents.js";
 export type {
@@ -172,6 +194,7 @@ export type {
   SubagentResultOptions,
   SubagentRunner,
   FakeSubagentRunnerOptions,
+  AdkSubagentRunnerOptions,
   SubagentCall,
   TaskTool,
   MakeTaskToolOptions,
@@ -244,7 +267,7 @@ export { Primitive, tap, expect, mapOver, gate, race, dispatch, join } from "./p
 export type { DispatchOptions } from "./primitives/index.js";
 
 // Routing
-export { Route } from "./routing/index.js";
+export { Route, CostRoute } from "./routing/index.js";
 
 // Composition patterns (review_loop, map_reduce, cascade, ...)
 export {

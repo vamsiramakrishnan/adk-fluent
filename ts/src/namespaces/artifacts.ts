@@ -273,6 +273,124 @@ export class A {
   }
 
   // ------------------------------------------------------------------
+  // Subscribe / observe (Capability #7) — artifact change detection
+  // ------------------------------------------------------------------
+
+  /**
+   * Watch an artifact: load its latest content into state[intoKey] for observation.
+   *
+   * SUBSCRIBE / OBSERVATION DUAL of {@link A.publish}. Where `publish` copies
+   * state → artifact, `watch` copies artifact → state so downstream steps and
+   * R reactor rules can observe artifact changes by reading state[intoKey].
+   *
+   * Runtime semantics are intentionally identical to {@link A.snapshot}
+   * (artifact → state, latest version unless `version` is pinned), so it
+   * reuses the existing snapshot op machinery with no new runtime path. The
+   * distinction is one of *intent*:
+   *
+   * - `A.snapshot` is a one-shot, point-in-time copy into a result key.
+   * - `A.watch` is meant to be re-run (inside a Loop, or each turn of a
+   *   change-detection pipeline) to keep state[intoKey] tracking the *latest*
+   *   artifact content. Pair with {@link A.watchVersion} or {@link A.onChange}
+   *   to make a change *detectable* by an R signal.
+   *
+   * @example
+   *   // change-detection loop
+   *   A.watch("inbox.json", { intoKey: "inbox" })
+   *     .pipe(A.watchVersion("inbox.json", { into: "inbox_version" }))
+   */
+  static watch(
+    filename: string,
+    opts?: { intoKey?: string; version?: number; decode?: boolean; scope?: string },
+  ): AComposite {
+    return new AComposite([
+      {
+        // Reuse the snapshot op: artifact -> state bridge, latest version.
+        type: "snapshot",
+        config: {
+          filename,
+          intoKey: opts?.intoKey ?? filename.replace(/\.[^.]+$/, ""),
+          version: opts?.version,
+          decode: opts?.decode ?? true,
+          scope: opts?.scope ?? "agent",
+          // Marker distinguishing re-runnable observation from a one-shot snapshot.
+          watch: true,
+        },
+      },
+    ]);
+  }
+
+  /**
+   * Record an artifact's version metadata into state[into] for change detection.
+   *
+   * Loads the latest version metadata of `filename` into state[into]. Because
+   * the artifact service bumps the version on every write, this is the cheap,
+   * content-free change signal an R reactor rule can fire on:
+   *
+   * @example
+   *   const ver = R.signal("inbox_version");
+   *   const pipeline = A.watchVersion("inbox.json", { into: "inbox_version" });
+   *
+   * SUBSCRIBE DUAL: pairs with {@link A.watch} (content) — `watchVersion` is the
+   * lightweight change-trigger, `watch` is the content load. Reuses the existing
+   * `version` op, so there is no new runtime path.
+   */
+  static watchVersion(filename: string, opts?: { into?: string; scope?: string }): AComposite {
+    return new AComposite([
+      {
+        // Reuse the version op: content-free metadata read into state.
+        type: "version",
+        config: {
+          filename,
+          intoKey: opts?.into ?? `${filename}_version`,
+          scope: opts?.scope ?? "agent",
+          watch: true,
+        },
+      },
+    ]);
+  }
+
+  /**
+   * Bridge an artifact write into a state signal, then run `handler`.
+   *
+   * Returns the steps that, when run, (1) record the artifact's version into
+   * state[versionKey] so a change is detectable, (2) load its content into
+   * state[into] for the handler to consume, and (3) run `handler` (any builder /
+   * agent / function). Mirrors {@link A.publishMany}'s multi-step return shape —
+   * the parallel to Python's `(watch_version_step, watch_step, handler)` tuple.
+   * Feed the steps to `Pipeline.step` (the tuple is not `.pipe()`-chainable
+   * directly because `handler` is a builder, not an AComposite):
+   *
+   * @example
+   *   const [verStep, contentStep, handler] = A.onChange("inbox.json", processor, {
+   *     into: "inbox",
+   *   });
+   *   let pipeline = new Pipeline("react").step(ingest);
+   *   pipeline = pipeline.step(verStep).step(contentStep).step(handler);
+   *
+   * This is the artifact analogue of `builder.on(R.changed(...))`: a guaranteed,
+   * reactor-free "fire on artifact write" set of steps. For true asynchronous
+   * reactor firing, register an R rule on `versionKey` and feed it
+   * {@link A.watchVersion}; `onChange` is the synchronous, in-pipeline form.
+   *
+   * @returns `[watchVersionStep, watchStep, handler]` — feed to `Pipeline.step`.
+   */
+  static onChange<H>(
+    filename: string,
+    handler: H,
+    opts?: { into?: string; versionKey?: string; scope?: string },
+  ): [AComposite, AComposite, H] {
+    const contentKey = opts?.into ?? `_watch_${filename.replace(/\./g, "_")}`;
+    const versionKey = opts?.versionKey ?? `${contentKey}_version`;
+    const scope = opts?.scope;
+    return [
+      A.watchVersion(filename, { into: versionKey, scope }),
+      A.watch(filename, { intoKey: contentKey, scope }),
+      handler,
+    ];
+  }
+
+  // ------------------------------------------------------------------
   // Content transforms (return STransform for state pipeline use)
   // ------------------------------------------------------------------
 

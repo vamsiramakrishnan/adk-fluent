@@ -16,6 +16,7 @@ import { dirname, resolve } from "node:path";
 import type { ToolFn } from "../core/types.js";
 import { A2UIError, A2UINotInstalled } from "../_exceptions.js";
 import { KNOWN_CATALOGS, type CatalogName } from "./ui.js";
+import * as _toolBuilders from "../builders/tool.js";
 
 /** Descriptor for a single tool in the composite. */
 export interface ToolSpec {
@@ -260,6 +261,163 @@ export class T {
       items.map((t) => ({ ...t, preTransform: opts.pre, postTransform: opts.post })),
     );
   }
+
+  // ------------------------------------------------------------------
+  // ADK toolset convenience wrappers (Feature #11 parity)
+  //
+  // These mirror the Python ``T.bigquery`` / ``T.spanner`` / ``T.bigtable`` /
+  // ``T.vertex_ai_search`` / ``T.enterprise_search`` / ``T.url_context`` /
+  // ``T.computer_use`` factories. ``@google/adk`` (the JS port, 0.6.1) does
+  // NOT yet export runtime implementations for these toolsets, so each
+  // wrapper lazily constructs the *generated builder shell* from
+  // ``../builders/tool.js`` and returns its built config record inside a
+  // ``TComposite``. The API surface (and ``.pipe()`` composition) exists
+  // today; full runtime functionality lands once ``@google/adk`` ships the
+  // corresponding toolset classes. The wrappers are intentionally thin:
+  // options pass straight through to the shell's setters.
+  // ------------------------------------------------------------------
+
+  /**
+   * Wrap ADK ``BigQueryToolset`` (BigQuery data + metadata tools).
+   *
+   * Constructs the generated ``BigQueryToolset`` builder shell and returns
+   * its config record. Credentials / tool config / filters are passed
+   * through unchanged. No network or cloud call is made here.
+   */
+  static bigquery(opts?: {
+    credentialsConfig?: unknown;
+    bigqueryToolConfig?: unknown;
+    toolFilter?: unknown;
+  }): TComposite {
+    const Cls = _resolveBuilder<typeof _toolBuilders.BigQueryToolset>("BigQueryToolset");
+    let b = new Cls();
+    if (opts?.credentialsConfig !== undefined) b = b.credentialsConfig(opts.credentialsConfig);
+    if (opts?.bigqueryToolConfig !== undefined) b = b.bigqueryToolConfig(opts.bigqueryToolConfig);
+    if (opts?.toolFilter !== undefined) b = b.toolFilter(opts.toolFilter);
+    return new TComposite([{ type: "toolset", kind: "bigquery", toolset: b.build() }]);
+  }
+
+  /**
+   * Wrap ADK ``SpannerToolset`` (Spanner data + schema tools).
+   *
+   * Constructs the generated ``SpannerToolset`` builder shell and returns
+   * its config record. Credentials / settings / filters pass through.
+   */
+  static spanner(opts?: {
+    credentialsConfig?: unknown;
+    spannerToolSettings?: unknown;
+    toolFilter?: unknown;
+  }): TComposite {
+    const Cls = _resolveBuilder<typeof _toolBuilders.SpannerToolset>("SpannerToolset");
+    let b = new Cls();
+    if (opts?.credentialsConfig !== undefined) b = b.credentialsConfig(opts.credentialsConfig);
+    if (opts?.spannerToolSettings !== undefined)
+      b = b.spannerToolSettings(opts.spannerToolSettings);
+    if (opts?.toolFilter !== undefined) b = b.toolFilter(opts.toolFilter);
+    return new TComposite([{ type: "toolset", kind: "spanner", toolset: b.build() }]);
+  }
+
+  /**
+   * Wrap ADK ``BigtableToolset`` (Bigtable data + metadata tools).
+   *
+   * Constructs the generated ``BigtableToolset`` builder shell and returns
+   * its config record. Credentials / settings / filters pass through.
+   */
+  static bigtable(opts?: {
+    credentialsConfig?: unknown;
+    bigtableToolSettings?: unknown;
+    toolFilter?: unknown;
+  }): TComposite {
+    const Cls = _resolveBuilder<typeof _toolBuilders.BigtableToolset>("BigtableToolset");
+    let b = new Cls();
+    if (opts?.credentialsConfig !== undefined) b = b.credentialsConfig(opts.credentialsConfig);
+    if (opts?.bigtableToolSettings !== undefined)
+      b = b.bigtableToolSettings(opts.bigtableToolSettings);
+    if (opts?.toolFilter !== undefined) b = b.toolFilter(opts.toolFilter);
+    return new TComposite([{ type: "toolset", kind: "bigtable", toolset: b.build() }]);
+  }
+
+  /**
+   * Wrap ADK ``VertexAiSearchTool`` (built-in Vertex AI Search grounding).
+   *
+   * Provide exactly one of ``dataStoreId`` / ``searchEngineId`` /
+   * ``dataStoreSpecs``, matching the ADK tool's own validation. Constructs
+   * the generated builder shell and returns its config record.
+   */
+  static vertexAiSearch(opts?: {
+    dataStoreId?: string;
+    dataStoreSpecs?: unknown;
+    searchEngineId?: string;
+    filter?: string;
+    maxResults?: number;
+    bypassMultiToolsLimit?: boolean;
+  }): TComposite {
+    const Cls = _resolveBuilder<typeof _toolBuilders.VertexAiSearchTool>("VertexAiSearchTool");
+    let b = new Cls();
+    if (opts?.dataStoreId !== undefined) b = b.dataStoreId(opts.dataStoreId);
+    if (opts?.dataStoreSpecs !== undefined) b = b.dataStoreSpecs(opts.dataStoreSpecs);
+    if (opts?.searchEngineId !== undefined) b = b.searchEngineId(opts.searchEngineId);
+    if (opts?.filter !== undefined) b = b.filter(opts.filter);
+    if (opts?.maxResults !== undefined) b = b.maxResults(opts.maxResults);
+    if (opts?.bypassMultiToolsLimit !== undefined)
+      b = b.bypassMultiToolsLimit(opts.bypassMultiToolsLimit);
+    return new TComposite([{ type: "toolset", kind: "vertex_ai_search", toolset: b.build() }]);
+  }
+
+  /** Alias for {@link T.vertexAiSearch}, matching the feature-spec name. */
+  static vertexSearch(opts?: {
+    dataStoreId?: string;
+    dataStoreSpecs?: unknown;
+    searchEngineId?: string;
+    filter?: string;
+    maxResults?: number;
+    bypassMultiToolsLimit?: boolean;
+  }): TComposite {
+    return T.vertexAiSearch(opts);
+  }
+
+  /**
+   * Wrap ADK ``EnterpriseWebSearchTool`` (Gemini 2+ enterprise web grounding).
+   *
+   * A built-in tool with no constructor arguments. Constructs the generated
+   * builder shell and returns its config record.
+   */
+  static enterpriseSearch(): TComposite {
+    const Cls =
+      _resolveBuilder<typeof _toolBuilders.EnterpriseWebSearchTool>("EnterpriseWebSearchTool");
+    return new TComposite([
+      { type: "toolset", kind: "enterprise_search", toolset: new Cls().build() },
+    ]);
+  }
+
+  /**
+   * Wrap ADK ``UrlContextTool`` (Gemini 2 automatic URL content retrieval).
+   *
+   * A built-in tool with no constructor arguments. Constructs the generated
+   * builder shell and returns its config record.
+   */
+  static urlContext(): TComposite {
+    const Cls = _resolveBuilder<typeof _toolBuilders.UrlContextTool>("UrlContextTool");
+    return new TComposite([{ type: "toolset", kind: "url_context", toolset: new Cls().build() }]);
+  }
+
+  /**
+   * Wrap ADK ``ComputerUseToolset`` (screen-control function tools).
+   *
+   * @param computer A ``BaseComputer`` implementation (or its identifier)
+   *   that performs the actual screen/keyboard/mouse actions. Passed through
+   *   to the generated builder shell's constructor unchanged.
+   */
+  static computerUse(
+    computer: unknown,
+    _opts?: { excludedPredefinedFunctions?: string[] },
+  ): TComposite {
+    const Cls = _resolveBuilder<typeof _toolBuilders.ComputerUseToolset>("ComputerUseToolset");
+    // The generated shell types ``computer`` as a string; pass through any
+    // BaseComputer-like value unchanged for forward compatibility.
+    const built = new Cls(computer as string).build();
+    return new TComposite([{ type: "toolset", kind: "computer_use", toolset: built }]);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -342,4 +500,34 @@ function _buildFluxA2UIToolset(): TComposite {
     llmMetadata,
   };
   return new TComposite([spec]);
+}
+
+// ---------------------------------------------------------------------------
+// ADK toolset shell construction (Feature #11 parity)
+// ---------------------------------------------------------------------------
+
+/**
+ * Lazily resolve a generated builder shell class by name from
+ * ``../builders/tool.js``.
+ *
+ * The builder classes are bundled with this package (not ``@google/adk``),
+ * so resolution never touches the network or cloud. Construction of the
+ * resolved class is deferred to the caller — this is the meaningful
+ * laziness: the shell is only built when the ``T.*`` factory is invoked.
+ *
+ * Throws a clear error if the named builder is unexpectedly absent (e.g. a
+ * future codegen change drops the shell), so callers fail loudly rather than
+ * silently producing an empty composite.
+ */
+function _resolveBuilder<C>(name: string): C {
+  const registry = _toolBuilders as unknown as Record<string, unknown>;
+  const Cls = registry[name];
+  if (typeof Cls !== "function") {
+    throw new Error(
+      `T toolset wrapper could not resolve generated builder '${name}'. ` +
+        `Expected an export from '../builders/tool.js'. This indicates a ` +
+        `codegen/version mismatch.`,
+    );
+  }
+  return Cls as C;
 }

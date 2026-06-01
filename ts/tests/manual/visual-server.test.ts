@@ -37,9 +37,7 @@ loadDotenv();
 
 describe("visual server — cookbook discovery", () => {
   it("discovers TypeScript cookbooks", () => {
-    const files = readdirSync(COOKBOOK_DIR).filter((f: string) =>
-      /^\d{2}_.*\.ts$/.test(f),
-    );
+    const files = readdirSync(COOKBOOK_DIR).filter((f: string) => /^\d{2}_.*\.ts$/.test(f));
     expect(files.length).toBeGreaterThan(50);
   });
 
@@ -51,8 +49,7 @@ describe("visual server — cookbook discovery", () => {
     for (const file of files.slice(0, 10)) {
       const content = readFileSync(join(COOKBOOK_DIR, file), "utf-8");
       const hasJsdoc = content.includes("/**");
-      const hasExport =
-        content.includes("export") || content.includes("root_agent");
+      const hasExport = content.includes("export") || content.includes("root_agent");
       expect(hasJsdoc || hasExport).toBe(true);
     }
   });
@@ -73,10 +70,7 @@ describe("visual server — cookbook imports", () => {
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         // Skip known import issues (missing peer deps, etc.)
-        if (
-          msg.includes("Cannot find module") ||
-          msg.includes("not installed")
-        ) {
+        if (msg.includes("Cannot find module") || msg.includes("not installed")) {
           return; // acceptable — peer dep not available
         }
         throw e;
@@ -92,12 +86,7 @@ describe("visual server — agent execution (real LLM)", () => {
     "builds and validates simple_agent for ADK runner",
     async () => {
       const mod = await import(join(COOKBOOK_DIR, "01_simple_agent.ts"));
-      const agent =
-        mod.root_agent ??
-        mod.rootAgent ??
-        mod.agent ??
-        mod.pipeline ??
-        mod.default;
+      const agent = mod.root_agent ?? mod.rootAgent ?? mod.agent ?? mod.pipeline ?? mod.default;
       expect(agent).toBeDefined();
 
       // Verify the built agent has the expected ADK structure

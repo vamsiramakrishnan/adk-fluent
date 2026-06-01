@@ -11,9 +11,21 @@
  * - Method-based operators: .then(), .parallel(), .times() instead of >>, |, *
  */
 
-import type { CallbackFn, StatePredicate, UntilSpec } from "./types.js";
+import type { CallbackFn, State, StatePredicate, UntilSpec } from "./types.js";
 import { visualize as visualizeRender } from "../visualize/index.js";
 import type { VisualizeOptions } from "../visualize/index.js";
+import { CTransform } from "../namespaces/context.js";
+import { STransform } from "../namespaces/state.js";
+import { AComposite } from "../namespaces/artifacts.js";
+import { createRequire } from "module";
+
+/**
+ * A CJS-style ``require`` usable from this ESM module. Used to lazily load
+ * optional dependencies (``yaml``) and ``@google/adk`` type guards without
+ * forcing them into the static import graph.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _moduleRequire: (id: string) => any = createRequire(import.meta.url);
 import {
   Signal,
   SignalPredicate,
@@ -46,6 +58,112 @@ function getWorkflow(name: string): {
     );
   }
   return ctor;
+}
+
+/**
+ * Builder-class registry for ``fromDict`` / ``fromNative`` reconstruction.
+ * Populated lazily so non-workflow builders (Agent, BaseAgent) can be
+ * resolved without a static import cycle. Workflow classes are resolved via
+ * {@link getWorkflow}; Agent registers itself the first time it is needed.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _builderClassRegistry: Record<string, new (...args: any[]) => BuilderBase> = {};
+
+/** Register a builder class for serialization round-trips. */
+export function registerBuilderClass(
+  name: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ctor: new (...args: any[]) => BuilderBase,
+): void {
+  _builderClassRegistry[name] = ctor;
+}
+
+/**
+ * Resolve a serialized ``_type`` name back to its builder class. Workflow
+ * classes come from the workflow registry; Agent / BaseAgent come from the
+ * builder-class registry. Mirrors Python ``_resolve_builder_class``.
+ */
+function resolveBuilderClass(typeName: string): {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (...args: any[]): BuilderBase;
+} {
+  if (typeName in _workflowRegistry) return _workflowRegistry[typeName];
+  if (typeName in _builderClassRegistry) return _builderClassRegistry[typeName];
+  throw new Error(
+    `fromDict/fromNative: unknown builder type "${typeName}". ` +
+      `Known: ${[...Object.keys(_workflowRegistry), ...Object.keys(_builderClassRegistry)].sort().join(", ")}. ` +
+      `Ensure builders/agent.js and builders/workflow.js are imported.`,
+  );
+}
+
+/**
+ * Classify a native ADK agent object into one of the four core kinds.
+ *
+ * Handles (a) the tagged dicts produced by this package's ``.build()``
+ * (which carry a ``_type`` field) and (b) real ``@google/adk`` objects
+ * (whose ``constructor.name`` is minified, so we use the ``is*Agent`` type
+ * guards plus structural duck-typing). Returns ``null`` when unrecognized.
+ */
+function detectNativeKind(
+  native: unknown,
+): "LlmAgent" | "SequentialAgent" | "ParallelAgent" | "LoopAgent" | null {
+  if (native == null || typeof native !== "object") return null;
+  const n = native as Record<string, unknown>;
+
+  // (a) Tagged build-dict from this package.
+  const tagged = n._type;
+  if (
+    tagged === "LlmAgent" ||
+    tagged === "SequentialAgent" ||
+    tagged === "ParallelAgent" ||
+    tagged === "LoopAgent"
+  ) {
+    return tagged;
+  }
+
+  // (b) Real @google/adk object — use the package's type guards if present.
+  try {
+    const adk = _loadAdk();
+    if (adk) {
+      if (typeof adk.isLoopAgent === "function" && adk.isLoopAgent(native)) return "LoopAgent";
+      if (typeof adk.isSequentialAgent === "function" && adk.isSequentialAgent(native))
+        return "SequentialAgent";
+      if (typeof adk.isParallelAgent === "function" && adk.isParallelAgent(native))
+        return "ParallelAgent";
+      if (typeof adk.isLlmAgent === "function" && adk.isLlmAgent(native)) return "LlmAgent";
+    }
+  } catch {
+    /* fall through to structural detection */
+  }
+
+  // (c) Structural fallback: a constructor name match or instruction presence.
+  const ctorName = (native.constructor && native.constructor.name) || "";
+  if (
+    ctorName === "LlmAgent" ||
+    ctorName === "SequentialAgent" ||
+    ctorName === "ParallelAgent" ||
+    ctorName === "LoopAgent"
+  ) {
+    return ctorName as "LlmAgent" | "SequentialAgent" | "ParallelAgent" | "LoopAgent";
+  }
+  if ("maxIterations" in n || "max_iterations" in n) return "LoopAgent";
+  if ("instruction" in n || "model" in n) return "LlmAgent";
+  if ("subAgents" in n || "sub_agents" in n) return "SequentialAgent";
+  return null;
+}
+
+/** Lazily load @google/adk for its type guards. Returns null if unavailable. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _adkCache: any = undefined;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function _loadAdk(): any {
+  if (_adkCache !== undefined) return _adkCache;
+  try {
+    _adkCache = _moduleRequire("@google/adk");
+  } catch {
+    _adkCache = null;
+  }
+  return _adkCache;
 }
 
 /**
@@ -211,14 +329,28 @@ export abstract class BuilderBase<TBuild = unknown> {
    * Returns a Pipeline that runs this builder first, then `other`.
    * If `this` is already a Pipeline, appends `other` as a new step.
    */
-  then(other: BuilderBase | ((...args: unknown[]) => unknown)): BuilderBase {
+  then(
+    other: BuilderBase | ((...args: unknown[]) => unknown) | CTransform | STransform | AComposite,
+  ): BuilderBase {
     const Pipeline = getWorkflow("Pipeline");
+
+    // Cross-namespace: a C (context) transform binds to an adjacent Agent's
+    // ``.context()`` rather than becoming a state step. ``Agent.then(C)``
+    // configures that agent; ``Pipeline.then(C)`` reconfigures the
+    // pipeline's last Agent step. Mirrors Python ``Agent >> C``.
+    // (S and A transforms fall through and are wrapped as a pipeline step,
+    //  exactly like a plain function / fn-step is wrapped today.)
+    if (other instanceof CTransform) {
+      return this._applyContextTransform(other);
+    }
 
     const myName = (this._config.get("name") as string) ?? "";
     const otherName =
       other instanceof BuilderBase
         ? ((other._config.get("name") as string) ?? "")
-        : ((other as { name?: string }).name ?? "fn");
+        : other instanceof STransform || other instanceof AComposite
+          ? ((other as { name?: string }).name ?? "step")
+          : ((other as { name?: string }).name ?? "fn");
 
     if (this instanceof Pipeline) {
       const clone = this._clone();
@@ -232,6 +364,57 @@ export abstract class BuilderBase<TBuild = unknown> {
     const p = new Pipeline(name);
     p._lists.set("sub_agents", [this, other]);
     return p;
+  }
+
+  /**
+   * Bind a C (context) transform to an Agent in a ``.then()`` chain.
+   *
+   * A context transform has no standalone state effect; it shapes what an
+   * agent sees. In a mixed pipeline it therefore attaches to an adjacent
+   * Agent's ``.context()`` instead of becoming a pipeline step:
+   *
+   * - ``Agent.then(C)``    → that agent, configured with the context.
+   * - ``Pipeline.then(C)`` → the pipeline with its **last Agent step**
+   *                          reconfigured. Non-Agent trailing steps
+   *                          (S/A/fn) are skipped to find the agent the
+   *                          context applies to.
+   *
+   * Throws when no Agent is available to receive the context (e.g.
+   * ``FanOut.then(C)`` or a pipeline ending in only S/A steps), pointing
+   * the user at the explicit ``.context()`` form. Mirrors Python
+   * ``_base.py::_apply_context_transform``.
+   */
+  protected _applyContextTransform(ctransform: CTransform): BuilderBase {
+    const Pipeline = getWorkflow("Pipeline");
+
+    // Direct case: self exposes ``.context()`` (an Agent).
+    const maybeCtx = this as unknown as {
+      context?: (spec: unknown) => BuilderBase;
+    };
+    if (typeof maybeCtx.context === "function") {
+      return maybeCtx.context(ctransform);
+    }
+
+    // Pipeline case: rebind the last Agent step's context.
+    if (this instanceof Pipeline) {
+      const clone = this._clone();
+      const steps = (clone._lists.get("sub_agents") ?? []) as unknown[];
+      for (let i = steps.length - 1; i >= 0; i--) {
+        const step = steps[i] as { context?: (spec: unknown) => BuilderBase };
+        if (step && typeof step.context === "function") {
+          steps[i] = step.context(ctransform);
+          clone._lists.set("sub_agents", steps);
+          return clone;
+        }
+      }
+    }
+
+    throw new Error(
+      `Cannot bind a context transform via .then() here: the left operand ` +
+        `(${this.constructor.name}) has no Agent to receive it. A C transform ` +
+        `configures an agent's context — place it adjacent to an Agent ` +
+        `(e.g. agent.then(C.window(5))), or use agent.context(C...).`,
+    );
   }
 
   /**
@@ -424,8 +607,7 @@ export abstract class BuilderBase<TBuild = unknown> {
       pred = (predicate as Signal<unknown>).changed;
     } else {
       throw new TypeError(
-        ".on(predicate, ...) requires a SignalPredicate or Signal. " +
-          `Got ${typeof predicate}.`,
+        ".on(predicate, ...) requires a SignalPredicate or Signal. " + `Got ${typeof predicate}.`,
       );
     }
 
@@ -458,6 +640,474 @@ export abstract class BuilderBase<TBuild = unknown> {
   }
 
   // ------------------------------------------------------------------
+  // Contracts: consumes / produces / enforceContracts (annotation + runtime)
+  // ------------------------------------------------------------------
+
+  /**
+   * Annotate what state keys this agent reads. Contract-only by default —
+   * NO runtime effect unless promoted via {@link enforceContracts}.
+   *
+   * ``schema`` may be any object whose field names can be recovered:
+   * a Zod object (``.shape`` / ``.keyof()``), an explicit
+   * ``{ fields: string[] }`` descriptor, an array of key strings, or a
+   * plain object (its own keys). Mirrors Python ``_base.py::consumes``.
+   */
+  consumes(schema: unknown): this {
+    let next = this._setConfig("_consumes", schema);
+    // If enforcement is already enabled, (re)install the gate over THIS clone's
+    // schema so calling .consumes() after .enforceContracts() still enforces.
+    if (next._config.get("_enforceConsumes")) {
+      next = next._installContractGate(
+        "before_agent_callback",
+        "consumes",
+        next._makeConsumesGate(schema),
+      );
+    }
+    return next;
+  }
+
+  /**
+   * Annotate what state keys this agent writes. Contract-only by default —
+   * NO runtime effect unless promoted via {@link enforceContracts}.
+   * Mirrors Python ``_base.py::produces``.
+   */
+  produces(schema: unknown): this {
+    let next = this._setConfig("_produces", schema);
+    if (next._config.get("_enforceProduces")) {
+      next = next._installContractGate(
+        "after_agent_callback",
+        "produces",
+        next._makeProducesGate(schema),
+      );
+    }
+    return next;
+  }
+
+  /**
+   * Promote {@link consumes} / {@link produces} annotations to RUNTIME checks.
+   *
+   * * **consumes** — installs a ``before_agent_callback`` asserting every
+   *   state key named by the consumes schema is present before execution.
+   * * **produces** — installs an ``after_agent_callback`` asserting every
+   *   state key named by the produces schema was actually written.
+   *
+   * Violations throw an ``Error``. The schema is read live at execution
+   * time, so call order relative to ``.consumes()`` / ``.produces()`` does
+   * not matter. Mirrors Python ``_base.py::enforce_contracts``.
+   */
+  enforceContracts(opts: { consumes?: boolean; produces?: boolean } = {}): this {
+    const checkConsumes = opts.consumes ?? true;
+    const checkProduces = opts.produces ?? true;
+
+    let next: this = this._setConfig("_enforceConsumes", checkConsumes)._setConfig(
+      "_enforceProduces",
+      checkProduces,
+    );
+
+    // Install gates now for any schema already declared. .consumes() /
+    // .produces() called LATER re-install over their own clone (so call order
+    // does not matter), and the marker keeps exactly one gate per kind. Each
+    // gate closes over the schema VALUE — not a builder clone — so it stays
+    // correct across immutable clones without sharing mutable state, keeping
+    // sub-expression reuse safe.
+    const consumesSchema = next._config.get("_consumes");
+    if (checkConsumes && consumesSchema != null) {
+      next = next._installContractGate(
+        "before_agent_callback",
+        "consumes",
+        next._makeConsumesGate(consumesSchema),
+      );
+    }
+    const producesSchema = next._config.get("_produces");
+    if (checkProduces && producesSchema != null) {
+      next = next._installContractGate(
+        "after_agent_callback",
+        "produces",
+        next._makeProducesGate(producesSchema),
+      );
+    }
+    return next;
+  }
+
+  /** Build the before-agent gate enforcing a consumes schema (value-captured). */
+  private _makeConsumesGate(schema: unknown): CallbackFn {
+    const name = (this._config.get("name") as string) ?? "?";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (callbackContext: any) => {
+      const state = (callbackContext?.state ?? {}) as State;
+      const missing = BuilderBase._schemaFieldNames(schema).filter((k) => !(k in state));
+      if (missing.length > 0) {
+        throw new Error(
+          `contract violation: agent '${name}' .consumes() requires state ` +
+            `key(s) [${missing.join(", ")}], which are absent before execution.`,
+        );
+      }
+      return undefined;
+    };
+  }
+
+  /** Build the after-agent gate enforcing a produces schema (value-captured). */
+  private _makeProducesGate(schema: unknown): CallbackFn {
+    const name = (this._config.get("name") as string) ?? "?";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (callbackContext: any) => {
+      const state = (callbackContext?.state ?? {}) as State;
+      const missing = BuilderBase._schemaFieldNames(schema).filter((k) => !(k in state));
+      if (missing.length > 0) {
+        throw new Error(
+          `contract violation: agent '${name}' .produces() promised state ` +
+            `key(s) [${missing.join(", ")}], which were not written.`,
+        );
+      }
+      return undefined;
+    };
+  }
+
+  /**
+   * Install a contract gate on a callback list, replacing any prior gate with
+   * the same marker so re-running .consumes() / .produces() never duplicates it.
+   */
+  private _installContractGate(callbackKey: string, marker: string, gate: CallbackFn): this {
+    const clone = this._clone();
+    const existing = clone._callbacks.get(callbackKey) ?? [];
+    const tagged = gate as CallbackFn & { __contractGate?: string };
+    tagged.__contractGate = marker;
+    const filtered = existing.filter(
+      (fn) => (fn as CallbackFn & { __contractGate?: string }).__contractGate !== marker,
+    );
+    filtered.push(tagged);
+    clone._callbacks.set(callbackKey, filtered);
+    return clone;
+  }
+
+  /**
+   * Recover the field names declared by a contract schema.
+   *
+   * Supports several shapes so the contract layer is not coupled to a
+   * single schema library:
+   * - ``{ fields: string[] }`` — explicit descriptor
+   * - ``string[]`` — bare key list
+   * - Zod object — ``.shape`` keys (or ``.keyof().options``)
+   * - plain object — its own enumerable keys
+   */
+  protected static _schemaFieldNames(schema: unknown): string[] {
+    if (schema == null) return [];
+    if (Array.isArray(schema)) {
+      return schema.filter((x): x is string => typeof x === "string");
+    }
+    const obj = schema as Record<string, unknown>;
+    // Explicit descriptor: { fields: [...] }
+    if (Array.isArray(obj.fields)) {
+      return (obj.fields as unknown[]).filter((x): x is string => typeof x === "string");
+    }
+    // Zod object: prefer .shape (plain object of field → validator)
+    const shape = (obj as { shape?: unknown }).shape;
+    if (shape && typeof shape === "object") {
+      return Object.keys(shape as Record<string, unknown>);
+    }
+    // Zod object via internal _def.shape() accessor
+    const def = (obj as { _def?: { shape?: unknown } })._def;
+    if (def && typeof def.shape === "function") {
+      try {
+        const s = (def.shape as () => Record<string, unknown>)();
+        if (s && typeof s === "object") return Object.keys(s);
+      } catch {
+        /* fall through */
+      }
+    }
+    // Zod keyof().options
+    const keyofFn = (obj as { keyof?: () => { options?: unknown } }).keyof;
+    if (typeof keyofFn === "function") {
+      try {
+        const options = keyofFn.call(obj).options;
+        if (Array.isArray(options)) {
+          return options.filter((x): x is string => typeof x === "string");
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    // Plain object: use own enumerable keys.
+    return Object.keys(obj);
+  }
+
+  // ------------------------------------------------------------------
+  // Flow control: proceedIf
+  // ------------------------------------------------------------------
+
+  /**
+   * Only run this agent if ``predicate(state)`` is truthy. Installs a
+   * ``before_agent_callback`` gate. When the predicate returns a falsy
+   * value the agent is skipped (the gate returns an empty ``model`` content
+   * marker so the pipeline continues to the next step).
+   *
+   * Errors thrown *inside* the predicate PROPAGATE — they are NOT silently
+   * treated as "skip". A thrown error (e.g. a typo'd state key) is a bug,
+   * not a skip signal. Guard against missing keys explicitly
+   * (e.g. ``(s) => s.valid === "yes"``). Mirrors Python ``_base.py::proceed_if``.
+   */
+  proceedIf(predicate: StatePredicate): this {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const gate: CallbackFn = (callbackContext: any) => {
+      const state = (callbackContext?.state ?? {}) as State;
+      // Predicate errors intentionally propagate (no try/catch).
+      if (!predicate(state)) {
+        // Skip marker: an empty model-role content, mirroring the Python
+        // ``types.Content(role="model", parts=[])`` sentinel.
+        return { role: "model", parts: [] };
+      }
+      return undefined;
+    };
+    return this._addCallback("before_agent_callback", gate);
+  }
+
+  // ------------------------------------------------------------------
+  // Serialization: toDict / fromDict / toYaml / fromYaml / fromNative
+  // ------------------------------------------------------------------
+
+  /**
+   * Serialize a single value for dict/yaml output. Nested builders recurse
+   * via {@link toDict}; callables collapse to their name string (NOT
+   * round-trippable). Mirrors Python ``_serialize_value``.
+   */
+  protected static _serializeValue(v: unknown): unknown {
+    if (v instanceof BuilderBase) return v.toDict();
+    if (Array.isArray(v)) return v.map((x) => BuilderBase._serializeValue(x));
+    if (typeof v === "function") {
+      return (v as { name?: string }).name || "<fn>";
+    }
+    if (v && typeof v === "object") {
+      // Avoid serializing exotic class instances structurally; only plain
+      // objects round-trip cleanly. Keep scalars/plain dicts.
+      const proto = Object.getPrototypeOf(v);
+      if (proto === Object.prototype || proto === null) {
+        const out: Record<string, unknown> = {};
+        for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+          out[k] = BuilderBase._serializeValue(val);
+        }
+        return out;
+      }
+      // Non-plain object (e.g. a built ADK agent or schema) — best-effort tag.
+      const name = (v as { name?: string }).name;
+      return name ? `<obj:${name}>` : String(v);
+    }
+    return v;
+  }
+
+  /**
+   * Deserialization dual of {@link _serializeValue}. Reconstructs nested
+   * builder-dicts (``{ _type: ... }``) into builders, recursing through
+   * arrays/objects. Scalars and callable-name strings pass through unchanged
+   * (callables are NOT restored). Mirrors Python ``_revive_value``.
+   */
+  protected static _reviveValue(v: unknown): unknown {
+    if (v && typeof v === "object" && !Array.isArray(v) && "_type" in (v as object)) {
+      return BuilderBase.fromDict(v as Record<string, unknown>);
+    }
+    if (Array.isArray(v)) return v.map((x) => BuilderBase._reviveValue(x));
+    if (v && typeof v === "object") {
+      const proto = Object.getPrototypeOf(v);
+      if (proto === Object.prototype || proto === null) {
+        const out: Record<string, unknown> = {};
+        for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+          out[k] = BuilderBase._reviveValue(val);
+        }
+        return out;
+      }
+    }
+    return v;
+  }
+
+  /**
+   * Serialize builder state to a plain dict: ``{ _type, config, callbacks,
+   * lists }``. A **structural** snapshot — config scalars and nested builder
+   * topology round-trip via {@link fromDict}, but callables (callbacks,
+   * tools) are stored as name-only strings and are NOT restored. Mirrors
+   * Python ``_base.py::to_dict``.
+   */
+  toDict(): Record<string, unknown> {
+    const config: Record<string, unknown> = {};
+    for (const [k, v] of this._config) {
+      if (k.startsWith("_")) continue;
+      config[k] = BuilderBase._serializeValue(v);
+    }
+    const callbacks: Record<string, string[]> = {};
+    for (const [field, fns] of this._callbacks) {
+      if (field.startsWith("_") || fns.length === 0) continue;
+      callbacks[field] = fns.map((fn) => String(BuilderBase._serializeValue(fn)));
+    }
+    const lists: Record<string, unknown[]> = {};
+    for (const [field, items] of this._lists) {
+      if (field.startsWith("_") || items.length === 0) continue;
+      lists[field] = items.map((item) => BuilderBase._serializeValue(item));
+    }
+    return {
+      _type: this.constructor.name,
+      config,
+      callbacks,
+      lists,
+    };
+  }
+
+  /**
+   * Reconstruct a builder from a {@link toDict} payload. Structural
+   * round-trip: restores builder *type*, config scalars, and nested builder
+   * topology (recursively). Callables are NOT restored (see {@link toDict}).
+   * Mirrors Python ``_base.py::from_dict``.
+   */
+  static fromDict(data: Record<string, unknown>): BuilderBase {
+    const typeName = (data._type as string) ?? "Agent";
+    const builderCls = resolveBuilderClass(typeName);
+    const config = { ...((data.config as Record<string, unknown>) ?? {}) };
+    const name = (config.name as string) ?? "";
+    const obj = new builderCls(name);
+    for (const [key, value] of Object.entries(config)) {
+      if (key === "name") continue;
+      obj._config.set(key, BuilderBase._reviveValue(value));
+    }
+    const lists = (data.lists as Record<string, unknown[]>) ?? {};
+    for (const [field, items] of Object.entries(lists)) {
+      for (const item of items) {
+        if (item && typeof item === "object" && "_type" in (item as object)) {
+          const bucket = (obj._lists.get(field) ?? []) as unknown[];
+          bucket.push(BuilderBase.fromDict(item as Record<string, unknown>));
+          obj._lists.set(field, bucket);
+        }
+      }
+    }
+    return obj;
+  }
+
+  /**
+   * Serialize builder state to a YAML string. Requires the optional ``yaml``
+   * package; throws a clear Error if it is not installed (mirrors Python's
+   * ``[yaml]`` extra gating). Shares the structural-snapshot limitations of
+   * {@link toDict}.
+   */
+  toYaml(): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let yaml: any;
+    try {
+      yaml = _moduleRequire("yaml");
+    } catch {
+      throw new Error(
+        "toYaml() requires the optional 'yaml' package. Install it with: npm install yaml",
+      );
+    }
+    return yaml.stringify(this.toDict());
+  }
+
+  /**
+   * Reconstruct a builder from YAML produced by {@link toYaml}. ``source``
+   * may be a YAML string or a path to a ``.yaml`` / ``.yml`` file. Requires
+   * the optional ``yaml`` package. Shares {@link fromDict}'s structural
+   * round-trip semantics (callables are not restored). Mirrors Python
+   * ``_base.py::from_yaml``.
+   */
+  static fromYaml(source: string): BuilderBase {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let yaml: any;
+    try {
+      yaml = _moduleRequire("yaml");
+    } catch {
+      throw new Error(
+        "fromYaml() requires the optional 'yaml' package. Install it with: npm install yaml",
+      );
+    }
+    let text = source;
+    if (!source.includes("\n") && /\.(ya?ml)$/.test(source)) {
+      try {
+        const fs = _moduleRequire("fs");
+        if (fs.existsSync(source)) {
+          text = fs.readFileSync(source, "utf8");
+        }
+      } catch {
+        /* treat source as inline YAML */
+      }
+    }
+    const data = yaml.parse(text) as Record<string, unknown>;
+    return BuilderBase.fromDict(data);
+  }
+
+  /**
+   * Adopt a native ADK agent object as a fluent builder — the inverse of
+   * ``build()``. Recovers name / model / instruction / description / tools
+   * and sub-agent topology (recursively) for the core agent types:
+   *
+   * - ``LlmAgent``        → ``Agent``
+   * - ``SequentialAgent`` → ``Pipeline``
+   * - ``ParallelAgent``   → ``FanOut``
+   * - ``LoopAgent``       → ``Loop``
+   *
+   * Accepts both real ``@google/adk`` objects (detected via their
+   * ``is*Agent`` type guards — their ``constructor.name`` is minified) and
+   * the tagged dicts produced by this package's ``.build()`` (detected via
+   * the ``_type`` field). Throws a clear Error for unsupported native types.
+   * Mirrors Python ``_base.py::from_native``.
+   */
+  static fromNative(native: unknown): BuilderBase {
+    if (native == null || typeof native !== "object") {
+      throw new Error(`fromNative: expected a native ADK agent object, got ${typeof native}.`);
+    }
+    const n = native as Record<string, unknown>;
+    const kind = detectNativeKind(native);
+    const name = (n.name as string) ?? "";
+
+    const carryDescription = (b: BuilderBase): void => {
+      const desc = n.description;
+      if (desc) b._config.set("description", desc);
+    };
+    const subAgentsOf = (): unknown[] =>
+      (n.subAgents as unknown[]) ?? (n.sub_agents as unknown[]) ?? [];
+
+    if (kind === "SequentialAgent" || kind === "ParallelAgent" || kind === "LoopAgent") {
+      const children = subAgentsOf().map((c) => BuilderBase.fromNative(c));
+      let builder: BuilderBase;
+      if (kind === "SequentialAgent") {
+        builder = new (getWorkflow("Pipeline"))(name);
+      } else if (kind === "ParallelAgent") {
+        builder = new (getWorkflow("FanOut"))(name);
+      } else {
+        builder = new (getWorkflow("Loop"))(name);
+        const maxIter = (n.maxIterations as number) ?? (n.max_iterations as number);
+        if (maxIter) builder._config.set("max_iterations", maxIter);
+      }
+      builder._lists.set("sub_agents", children);
+      carryDescription(builder);
+      return builder;
+    }
+
+    if (kind === "LlmAgent") {
+      const model = n.model;
+      const modelStr =
+        typeof model === "string"
+          ? model
+          : ((model as { model?: string } | null)?.model ?? undefined);
+      const AgentCtor = resolveBuilderClass("Agent");
+      const builder = modelStr ? new AgentCtor(name) : new AgentCtor(name);
+      if (modelStr) builder._config.set("model", modelStr);
+      const instr = n.instruction;
+      if (instr) builder._config.set("instruction", instr);
+      carryDescription(builder);
+      const tools = (n.tools as unknown[]) ?? [];
+      if (tools.length > 0) builder._lists.set("tools", [...tools]);
+      const subs = subAgentsOf();
+      if (subs.length > 0) {
+        builder._lists.set(
+          "sub_agents",
+          subs.map((s) => BuilderBase.fromNative(s)),
+        );
+      }
+      return builder;
+    }
+
+    throw new Error(
+      `fromNative: unsupported native agent type. ` +
+        `Supported: LlmAgent, SequentialAgent, ParallelAgent, LoopAgent.`,
+    );
+  }
+
+  // ------------------------------------------------------------------
   // toString / Symbol.toStringTag
   // ------------------------------------------------------------------
 
@@ -481,3 +1131,12 @@ export function autoBuild<T>(item: BuilderBase<T> | T): T {
   }
   return item;
 }
+
+// Agent / BaseAgent registration for fromDict / fromNative reconstruction is
+// performed by the package barrel (index.ts), which imports those classes and
+// calls registerBuilderClass(...) synchronously. A top-level await here would
+// deadlock the barrel's circular module graph (index → builder-base → agent →
+// builder-base). Workflow builders self-register via the _workflowRegistry
+// when builders/workflow.js loads. Callers importing builder-base in isolation
+// (without the barrel or an explicit registerBuilderClass) get the clear
+// "not registered" error from resolveBuilderClass.

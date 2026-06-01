@@ -126,10 +126,7 @@ describe("SignalPredicate — debounce/throttle immutability fix", () => {
 
 describe("Builder.on()", () => {
   it("attaches a RuleSpec to the builder", () => {
-    const agent = new Agent("cooler", "gemini-2.5-flash").on(
-      R.rising("temp"),
-      () => {},
-    );
+    const agent = new Agent("cooler", "gemini-2.5-flash").on(R.rising("temp"), () => {});
     const rules = agent._reactor_rules;
     expect(rules).toHaveLength(1);
     expect(rules[0]!.predicate.deps[0]!.name).toBe("temp");
@@ -185,9 +182,7 @@ describe("R.compile — rule discovery through composite builders", () => {
       .branch(new Agent("x").on(R.changed("a"), () => {}))
       .branch(new Agent("y").on(R.changed("b"), () => {}));
     const reactor = R.compile([fa]);
-    const names = new Set(
-      reactor.getRules().map((rule) => rule.predicate.deps[0]!.name),
-    );
+    const names = new Set(reactor.getRules().map((rule) => rule.predicate.deps[0]!.name));
     expect(names).toEqual(new Set(["a", "b"]));
   });
 
