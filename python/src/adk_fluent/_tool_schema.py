@@ -52,22 +52,20 @@ class ToolSchema(metaclass=ToolSchemaMetaclass):
     @classmethod
     def reads_keys(cls) -> frozenset[str]:
         """State keys this tool reads (with scope prefixes)."""
-        keys: list[str] = []
-        for f in cls._field_list:
-            r = f.get_annotation(Reads)
-            if r is not None:
-                keys.append(_scoped_key(f.name, r.scope))
-        return frozenset(keys)
+        return frozenset(
+            _scoped_key(f.name, r.scope)
+            for f in cls._field_list
+            if (r := f.get_annotation(Reads)) is not None
+        )
 
     @classmethod
     def writes_keys(cls) -> frozenset[str]:
         """State keys this tool writes (with scope prefixes)."""
-        keys: list[str] = []
-        for f in cls._field_list:
-            w = f.get_annotation(Writes)
-            if w is not None:
-                keys.append(_scoped_key(f.name, w.scope))
-        return frozenset(keys)
+        return frozenset(
+            _scoped_key(f.name, w.scope)
+            for f in cls._field_list
+            if (w := f.get_annotation(Writes)) is not None
+        )
 
     @classmethod
     def param_names(cls) -> frozenset[str]:

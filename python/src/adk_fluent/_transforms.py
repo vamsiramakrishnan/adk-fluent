@@ -328,26 +328,21 @@ def _combine_transforms(first: STransform, second: STransform) -> STransform:
     """
 
     def _combined(state: dict) -> StateDelta | StateReplacement:
-        result1 = first(state)
-        result2 = second(state)
-
-        # Both StateDelta — merge updates
-        if isinstance(result1, StateDelta) and isinstance(result2, StateDelta):
-            return StateDelta({**result1.updates, **result2.updates})
-
-        # Both StateReplacement — merge new_state
-        if isinstance(result1, StateReplacement) and isinstance(result2, StateReplacement):
-            return StateReplacement({**result1.new_state, **result2.new_state})
-
-        # StateReplacement + StateDelta → apply delta on top of replacement
-        if isinstance(result1, StateReplacement) and isinstance(result2, StateDelta):
-            return StateReplacement({**result1.new_state, **result2.updates})
-
-        # StateDelta + StateReplacement → replacement wins
-        if isinstance(result1, StateDelta) and isinstance(result2, StateReplacement):
-            return result2
-
-        return StateDelta({})
+        match (first(state), second(state)):
+            # Both StateDelta — merge updates (second wins on conflicts)
+            case (StateDelta(updates=a), StateDelta(updates=b)):
+                return StateDelta({**a, **b})
+            # Both StateReplacement — merge new_state (second wins)
+            case (StateReplacement(new_state=a), StateReplacement(new_state=b)):
+                return StateReplacement({**a, **b})
+            # StateReplacement + StateDelta → apply delta on top of replacement
+            case (StateReplacement(new_state=base), StateDelta(updates=delta)):
+                return StateReplacement({**base, **delta})
+            # StateDelta + StateReplacement → replacement wins
+            case (StateDelta(), StateReplacement() as replacement):
+                return replacement
+            case _:
+                return StateDelta({})
 
     reads = _merge_keysets(first._reads_keys, second._reads_keys)
     writes = _merge_keysets(first._writes_keys, second._writes_keys)

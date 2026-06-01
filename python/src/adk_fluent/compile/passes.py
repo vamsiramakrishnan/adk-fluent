@@ -20,6 +20,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 from adk_fluent._ir import TransformNode
+from adk_fluent._ir_generated import SequenceNode
 
 __all__ = [
     "run_passes",
@@ -36,8 +37,8 @@ __all__ = [
 
 
 def _is_sequence_node(node: Any) -> bool:
-    """Check if node is a SequenceNode without importing (avoids circular)."""
-    return type(node).__name__ == "SequenceNode"
+    """Check if node is a SequenceNode."""
+    return isinstance(node, SequenceNode)
 
 
 def _get_children(node: Any) -> tuple:

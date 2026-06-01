@@ -63,12 +63,11 @@ class PredicateSchema(metaclass=PredicateSchemaMetaclass):
 
     @classmethod
     def reads_keys(cls) -> frozenset[str]:
-        keys: list[str] = []
-        for f in cls._field_list:
-            r = f.get_annotation(Reads)
-            if r is not None:
-                keys.append(_scoped_key(f.name, r.scope))
-        return frozenset(keys)
+        return frozenset(
+            _scoped_key(f.name, r.scope)
+            for f in cls._field_list
+            if (r := f.get_annotation(Reads)) is not None
+        )
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({', '.join(f.name for f in self._field_list)})"

@@ -79,7 +79,7 @@ class GenerateResult:
 
     @property
     def has_tool_calls(self) -> bool:
-        return len(self.tool_calls) > 0
+        return bool(self.tool_calls)
 
 
 @dataclass

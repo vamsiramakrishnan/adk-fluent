@@ -64,7 +64,8 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -1476,7 +1477,7 @@ class E:
                 if score < effective_threshold:
                     failed.append(f"{criterion.metric_name}: {score:.2f} < {effective_threshold}")
 
-            passed = len(failed) == 0
+            passed = not failed
             result: dict[str, Any] = {
                 "_eval_gate_passed": passed,
                 "_eval_gate_criteria": repr(criteria),
@@ -1519,27 +1520,40 @@ def _resolve_agent_name(agent: Any) -> str:
     return str(agent)
 
 
-async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
-    """Execute an evaluation suite and return an EvalReport.
+@contextmanager
+def _temp_root_agent_module(built_agent: Any) -> Iterator[str]:
+    """Register a throwaway module exposing ``root_agent`` for the ADK evaluator.
 
-    This creates a temporary module reference for the ADK evaluator,
-    builds the agent, and runs the evaluation.
+    The ADK ``AgentEvaluator`` resolves agents by importable module name, so we
+    publish the built agent under a unique name in ``sys.modules`` for the
+    duration of the eval and unregister it on the way out — even if the eval
+    raises.
     """
     import sys
     import types
 
+    mod_name = f"_adk_fluent_eval_{uuid.uuid4().hex[:8]}"
+    mod = types.ModuleType(mod_name)
+    mod.root_agent = built_agent  # type: ignore[attr-defined]
+    sys.modules[mod_name] = mod
+    try:
+        yield mod_name
+    finally:
+        sys.modules.pop(mod_name, None)
+
+
+async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
+    """Execute an evaluation suite and return an EvalReport.
+
+    This builds the agent, registers it under a temporary module name for the
+    ADK evaluator, and runs the evaluation.
+    """
     agent = suite._agent
 
     # Build the agent if it's a builder
     built_agent = agent
     if hasattr(agent, "build"):
         built_agent = agent.build()
-
-    # Create a temporary module that exposes root_agent
-    mod_name = f"_adk_fluent_eval_{uuid.uuid4().hex[:8]}"
-    mod = types.ModuleType(mod_name)
-    mod.root_agent = built_agent  # type: ignore[attr-defined]
-    sys.modules[mod_name] = mod
 
     suite_name = getattr(suite, "_name", "") or getattr(suite, "name", "") or "eval_suite"
 
@@ -1562,7 +1576,7 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
         except Exception:  # noqa: BLE001 — events never block eval
             return None
 
-    try:
+    with _temp_root_agent_module(built_agent) as mod_name:
         eval_set = suite.to_eval_set()
         eval_config = suite.to_eval_config()
 
@@ -1610,8 +1624,6 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
             thresholds=thresholds,
             passed=passed,
         )
-    finally:
-        sys.modules.pop(mod_name, None)
 
 
 def _resolve_gate_text(state: dict[str, Any], output_key: str | None) -> str | None:
@@ -1636,7 +1648,7 @@ def _resolve_gate_text(state: dict[str, Any], output_key: str | None) -> str | N
         if key.startswith(("_", "temp:", "app:")):
             continue
         val = state[key]
-        if isinstance(val, str) and len(val) > 0:
+        if isinstance(val, str) and val:
             return val
 
     return None

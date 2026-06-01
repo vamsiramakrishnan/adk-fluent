@@ -29,6 +29,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from adk_fluent._ir import RouteNode
+from adk_fluent._ir_generated import AgentNode, LoopNode, ParallelNode, SequenceNode
+
 
 @dataclass
 class AgentSummary:
@@ -517,7 +520,7 @@ def _check_common_mistakes(
 
     # 10. Route node with no rules
     def _check_empty_routes(node: Any) -> None:
-        if type(node).__name__ == "RouteNode":
+        if isinstance(node, RouteNode):
             rules = getattr(node, "rules", ())
             if not rules:
                 issues.append(
@@ -535,7 +538,7 @@ def _check_common_mistakes(
 
     # 11. .returns(Schema) + .tool() conflict — tools silently disabled
     def _check_schema_tool_conflict(node: Any) -> None:
-        if type(node).__name__ == "AgentNode":
+        if isinstance(node, AgentNode):
             has_schema = getattr(node, "output_schema", None) is not None
             has_tools = bool(getattr(node, "tools", ()))
             if has_schema and has_tools:
@@ -579,7 +582,7 @@ def _check_common_mistakes(
 
     # 13. Parallel branches writing to same state key
     def _check_parallel_writes(node: Any) -> None:
-        if type(node).__name__ == "ParallelNode":
+        if isinstance(node, ParallelNode):
             write_keys: dict[str, list[str]] = {}  # key -> [agent names]
             for child in getattr(node, "children", ()):
                 child_name = getattr(child, "name", "?")
@@ -602,11 +605,9 @@ def _check_common_mistakes(
     _check_parallel_writes(ir_node)
 
     # 14. Workflow container with instruction/model/tools — these don't apply
-    container_types = {"SequenceNode", "ParallelNode", "LoopNode"}
-
     def _check_container_misuse(node: Any) -> None:
         ntype = type(node).__name__
-        if ntype in container_types:
+        if isinstance(node, (SequenceNode, ParallelNode, LoopNode)):
             name = getattr(node, "name", "?")
             if getattr(node, "instruction", ""):
                 issues.append(
