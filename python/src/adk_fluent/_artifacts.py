@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import mimetypes
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Literal
 
 from adk_fluent._context import CTransform
@@ -164,6 +164,61 @@ class ATransform:
     @property
     def __name__(self) -> str:  # type: ignore[override]
         return self._name
+
+
+def _artifact_noop(state: dict) -> None:
+    """Shared no-op marker for declarative artifact ops.
+
+    ``ATransform`` carries the *description* of an artifact operation; the real
+    work happens in ``ArtifactAgent`` at runtime. Every op shares this single
+    sentinel instead of allocating an identical ``lambda state: None``.
+    """
+    return None
+
+
+def _artifact_op(
+    op: Literal["publish", "snapshot", "save", "load", "list", "version", "delete"],
+    *,
+    name: str,
+    bridges_state: bool = False,
+    filename: str | None = None,
+    from_key: str | None = None,
+    into_key: str | None = None,
+    mime: str | None = None,
+    scope: Literal["session", "user"] = "session",
+    version: int | None = None,
+    metadata: dict[str, Any] | None = None,
+    content: str | bytes | None = None,
+    decode: bool = False,
+    produces_artifact: frozenset[str] = frozenset(),
+    consumes_artifact: frozenset[str] = frozenset(),
+    produces_state: frozenset[str] = frozenset(),
+    consumes_state: frozenset[str] = frozenset(),
+) -> ATransform:
+    """Construct an ``ATransform`` op descriptor, defaulting the inert fields.
+
+    Centralises the 17-field constructor so each ``A.*`` factory only spells
+    out what makes it distinct (op kind, the keys it touches, and its name).
+    """
+    return ATransform(
+        _fn=_artifact_noop,
+        _op=op,
+        _bridges_state=bridges_state,
+        _filename=filename,
+        _from_key=from_key,
+        _into_key=into_key,
+        _mime=mime,
+        _scope=scope,
+        _version=version,
+        _metadata=metadata,
+        _content=content,
+        _decode=decode,
+        _produces_artifact=produces_artifact,
+        _consumes_artifact=consumes_artifact,
+        _produces_state=produces_state,
+        _consumes_state=consumes_state,
+        _name=name,
+    )
 
 
 def _make_artifact_context_provider(
@@ -439,24 +494,17 @@ class A:
         STATE BRIDGE: reads state[from_key], copies to versioned artifact.
         """
         resolved_mime = mime or _MimeConstants.detect(filename)
-        return ATransform(
-            _fn=lambda state: None,
-            _op="publish",
-            _bridges_state=True,
-            _filename=filename,
-            _from_key=from_key,
-            _into_key=None,
-            _mime=resolved_mime,
-            _scope=scope,
-            _version=None,
-            _metadata=metadata,
-            _content=None,
-            _decode=False,
-            _produces_artifact=frozenset({filename}),
-            _consumes_artifact=frozenset(),
-            _produces_state=frozenset(),
-            _consumes_state=frozenset({from_key}),
-            _name=f"publish_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "publish",
+            name=f"publish_{filename.replace('.', '_')}",
+            bridges_state=True,
+            filename=filename,
+            from_key=from_key,
+            mime=resolved_mime,
+            scope=scope,
+            metadata=metadata,
+            produces_artifact=frozenset({filename}),
+            consumes_state=frozenset({from_key}),
         )
 
     @staticmethod
@@ -472,24 +520,17 @@ class A:
 
         STATE BRIDGE: loads artifact, copies point-in-time content into state[into_key].
         """
-        return ATransform(
-            _fn=lambda state: None,
-            _op="snapshot",
-            _bridges_state=True,
-            _filename=filename,
-            _from_key=None,
-            _into_key=into_key,
-            _mime=None,
-            _scope=scope,
-            _version=version,
-            _metadata=None,
-            _content=None,
-            _decode=decode,
-            _produces_artifact=frozenset(),
-            _consumes_artifact=frozenset({filename}),
-            _produces_state=frozenset({into_key}),
-            _consumes_state=frozenset(),
-            _name=f"snapshot_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "snapshot",
+            name=f"snapshot_{filename.replace('.', '_')}",
+            bridges_state=True,
+            filename=filename,
+            into_key=into_key,
+            scope=scope,
+            version=version,
+            decode=decode,
+            consumes_artifact=frozenset({filename}),
+            produces_state=frozenset({into_key}),
         )
 
     @staticmethod
@@ -534,24 +575,17 @@ class A:
             decode: Decode binary inline_data as UTF-8 text (mirrors snapshot).
             scope: ``"session"`` (default) or ``"user"``.
         """
-        return ATransform(
-            _fn=lambda state: None,
-            _op="snapshot",
-            _bridges_state=True,
-            _filename=filename,
-            _from_key=None,
-            _into_key=into,
-            _mime=None,
-            _scope=scope,
-            _version=version,
-            _metadata=None,
-            _content=None,
-            _decode=decode,
-            _produces_artifact=frozenset(),
-            _consumes_artifact=frozenset({filename}),
-            _produces_state=frozenset({into}),
-            _consumes_state=frozenset(),
-            _name=f"watch_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "snapshot",
+            name=f"watch_{filename.replace('.', '_')}",
+            bridges_state=True,
+            filename=filename,
+            into_key=into,
+            scope=scope,
+            version=version,
+            decode=decode,
+            consumes_artifact=frozenset({filename}),
+            produces_state=frozenset({into}),
         )
 
     @staticmethod
@@ -582,24 +616,14 @@ class A:
             into: State key to write the version metadata dict into.
             scope: ``"session"`` (default) or ``"user"``.
         """
-        return ATransform(
-            _fn=lambda state: None,
-            _op="version",
-            _bridges_state=False,
-            _filename=filename,
-            _from_key=None,
-            _into_key=into,
-            _mime=None,
-            _scope=scope,
-            _version=None,
-            _metadata=None,
-            _content=None,
-            _decode=False,
-            _produces_artifact=frozenset(),
-            _consumes_artifact=frozenset({filename}),
-            _produces_state=frozenset({into}),
-            _consumes_state=frozenset(),
-            _name=f"watch_version_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "version",
+            name=f"watch_version_{filename.replace('.', '_')}",
+            filename=filename,
+            into_key=into,
+            scope=scope,
+            consumes_artifact=frozenset({filename}),
+            produces_state=frozenset({into}),
         )
 
     @staticmethod
@@ -661,24 +685,15 @@ class A:
     ) -> ATransform:
         """Save literal content to artifact service. No state bridge."""
         resolved_mime = mime or _MimeConstants.detect(filename)
-        return ATransform(
-            _fn=lambda state: None,
-            _op="save",
-            _bridges_state=False,
-            _filename=filename,
-            _from_key=None,
-            _into_key=None,
-            _mime=resolved_mime,
-            _scope=scope,
-            _version=None,
-            _metadata=metadata,
-            _content=content,
-            _decode=False,
-            _produces_artifact=frozenset({filename}),
-            _consumes_artifact=frozenset(),
-            _produces_state=frozenset(),
-            _consumes_state=frozenset(),
-            _name=f"save_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "save",
+            name=f"save_{filename.replace('.', '_')}",
+            filename=filename,
+            mime=resolved_mime,
+            scope=scope,
+            metadata=metadata,
+            content=content,
+            produces_artifact=frozenset({filename}),
         )
 
     @staticmethod
@@ -688,47 +703,22 @@ class A:
         scope: Literal["session", "user"] = "session",
     ) -> ATransform:
         """Load artifact for pipeline composition. No state bridge."""
-        return ATransform(
-            _fn=lambda state: None,
-            _op="load",
-            _bridges_state=False,
-            _filename=filename,
-            _from_key=None,
-            _into_key=None,
-            _mime=None,
-            _scope=scope,
-            _version=None,
-            _metadata=None,
-            _content=None,
-            _decode=False,
-            _produces_artifact=frozenset(),
-            _consumes_artifact=frozenset({filename}),
-            _produces_state=frozenset(),
-            _consumes_state=frozenset(),
-            _name=f"load_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "load",
+            name=f"load_{filename.replace('.', '_')}",
+            filename=filename,
+            scope=scope,
+            consumes_artifact=frozenset({filename}),
         )
 
     @staticmethod
     def list(*, into_key: str) -> ATransform:
         """List artifact filenames into state. Lightweight metadata only."""
-        return ATransform(
-            _fn=lambda state: None,
-            _op="list",
-            _bridges_state=False,
-            _filename=None,
-            _from_key=None,
-            _into_key=into_key,
-            _mime=None,
-            _scope="session",
-            _version=None,
-            _metadata=None,
-            _content=None,
-            _decode=False,
-            _produces_artifact=frozenset(),
-            _consumes_artifact=frozenset(),
-            _produces_state=frozenset({into_key}),
-            _consumes_state=frozenset(),
-            _name="list_artifacts",
+        return _artifact_op(
+            "list",
+            name="list_artifacts",
+            into_key=into_key,
+            produces_state=frozenset({into_key}),
         )
 
     @staticmethod
@@ -738,47 +728,22 @@ class A:
         into_key: str,
     ) -> ATransform:
         """Get artifact version metadata into state. Lightweight metadata only."""
-        return ATransform(
-            _fn=lambda state: None,
-            _op="version",
-            _bridges_state=False,
-            _filename=filename,
-            _from_key=None,
-            _into_key=into_key,
-            _mime=None,
-            _scope="session",
-            _version=None,
-            _metadata=None,
-            _content=None,
-            _decode=False,
-            _produces_artifact=frozenset(),
-            _consumes_artifact=frozenset({filename}),
-            _produces_state=frozenset({into_key}),
-            _consumes_state=frozenset(),
-            _name=f"version_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "version",
+            name=f"version_{filename.replace('.', '_')}",
+            filename=filename,
+            into_key=into_key,
+            consumes_artifact=frozenset({filename}),
+            produces_state=frozenset({into_key}),
         )
 
     @staticmethod
     def delete(filename: str) -> ATransform:
         """Delete all versions of an artifact. No state involvement."""
-        return ATransform(
-            _fn=lambda state: None,
-            _op="delete",
-            _bridges_state=False,
-            _filename=filename,
-            _from_key=None,
-            _into_key=None,
-            _mime=None,
-            _scope="session",
-            _version=None,
-            _metadata=None,
-            _content=None,
-            _decode=False,
-            _produces_artifact=frozenset(),
-            _consumes_artifact=frozenset(),
-            _produces_state=frozenset(),
-            _consumes_state=frozenset(),
-            _name=f"delete_{filename.replace('.', '_')}",
+        return _artifact_op(
+            "delete",
+            name=f"delete_{filename.replace('.', '_')}",
+            filename=filename,
         )
 
     @staticmethod
@@ -921,25 +886,7 @@ class A:
                 return transform._fn(state)
             return None
 
-        return ATransform(
-            _fn=_conditional,
-            _op=transform._op,
-            _bridges_state=transform._bridges_state,
-            _filename=transform._filename,
-            _from_key=transform._from_key,
-            _into_key=transform._into_key,
-            _mime=transform._mime,
-            _scope=transform._scope,
-            _version=transform._version,
-            _metadata=transform._metadata,
-            _content=transform._content,
-            _decode=transform._decode,
-            _produces_artifact=transform._produces_artifact,
-            _consumes_artifact=transform._consumes_artifact,
-            _produces_state=transform._produces_state,
-            _consumes_state=transform._consumes_state,
-            _name=f"when_{transform._name}",
-        )
+        return replace(transform, _fn=_conditional, _name=f"when_{transform._name}")
 
     @staticmethod
     def for_llm(
