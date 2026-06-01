@@ -1,4 +1,19 @@
-"""BuilderBase mixin -- shared capabilities for all generated fluent builders."""
+"""BuilderBase -- shared capabilities for all generated fluent builders.
+
+``BuilderBase`` composes three focused mixins, each living in its own module:
+
+* :class:`~adk_fluent._base_operators.OperatorsMixin` — the expression language
+  (``>>`` ``|`` ``*`` ``@`` ``//``) and its support helpers.
+* :class:`~adk_fluent._base_introspection.IntrospectionMixin` — ``explain`` /
+  ``inspect`` / docs-URL rendering.
+* :class:`~adk_fluent._base_serialization.SerializationMixin` — dict / YAML /
+  native (de)serialization.
+
+This module keeps the core fluent-chain machinery: storage init, copy-on-write
+forking, build, the ``@fluent`` setter decorator, data-flow (``reads`` /
+``writes`` / ``returns`` / …), flow control, and the module-level helpers the
+mixins import lazily.
+"""
 
 from __future__ import annotations
 
