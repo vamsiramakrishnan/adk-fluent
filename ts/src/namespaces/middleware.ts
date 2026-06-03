@@ -89,6 +89,19 @@ export class MComposite {
  *
  * All 28 methods from the Python M namespace.
  */
+/**
+ * Build a single-spec composite. Collapses the repeated
+ * `new MComposite([{ name, config }])` boilerplate every M.* factory would
+ * otherwise spell out, mirroring the Python `_artifact_op` factory.
+ */
+function spec(
+  name: string,
+  config: Record<string, unknown> = {},
+  hooks?: MiddlewareHooks,
+): MComposite {
+  return new MComposite([hooks ? { name, config, hooks } : { name, config }]);
+}
+
 export class M {
   // ------------------------------------------------------------------
   // Observability
@@ -96,37 +109,32 @@ export class M {
 
   /** Retry with exponential backoff. */
   static retry(opts?: { maxAttempts?: number; backoff?: number }): MComposite {
-    return new MComposite([
-      {
-        name: "retry",
-        config: { maxAttempts: opts?.maxAttempts ?? 3, backoff: opts?.backoff ?? 2.0 },
-      },
-    ]);
+    return spec("retry", { maxAttempts: opts?.maxAttempts ?? 3, backoff: opts?.backoff ?? 2.0 });
   }
 
   /** Structured event logging. */
   static log(): MComposite {
-    return new MComposite([{ name: "log", config: {} }]);
+    return spec("log");
   }
 
   /** Token usage tracking. */
   static cost(): MComposite {
-    return new MComposite([{ name: "cost", config: {} }]);
+    return spec("cost");
   }
 
   /** Per-agent latency tracking. */
   static latency(): MComposite {
-    return new MComposite([{ name: "latency", config: {} }]);
+    return spec("latency");
   }
 
   /** Topology event logging (loops, fanout, routes, fallbacks, timeouts). */
   static topologyLog(): MComposite {
-    return new MComposite([{ name: "topology_log", config: {} }]);
+    return spec("topology_log");
   }
 
   /** Dispatch/join lifecycle logging. */
   static dispatchLog(): MComposite {
-    return new MComposite([{ name: "dispatch_log", config: {} }]);
+    return spec("dispatch_log");
   }
 
   // ------------------------------------------------------------------
@@ -135,22 +143,12 @@ export class M {
 
   /** Restrict middleware to specific agents. */
   static scope(agents: string[], mw: MComposite): MComposite {
-    return new MComposite([
-      {
-        name: "scope",
-        config: { agents, middleware: mw.middlewares },
-      },
-    ]);
+    return spec("scope", { agents, middleware: mw.middlewares });
   }
 
   /** Conditional middleware. */
   static when(condition: CallbackFn | ((state: State) => boolean), mw: MComposite): MComposite {
-    return new MComposite([
-      {
-        name: "when",
-        config: { condition, middleware: mw.middlewares },
-      },
-    ]);
+    return spec("when", { condition, middleware: mw.middlewares });
   }
 
   // ------------------------------------------------------------------
@@ -159,42 +157,42 @@ export class M {
 
   /** Pre-agent hook. */
   static beforeAgent(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "before_agent", config: { fn } }]);
+    return spec("before_agent", { fn });
   }
 
   /** Post-agent hook. */
   static afterAgent(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "after_agent", config: { fn } }]);
+    return spec("after_agent", { fn });
   }
 
   /** Pre-model hook. */
   static beforeModel(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "before_model", config: { fn } }]);
+    return spec("before_model", { fn });
   }
 
   /** Post-model hook. */
   static afterModel(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "after_model", config: { fn } }]);
+    return spec("after_model", { fn });
   }
 
   /** Loop iteration hook. */
   static onLoop(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "on_loop", config: { fn } }]);
+    return spec("on_loop", { fn });
   }
 
   /** Timeout event hook. */
   static onTimeout(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "on_timeout", config: { fn } }]);
+    return spec("on_timeout", { fn });
   }
 
   /** Routing event hook. */
   static onRoute(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "on_route", config: { fn } }]);
+    return spec("on_route", { fn });
   }
 
   /** Fallback event hook. */
   static onFallback(fn: CallbackFn): MComposite {
-    return new MComposite([{ name: "on_fallback", config: { fn } }]);
+    return spec("on_fallback", { fn });
   }
 
   // ------------------------------------------------------------------
@@ -203,55 +201,35 @@ export class M {
 
   /** Circuit breaker: trips open after N consecutive errors. */
   static circuitBreaker(opts?: { threshold?: number; resetAfter?: number }): MComposite {
-    return new MComposite([
-      {
-        name: "circuit_breaker",
-        config: {
-          threshold: opts?.threshold ?? 5,
-          resetAfter: opts?.resetAfter ?? 60,
-        },
-      },
-    ]);
+    return spec("circuit_breaker", {
+      threshold: opts?.threshold ?? 5,
+      resetAfter: opts?.resetAfter ?? 60,
+    });
   }
 
   /** Per-agent execution timeout. */
   static timeout(seconds: number): MComposite {
-    return new MComposite([{ name: "timeout", config: { seconds } }]);
+    return spec("timeout", { seconds });
   }
 
   /** Cache LLM responses with TTL. */
   static cache(opts?: { ttl?: number; keyFn?: CallbackFn }): MComposite {
-    return new MComposite([
-      {
-        name: "cache",
-        config: { ttl: opts?.ttl ?? 300, keyFn: opts?.keyFn },
-      },
-    ]);
+    return spec("cache", { ttl: opts?.ttl ?? 300, keyFn: opts?.keyFn });
   }
 
   /** Auto-downgrade to fallback model on failure. */
   static fallbackModel(model: string): MComposite {
-    return new MComposite([{ name: "fallback_model", config: { model } }]);
+    return spec("fallback_model", { model });
   }
 
   /** Suppress duplicate model calls within a sliding window. */
   static dedup(opts?: { window?: number }): MComposite {
-    return new MComposite([
-      {
-        name: "dedup",
-        config: { window: opts?.window ?? 60 },
-      },
-    ]);
+    return spec("dedup", { window: opts?.window ?? 60 });
   }
 
   /** Probabilistic middleware: fires inner middleware only N% of the time. */
   static sample(rate: number, mw?: MComposite): MComposite {
-    return new MComposite([
-      {
-        name: "sample",
-        config: { rate, middleware: mw?.middlewares },
-      },
-    ]);
+    return spec("sample", { rate, middleware: mw?.middlewares });
   }
 
   // ------------------------------------------------------------------
@@ -279,13 +257,7 @@ export class M {
    * A custom ``tracer`` may be injected for advanced wiring/testing.
    */
   static trace(opts?: { exporter?: unknown; tracer?: unknown }): MComposite {
-    return new MComposite([
-      {
-        name: "trace",
-        config: { exporter: opts?.exporter },
-        hooks: new TraceMiddleware(opts?.tracer),
-      },
-    ]);
+    return spec("trace", { exporter: opts?.exporter }, new TraceMiddleware(opts?.tracer));
   }
 
   /**
@@ -304,13 +276,7 @@ export class M {
    * may be injected for advanced wiring/testing.
    */
   static metrics(opts?: { collector?: unknown; meter?: unknown }): MComposite {
-    return new MComposite([
-      {
-        name: "metrics",
-        config: { collector: opts?.collector },
-        hooks: new MetricsMiddleware(opts?.meter),
-      },
-    ]);
+    return spec("metrics", { collector: opts?.collector }, new MetricsMiddleware(opts?.meter));
   }
 
   // ------------------------------------------------------------------
@@ -324,17 +290,12 @@ export class M {
     agents?: string[];
     onRetry?: CallbackFn;
   }): MComposite {
-    return new MComposite([
-      {
-        name: "a2a_retry",
-        config: {
-          maxAttempts: opts?.maxAttempts ?? 3,
-          backoff: opts?.backoff ?? 2.0,
-          agents: opts?.agents,
-          onRetry: opts?.onRetry,
-        },
-      },
-    ]);
+    return spec("a2a_retry", {
+      maxAttempts: opts?.maxAttempts ?? 3,
+      backoff: opts?.backoff ?? 2.0,
+      agents: opts?.agents,
+      onRetry: opts?.onRetry,
+    });
   }
 
   /** Circuit breaker for A2A remote agents. */
@@ -345,18 +306,13 @@ export class M {
     onOpen?: CallbackFn;
     onClose?: CallbackFn;
   }): MComposite {
-    return new MComposite([
-      {
-        name: "a2a_circuit_breaker",
-        config: {
-          threshold: opts?.threshold ?? 5,
-          resetAfter: opts?.resetAfter ?? 60,
-          agents: opts?.agents,
-          onOpen: opts?.onOpen,
-          onClose: opts?.onClose,
-        },
-      },
-    ]);
+    return spec("a2a_circuit_breaker", {
+      threshold: opts?.threshold ?? 5,
+      resetAfter: opts?.resetAfter ?? 60,
+      agents: opts?.agents,
+      onOpen: opts?.onOpen,
+      onClose: opts?.onClose,
+    });
   }
 
   /** Per-delegation timeout for A2A remote agents. */
@@ -365,16 +321,11 @@ export class M {
     agents?: string[];
     onTimeout?: CallbackFn;
   }): MComposite {
-    return new MComposite([
-      {
-        name: "a2a_timeout",
-        config: {
-          seconds: opts?.seconds ?? 30,
-          agents: opts?.agents,
-          onTimeout: opts?.onTimeout,
-        },
-      },
-    ]);
+    return spec("a2a_timeout", {
+      seconds: opts?.seconds ?? 30,
+      agents: opts?.agents,
+      onTimeout: opts?.onTimeout,
+    });
   }
 
   // ------------------------------------------------------------------
@@ -383,15 +334,10 @@ export class M {
 
   /** Log A2UI surface operations. */
   static a2uiLog(opts?: { level?: "info" | "debug" | "trace"; agents?: string[] }): MComposite {
-    return new MComposite([
-      {
-        name: "a2ui_log",
-        config: {
-          level: opts?.level ?? "info",
-          agents: opts?.agents,
-        },
-      },
-    ]);
+    return spec("a2ui_log", {
+      level: opts?.level ?? "info",
+      agents: opts?.agents,
+    });
   }
 }
 
