@@ -1972,3 +1972,7 @@ The version in `python/src/adk_fluent/_version.py` is the single source of truth
 <p align="center">
   <sub>Crafted with ♥ by the adk-fluent crew · every <code>.build()</code> returns a real ADK object.</sub>
 </p>
+
+## Related projects
+
+- [adk-hackathon-demo-fluent](https://github.com/vamsiramakrishnan/adk-hackathon-demo-fluent). See the fluent API in a multi-agent network-outage demo.
