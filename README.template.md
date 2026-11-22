@@ -1,6 +1,6 @@
 # adk-fluent
 
-Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.github.io/adk-docs/). Reduces agent creation from 22+ lines to 1-3 lines while producing identical native ADK objects.
+Build and compose Google ADK agents through a fluent API, then hand native ADK objects to the runtime you already use.
 
 <p align="center">
   <a href="https://pypi.org/project/adk-fluent/"><img alt="PyPI" src="https://img.shields.io/pypi/v/adk-fluent?label=PyPI&color=3775A9"></a>
@@ -12,6 +12,19 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 </p>
 
 > **Monorepo:** This repository is a dual-language monorepo. The Python package (`adk-fluent`) lives in [`python/`](python/) and the TypeScript package (`adk-fluent-ts`) lives in [`ts/`](ts/). Shared generation tooling, manifests, and seeds live in [`shared/`](shared/). Both packages are generated from the same manifest and expose the same surface area.
+
+## Choose a starting path
+
+| Need | Start here | Result |
+|---|---|---|
+| Build one Python agent | [Install](#install), then [Quick Start](#quick-start) | A native ADK object from a fluent builder |
+| Compose sequential or parallel work | [Expression language](#expression-language) | A composed agent workflow |
+| Use TypeScript | [Packages](#packages) | The TypeScript package and its build instructions |
+| Inspect a wider example | [Cookbook](#cookbook) | A named scenario to adapt and test |
+
+Constructing an agent and invoking a model are separate steps. Configure the
+model backend for execution. The builders change authoring; ADK still supplies
+the runtime behavior. Check [compatibility](#adk-compatibility) before upgrading.
 
 ## Table of Contents
 
